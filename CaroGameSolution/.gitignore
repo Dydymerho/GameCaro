@@ -1,0 +1,69 @@
+﻿# Giữ các file solution, project và mã nguồn
+# Tránh các file và thư mục tạm/build/debug
+
+# Tùy chọn Visual Studio (User options)
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build/Output thư mục
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+[Tt]emp/
+[Tt]est[Rr]esults/
+[Bb]uild/
+[Dd]ist/
+
+# Thư mục NuGet (chứa package)
+packages/
+# Nếu dùng .NET Core/SDK Style Projects
+.vs/
+.history/
+*/bin/
+*/obj/
+*.bak
+
+# Các file tạm và file khóa
+*.*.vspscc
+*.vssscc
+*.builds
+*.log
+*.pdb
+*.optr
+*.aps
+*.ncb
+*.pyc
+*.rpt
+*.scc
+*.vcd
+*.vsp
+*.vspx
+*.xsc
+*.xss
+*.xuo
+*.resharper
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# File Backup của Visual Studio
+*.zip
+*.rar
+~*.doc
+~*.docx
+~*.xls
+~*.xlsx
+
+# Editor-specific files
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+
+# DotNet tool files
+.dotnet/
