@@ -1,0 +1,17 @@
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.Form1.resources
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.csproj.GenerateResource.cache
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.AssemblyInfoInputs.cache
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.AssemblyInfo.cs
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.csproj.CoreCompileInputs.cache
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.sourcelink.json
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\bin\Debug\net8.0-windows\CaroLAN.exe
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\bin\Debug\net8.0-windows\CaroLAN.deps.json
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\bin\Debug\net8.0-windows\CaroLAN.runtimeconfig.json
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\bin\Debug\net8.0-windows\CaroLAN.dll
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\bin\Debug\net8.0-windows\CaroLAN.pdb
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.dll
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\refint\CaroLAN.dll
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.pdb
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\CaroLAN.genruntimeconfig.cache
+C:\Users\Admin\source\repos\GameCaro\CaroLAN\CaroLAN\obj\Debug\net8.0-windows\ref\CaroLAN.dll
