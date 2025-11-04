@@ -30,6 +30,7 @@ namespace WinFormServer
                 {
                     try
                     {
+                        logAction?.Invoke("Đang chờ kết nối từ client...");
                         Socket client = socket.Accept();
                         lock (clients)
                         {
@@ -46,9 +47,10 @@ namespace WinFormServer
                         logAction?.Invoke("Lỗi khi chấp nhận kết nối từ client.");
                     }
                 }
-                acceptThread.IsBackground = true;
-                acceptThread.Start();
+                
             });
+            acceptThread.IsBackground = true;
+            acceptThread.Start();
             lock (threads) threads.Add(acceptThread);
 
 
@@ -195,5 +197,34 @@ namespace WinFormServer
             }
             
         }
+
+        public List<string> GetConnectedClients()
+        {
+            lock (clients)
+            {
+                List<string> connectedClients = new List<string>();
+
+                foreach (var client in clients)
+                {
+                    try
+                    {
+                        // Perform a non-blocking check to ensure the client is still connected
+                        if (client.Connected)
+                        {
+                            connectedClients.Add(client.RemoteEndPoint.ToString());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the exception and skip this client
+                        Console.WriteLine($"Error checking client connection: {ex.Message}");
+                    }
+                }
+
+                return connectedClients;
+            }
+        }
+
+
     }
 }

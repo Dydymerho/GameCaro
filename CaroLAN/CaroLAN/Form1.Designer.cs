@@ -20,55 +20,81 @@
 
         private void InitializeComponent()
         {
-            this.pnlChessBoard = new System.Windows.Forms.Panel();
-            this.btnCreateServer = new System.Windows.Forms.Button();
-            this.btnConnect = new System.Windows.Forms.Button();
-            this.txtIP = new System.Windows.Forms.TextBox();
-            this.lblStatus = new System.Windows.Forms.Label();
-            this.SuspendLayout();
-            
+            pnlChessBoard = new Panel();
+            btnCreateServer = new Button();
+            btnConnect = new Button();
+            txtIP = new TextBox();
+            lblStatus = new Label();
+            btnRestart = new Button();
+            SuspendLayout();
+            // 
             // pnlChessBoard
-            this.pnlChessBoard.Location = new System.Drawing.Point(12, 60);
-            this.pnlChessBoard.Size = new System.Drawing.Size(500, 500);
-            this.pnlChessBoard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-           
+            // 
+            pnlChessBoard.BorderStyle = BorderStyle.FixedSingle;
+            pnlChessBoard.Location = new Point(12, 60);
+            pnlChessBoard.Name = "pnlChessBoard";
+            pnlChessBoard.Size = new Size(500, 500);
+            pnlChessBoard.TabIndex = 1;
+            // 
             // btnCreateServer
-            this.btnCreateServer.Location = new System.Drawing.Point(530, 60);
-            this.btnCreateServer.Size = new System.Drawing.Size(120, 40);
-            this.btnCreateServer.Text = "Tạo Server";
-            this.btnCreateServer.Click += new System.EventHandler(this.btnCreateServer_Click);
+            // 
+            btnCreateServer.Location = new Point(530, 60);
+            btnCreateServer.Name = "btnCreateServer";
+            btnCreateServer.Size = new Size(120, 40);
+            btnCreateServer.TabIndex = 2;
+            btnCreateServer.Text = "Tạo Server";
+            btnCreateServer.Click += btnCreateServer_Click;
+            // 
             // btnConnect
-            this.btnConnect.Location = new System.Drawing.Point(530, 150);
-            this.btnConnect.Size = new System.Drawing.Size(120, 40);
-            this.btnConnect.Text = "Kết nối";
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
-         
+            // 
+            btnConnect.Location = new Point(530, 150);
+            btnConnect.Name = "btnConnect";
+            btnConnect.Size = new Size(120, 40);
+            btnConnect.TabIndex = 3;
+            btnConnect.Text = "Kết nối";
+            btnConnect.Click += btnConnect_Click;
+            // 
             // txtIP
-            this.txtIP.Location = new System.Drawing.Point(530, 120);
-            this.txtIP.Size = new System.Drawing.Size(120, 23);
-            this.txtIP.Text = "127.0.0.1";
+            // 
+            txtIP.Location = new Point(530, 120);
+            txtIP.Name = "txtIP";
+            txtIP.Size = new Size(120, 27);
+            txtIP.TabIndex = 4;
+            txtIP.Text = "127.0.0.1";
+            txtIP.TextChanged += txtIP_TextChanged;
+            // 
             // lblStatus
-            this.lblStatus.Location = new System.Drawing.Point(530, 200);
-            this.lblStatus.AutoSize = true;
-            this.lblStatus.Text = "Trạng thái: Chưa kết nối";
+            // 
+            lblStatus.AutoSize = true;
+            lblStatus.Location = new Point(530, 200);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(165, 20);
+            lblStatus.TabIndex = 5;
+            lblStatus.Text = "Trạng thái: Chưa kết nối";
+            lblStatus.Click += lblStatus_Click;
+            // 
             // btnRestart
-            this.btnRestart = new System.Windows.Forms.Button();
-            this.btnRestart.Location = new System.Drawing.Point(530, 250);
-            this.btnRestart.Size = new System.Drawing.Size(120, 40);
-            this.btnRestart.Text = "Chơi lại";
-            this.btnRestart.Click += new System.EventHandler(this.btnRestart_Click);
-            this.Controls.Add(this.btnRestart);
-
+            // 
+            btnRestart.Location = new Point(530, 250);
+            btnRestart.Name = "btnRestart";
+            btnRestart.Size = new Size(120, 40);
+            btnRestart.TabIndex = 0;
+            btnRestart.Text = "Chơi lại";
+            btnRestart.Click += btnRestart_Click;
+            // 
             // Form1
-            this.ClientSize = new System.Drawing.Size(670, 580);
-            this.Controls.Add(this.pnlChessBoard);
-            this.Controls.Add(this.btnCreateServer);
-            this.Controls.Add(this.btnConnect);
-            this.Controls.Add(this.txtIP);
-            this.Controls.Add(this.lblStatus);
-            this.Text = "Caro LAN";
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            // 
+            ClientSize = new Size(670, 580);
+            Controls.Add(btnRestart);
+            Controls.Add(pnlChessBoard);
+            Controls.Add(btnCreateServer);
+            Controls.Add(btnConnect);
+            Controls.Add(txtIP);
+            Controls.Add(lblStatus);
+            Name = "Form1";
+            Text = "Caro LAN";
+            ResumeLayout(false);
+            PerformLayout();
         }
     }
 }

@@ -34,6 +34,7 @@
             btnStop = new Button();
             lblStatus = new Label();
             label1 = new Label();
+            button1 = new Button();
             SuspendLayout();
             // 
             // txtLog
@@ -94,11 +95,22 @@
             label1.TabIndex = 5;
             label1.Text = "Client da ket noi";
             // 
+            // button1
+            // 
+            button1.Location = new Point(666, 75);
+            button1.Name = "button1";
+            button1.Size = new Size(94, 29);
+            button1.TabIndex = 6;
+            button1.Text = "refresh";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
             // ServerForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 494);
+            Controls.Add(button1);
             Controls.Add(label1);
             Controls.Add(lblStatus);
             Controls.Add(btnStop);
@@ -119,5 +131,6 @@
         private Button btnStop;
         private Label lblStatus;
         private Label label1;
+        private Button button1;
     }
 }

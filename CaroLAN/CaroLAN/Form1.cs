@@ -24,14 +24,15 @@ namespace CaroLAN
 
         private void btnCreateServer_Click(object sender, EventArgs e)
         {
-            socket.CreateServer();
-            lblStatus.Text = "Đang chờ kết nối...";
-            StartListening();
+            //socket.CreateServer();
+            //lblStatus.Text = "Đang chờ kết nối...";
+            //StartListening();
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (socket.ConnectToServer(txtIP.Text))
+            string serverIP = txtIP.Text.Trim();
+            if (socket.ConnectToServer(serverIP))
             {
                 lblStatus.Text = "Đã kết nối đến server";
                 StartListening();
@@ -103,6 +104,16 @@ namespace CaroLAN
         private void ChessBoard_GameEnded(object sender, Player winner)
         {
             MessageBox.Show($"Người chơi {winner} thắng!");
+        }
+
+        private void txtIP_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblStatus_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

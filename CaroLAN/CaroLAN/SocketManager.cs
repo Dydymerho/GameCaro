@@ -10,36 +10,16 @@ namespace CaroLAN
     {
         public const int PORT = 9999;
         private Socket socket;
-        private string IP = "127.0.0.1";
-        private bool isServer;
 
-        public bool IsServer => isServer;
 
-        public void CreateServer()
-        {
-            isServer = true;
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, PORT);
-            socket.Bind(endpoint);
-            socket.Listen(1);
-
-            Thread acceptThread = new Thread(() =>
-            {
-                Socket client = socket.Accept();
-                socket = client;
-            });
-            acceptThread.IsBackground = true;
-            acceptThread.Start();
-        }
 
         public bool ConnectToServer(string ip)
         {
             try
             {
-                isServer = false;
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(ip), PORT);
-                socket.Connect(endpoint);
+                IPEndPoint serverendpoint = new IPEndPoint(IPAddress.Parse(ip), PORT);
+                socket.Connect(serverendpoint);
                 return true;
             }
             catch

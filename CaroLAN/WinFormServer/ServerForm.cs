@@ -1,5 +1,4 @@
-﻿using CaroServerApp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
@@ -11,10 +10,10 @@ namespace WinFormServer
         public ServerForm()
         {
             InitializeComponent();
-            
+
         }
 
-        
+
         private void txtLog_TextChanged(object sender, EventArgs e)
         {
 
@@ -33,7 +32,7 @@ namespace WinFormServer
             btnStart.Enabled = false;
             btnStop.Enabled = true;
         }
-        
+
         private void btnStop_Click(object sender, EventArgs e)
         {
             try
@@ -48,7 +47,7 @@ namespace WinFormServer
             {
                 txtLog.AppendText("Lỗi khi dừng server.\n");
             }
-            
+
         }
 
         private void LogToTextBox(string message)
@@ -64,6 +63,29 @@ namespace WinFormServer
             {
                 txtLog.AppendText(message + Environment.NewLine);
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            UpdateClientList();
+        }
+
+        private void UpdateClientList()
+        {
+            LogToTextBox("Cập nhật danh sách client...");
+            // Lấy danh sách các client đã kết nối từ ServerSocketManager
+            List<string> connectedClients = socket.GetConnectedClients();
+            LogToTextBox($"Number of connected clients: {connectedClients.Count}");
+
+
+            // Cập nhật lstClients trên giao diện
+            lstClients.Items.Clear();
+            foreach (string client in connectedClients)
+            {
+                lstClients.Items.Add(client);
+            }
+            LogToTextBox("Client list updated.");
+
         }
     }
 }
