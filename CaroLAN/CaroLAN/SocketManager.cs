@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace CaroLAN
 {
-    public class SocketManager
+    internal class SocketManager
     {
         public const int PORT = 9999;
         private Socket socket;
