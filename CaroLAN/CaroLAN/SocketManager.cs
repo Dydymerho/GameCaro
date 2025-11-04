@@ -51,6 +51,22 @@ namespace CaroLAN
             }
         }
 
-        public bool IsConnected => socket != null && socket.Connected;
+        public bool IsConnected
+        {
+            get
+            {
+                try
+                {
+                    // Kiểm tra trạng thái kết nối thực tế
+                    return socket != null && !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        
     }
 }

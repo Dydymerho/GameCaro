@@ -10,7 +10,6 @@ namespace WinFormServer
         public ServerForm()
         {
             InitializeComponent();
-
         }
 
 
@@ -26,7 +25,7 @@ namespace WinFormServer
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            socket.CreateServer(LogToTextBox);
+            socket.CreateServer(LogToTextBox, UpdateClientList);
             lblStatus.Text = "Đang chờ kết nối...";
 
             btnStart.Enabled = false;
@@ -54,7 +53,7 @@ namespace WinFormServer
         {
             if (txtLog.InvokeRequired)
             {
-                txtLog.Invoke(new Action(() =>
+                txtLog.BeginInvoke(new Action(() =>
                 {
                     txtLog.AppendText(message + Environment.NewLine);
                 }));
@@ -65,6 +64,7 @@ namespace WinFormServer
             }
         }
 
+        //nut refresh danh sach client
         private void button1_Click(object sender, EventArgs e)
         {
             UpdateClientList();
@@ -72,19 +72,40 @@ namespace WinFormServer
 
         private void UpdateClientList()
         {
+            if (lstClients.InvokeRequired)
+            {
+                lstClients.Invoke(new Action(UpdateClientList));
+                return;
+            }
+
             LogToTextBox("Cập nhật danh sách client...");
-            // Lấy danh sách các client đã kết nối từ ServerSocketManager
             List<string> connectedClients = socket.GetConnectedClients();
             LogToTextBox($"Number of connected clients: {connectedClients.Count}");
 
-
             // Cập nhật lstClients trên giao diện
+            lstClients.BeginUpdate();
             lstClients.Items.Clear();
             foreach (string client in connectedClients)
             {
                 lstClients.Items.Add(client);
             }
+            lstClients.EndUpdate();
+
             LogToTextBox("Client list updated.");
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (lstClients.SelectedItem != null)
+            {
+                string selectedClient = lstClients.SelectedItem.ToString();
+                socket.DisconnectClient(selectedClient, LogToTextBox);
+                UpdateClientList();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một client để ngắt kết nối.");
+            }
         }
     }
 }

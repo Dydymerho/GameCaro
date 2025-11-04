@@ -22,11 +22,6 @@ namespace CaroLAN
             socket = new SocketManager();
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void btnConnect_Click_1(object sender, EventArgs e)
         {
             string serverIP = txtIP.Text.Trim();
@@ -49,21 +44,41 @@ namespace CaroLAN
                 {
                     try
                     {
-                        // Nhận dữ liệu từ server
-                        string data = socket.Receive();
-                        if (string.IsNullOrEmpty(data))
-                            continue;
-
-                        // ✅ Nếu nhận danh sách client
-                        if (data.StartsWith("CLIENT_LIST:"))
+                        if (!socket.IsConnected)
                         {
-                            string[] clients = data.Substring("CLIENT_LIST:".Length).Split(',');
-                            Invoke(new Action(() =>
-                            {
-                                lstClients.Items.Clear();
-                                lstClients.Items.AddRange(clients);
-                            }));
+                            lblStatus.Text = "Kết nối đến server đã bị mất!";
+                            lstClients.Items.Clear();
+                            break;
                         }
+                        else
+                        {
+                            string data = socket.Receive();
+                            if (string.IsNullOrEmpty(data))
+                                continue;
+
+                            if (data == "SERVER_STOPPED")
+                            {
+                                Invoke(new Action(() =>
+                                {
+                                    lblStatus.Text = "Server đã dừng!";
+                                    lstClients.Items.Clear();
+                                }));
+                                break; // Ngừng lắng nghe
+                            }
+
+                            // ✅ Nếu nhận danh sách client
+                            if (data.StartsWith("CLIENT_LIST:"))
+                            {
+                                string[] clients = data.Substring("CLIENT_LIST:".Length).Split(',');
+                                Invoke(new Action(() =>
+                                {
+                                    lstClients.Items.Clear();
+                                    lstClients.Items.AddRange(clients);
+                                }));
+                            }
+                        }
+
+
                     }
                     catch (Exception ex)
                     {
@@ -81,5 +96,10 @@ namespace CaroLAN
             listenThread.Start();
         }
 
+        // button bat dau choi
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

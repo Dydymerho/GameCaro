@@ -35,6 +35,7 @@
             lblStatus = new Label();
             label1 = new Label();
             button1 = new Button();
+            button2 = new Button();
             SuspendLayout();
             // 
             // txtLog
@@ -52,6 +53,7 @@
             lstClients.FormattingEnabled = true;
             lstClients.Location = new Point(478, 110);
             lstClients.Name = "lstClients";
+            lstClients.ScrollAlwaysVisible = true;
             lstClients.Size = new Size(282, 344);
             lstClients.TabIndex = 1;
             lstClients.SelectedIndexChanged += lstClients_SelectedIndexChanged;
@@ -105,11 +107,22 @@
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
+            // button2
+            // 
+            button2.Location = new Point(478, 471);
+            button2.Name = "button2";
+            button2.Size = new Size(94, 29);
+            button2.TabIndex = 7;
+            button2.Text = "Disconnect";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
             // ServerForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 494);
+            ClientSize = new Size(800, 555);
+            Controls.Add(button2);
             Controls.Add(button1);
             Controls.Add(label1);
             Controls.Add(lblStatus);
@@ -132,5 +145,6 @@
         private Label lblStatus;
         private Label label1;
         private Button button1;
+        private Button button2;
     }
 }

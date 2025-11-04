@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace WinFormServer
 {
@@ -13,20 +14,23 @@ namespace WinFormServer
         private string IP = "127.0.0.1";
         private List<Socket> clients = new List<Socket>();
         private List<Thread> threads = new List<Thread>();
+        private bool isRunning = false;
 
-        public void CreateServer(Action<string> logAction)
+
+        public void CreateServer(Action<string> logAction, Action updateClientList)
         {
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, PORT);
             socket.Bind(endpoint);
             socket.Listen(100);
+            isRunning = true;
 
             logAction?.Invoke($"Server đang lắng nghe trên cổng {PORT}...");
 
 
             Thread acceptThread = new Thread(() =>
             {
-                while (true)
+                while (isRunning)
                 {
                     try
                     {
@@ -37,11 +41,16 @@ namespace WinFormServer
                             clients.Add(client);
                         }
                         SendClientListToAll(logAction);
+                        updateClientList.Invoke();
 
                         Thread clientThread = new Thread(() => HandleClient(client,  logAction));
                         logAction?.Invoke($"Client {client.RemoteEndPoint} đã kết nối.");
                         clientThread.IsBackground = true;
                         clientThread.Start();
+                    }
+                    catch (SocketException)
+                    {
+                        if (!isRunning) return; // Thoát nếu server đã dừng
                     }
                     catch
                     {
@@ -62,36 +71,43 @@ namespace WinFormServer
         {
             try
             {
-                while (true)
+                while (isRunning)
                 {
                     byte[] buffer = new byte[1024];
                     int receivedBytes = clientSocket.Receive(buffer);
                     if (receivedBytes == 0) break; // Client ngắt kết nối
-
+                      
                     string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
                     logAction?.Invoke($"Nhận từ client {clientSocket.RemoteEndPoint}: {message}");
-
-
+                        
+                        
                     // Gửi phản hồi lại cho client (tùy chọn)
                     string response = $"Server đã nhận: {message}";
                     byte[] responseData = Encoding.UTF8.GetBytes(response);
                     clientSocket.Send(responseData);
                 }
             }
+            catch (SocketException)
+            {
+                if (!isRunning) return; // Thoát nếu server đã dừng
+            }
+            
             catch (Exception ex)
             {
-                logAction?.Invoke($"Lỗi khi xử lý client {clientSocket.RemoteEndPoint}: {ex.Message}");
+                //logAction?.Invoke($"Lỗi khi xử lý client {clientSocket.RemoteEndPoint}: {ex.Message}");
                 Console.WriteLine($"Lỗi khi xử lý client: {ex.Message}");
             }
             finally
             {
+                SendClientListToAll(logAction);
+
                 // Loại bỏ client khỏi danh sách và đóng kết nối
                 lock (clients)
                 {
                     clients.Remove(clientSocket);
                 }
                 clientSocket.Close();
-                logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} đã ngắt kết nối.");
+                //logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} đã ngắt kết nối.");
             }
         }
 
@@ -159,6 +175,8 @@ namespace WinFormServer
             try
             {
                 logAction?.Invoke("Đang dừng server...");
+                Broadcast("SERVER_STOPPED", clients, logAction);
+
 
                 //dong tat ca ket noi client
                 lock (clients)
@@ -170,13 +188,6 @@ namespace WinFormServer
                     clients.Clear();
                 }
 
-                //dong socket server
-                if (socket != null)
-                {
-                    socket.Close();
-                    socket = null;
-                }
-
                 //dong tat ca cac thread
                 lock (threads)
                 {
@@ -184,11 +195,23 @@ namespace WinFormServer
                     {
                         if (thread.IsAlive)
                         {
-                            thread.Interrupt(); 
+                            thread.Interrupt();
                         }
                     }
                     threads.Clear();
                 }
+
+
+                isRunning = false;
+
+                //dong socket server
+                if (socket != null)
+                {
+                    socket.Close();
+                    socket = null;
+                }
+
+                
 
                 logAction?.Invoke("Server đã dừng.");
             }
@@ -235,5 +258,34 @@ namespace WinFormServer
             Broadcast(clientListMessage, clients, logAction);
         }
 
+        public void DisconnectClient(string remoteEndPoint, Action<string> logAction)
+        {
+            lock (clients)
+            {
+                // Tìm client dựa trên RemoteEndPoint
+                var client = clients.FirstOrDefault(c => c.RemoteEndPoint?.ToString() == remoteEndPoint);
+                if (client != null)
+                {
+                    try
+                    {
+                        //gui tin hieu ngat ket noi
+                        byte[] disconnectMessage = Encoding.UTF8.GetBytes("SERVER_STOPPED");
+                        client.Send(disconnectMessage);
+                        //dong ket noi client
+                        client.Close();
+                        clients.Remove(client);
+                        logAction?.Invoke($"Client {remoteEndPoint} đã bị ngắt kết nối.");
+                    }
+                    catch (Exception ex)
+                    {
+                        logAction?.Invoke($"Lỗi khi ngắt kết nối client {remoteEndPoint}: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    logAction?.Invoke($"Không tìm thấy client {remoteEndPoint} để ngắt kết nối.");
+                }
+            }
+        }
     }
 }
