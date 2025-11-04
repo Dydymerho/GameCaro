@@ -1,0 +1,17 @@
+﻿# Tệp và thư mục tạm thời của Visual Studio
+[Bb]in/
+[Oo]bj/
+*.pdb
+*.suo
+*.user
+*.bak
+*.vs/
+*~
+# Tệp biên dịch và tạo gói
+*.nupkg
+*.dll
+*.exe
+# Cấu hình IDE (nếu không muốn chia sẻ)
+.vs/
+# Thư mục gói NuGet (nếu có)
+packages/
