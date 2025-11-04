@@ -85,7 +85,6 @@ namespace WinFormServer
                 lstClients.Items.Add(client);
             }
             LogToTextBox("Client list updated.");
-
         }
     }
 }

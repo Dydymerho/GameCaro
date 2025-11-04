@@ -33,7 +33,7 @@ namespace CaroLAN
             if (socket.ConnectToServer(serverIP))
             {
                 lblStatus.Text = "Đã kết nối đến server";
-                //StartListening();
+                lobbyListening();
             }
             else
             {
@@ -41,36 +41,38 @@ namespace CaroLAN
             }
         }
 
-        private void StartListening()
+        private void lobbyListening()
         {
             listenThread = new Thread(() =>
             {
                 while (true)
                 {
-                    string data = socket.Receive();
-                    if (string.IsNullOrEmpty(data))
-                        continue;
-
-                    // ✅ Nếu nhận tín hiệu chơi lại
-                    if (data == "RESTART")
+                    try
                     {
-                        // Đặt lại bàn cờ
-                        Invoke(new Action(() =>
+                        // Nhận dữ liệu từ server
+                        string data = socket.Receive();
+                        if (string.IsNullOrEmpty(data))
+                            continue;
+
+                        // ✅ Nếu nhận danh sách client
+                        if (data.StartsWith("CLIENT_LIST:"))
                         {
-                            chessBoard.ResetBoard();
-                            lblStatus.Text = "Đối thủ đã khởi động lại ván!";
-                        }));
-                        continue;
+                            string[] clients = data.Substring("CLIENT_LIST:".Length).Split(',');
+                            Invoke(new Action(() =>
+                            {
+                                lstClients.Items.Clear();
+                                lstClients.Items.AddRange(clients);
+                            }));
+                        }
                     }
-
-                    // ✅ Nhận nước đi từ đối thủ (dạng "x,y")
-                    string[] parts = data.Split(',');
-                    if (parts.Length == 2 && int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y))
+                    catch (Exception ex)
                     {
+                        // Xử lý lỗi nếu có
                         Invoke(new Action(() =>
                         {
-                            chessBoard.OtherPlayerMove(new Point(x, y));
+                            MessageBox.Show($"Lỗi khi nhận dữ liệu từ server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }));
+                        break;
                     }
                 }
             });
@@ -78,5 +80,6 @@ namespace CaroLAN
             listenThread.IsBackground = true;
             listenThread.Start();
         }
+
     }
 }

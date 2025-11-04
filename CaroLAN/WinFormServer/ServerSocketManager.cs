@@ -36,6 +36,7 @@ namespace WinFormServer
                         {
                             clients.Add(client);
                         }
+                        SendClientListToAll(logAction);
 
                         Thread clientThread = new Thread(() => HandleClient(client,  logAction));
                         logAction?.Invoke($"Client {client.RemoteEndPoint} đã kết nối.");
@@ -224,7 +225,15 @@ namespace WinFormServer
                 return connectedClients;
             }
         }
+        private void SendClientListToAll(Action<string> logAction)
+        {
+            // Lấy danh sách các client hiện tại
+            List<string> connectedClients = GetConnectedClients();
+            string clientListMessage = "CLIENT_LIST:" + string.Join(",", connectedClients);
 
+            // Gửi danh sách client đến tất cả các client
+            Broadcast(clientListMessage, clients, logAction);
+        }
 
     }
 }
