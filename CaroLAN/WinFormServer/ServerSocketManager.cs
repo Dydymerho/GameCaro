@@ -15,7 +15,12 @@ namespace WinFormServer
         private List<Socket> clients = new List<Socket>();
         private List<Thread> threads = new List<Thread>();
         private bool isRunning = false;
+        private RoomManager roomManager; // ✅ Thêm room manager
 
+        public ServerSocketManager()
+        {
+            roomManager = new RoomManager();
+        }
 
         public void CreateServer(Action<string> logAction, Action updateClientList)
         {
@@ -79,8 +84,22 @@ namespace WinFormServer
                       
                     string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
                     logAction?.Invoke($"Nhận từ client {clientSocket.RemoteEndPoint}: {message}");
-                        
-                        
+
+                    // ✅ Xử lý các lệnh room
+                    if (message.StartsWith("JOIN_ROOM"))
+                    {
+                        HandleJoinRoom(clientSocket, message, logAction);
+                    }
+                    else if (message.StartsWith("GAME_MOVE:"))
+                    {
+                        HandleGameMove(clientSocket, message, logAction);
+                    }
+                    else if (message == "LEAVE_ROOM")
+                    {
+                        HandleLeaveRoom(clientSocket, logAction);
+                    }
+                    //----------------------------------
+
                     // Gửi phản hồi lại cho client (tùy chọn)
                     string response = $"Server đã nhận: {message}";
                     byte[] responseData = Encoding.UTF8.GetBytes(response);
@@ -99,6 +118,7 @@ namespace WinFormServer
             }
             finally
             {
+                roomManager.LeaveRoom(clientSocket);
                 SendClientListToAll(logAction);
 
                 // Loại bỏ client khỏi danh sách và đóng kết nối
@@ -285,6 +305,90 @@ namespace WinFormServer
                 {
                     logAction?.Invoke($"Không tìm thấy client {remoteEndPoint} để ngắt kết nối.");
                 }
+            }
+        }
+
+        // ✅ Xử lý tham gia phòng
+        private void HandleJoinRoom(Socket clientSocket, string message, Action<string> logAction)
+        {
+            try
+            {
+                string roomId = null;
+                if (message.Contains(":"))
+                {
+                    roomId = message.Split(':')[1];
+                }
+
+                bool success = roomManager.JoinRoom(clientSocket, roomId);
+
+                if (success)
+                {
+                    var room = roomManager.GetPlayerRoom(clientSocket);
+                    string response = $"ROOM_JOINED:{room.RoomId}:{room.Players.Count}";
+                    byte[] data = Encoding.UTF8.GetBytes(response);
+                    clientSocket.Send(data);
+
+                    logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} tham gia phòng {room.RoomId}");
+
+                    // Nếu phòng đủ 2 người, bắt đầu game
+                    if (room.IsFull())
+                    {
+                        room.IsGameStarted = true;
+                        roomManager.BroadcastToRoom(room.RoomId, "GAME_START");
+                        logAction?.Invoke($"Bắt đầu game trong phòng {room.RoomId}");
+                    }
+                }
+                else
+                {
+                    byte[] errorData = Encoding.UTF8.GetBytes("ROOM_JOIN_FAILED");
+                    clientSocket.Send(errorData);
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi khi xử lý tham gia phòng: {ex.Message}");
+            }
+        }
+
+        // ✅ Xử lý nước đi trong game
+        private void HandleGameMove(Socket clientSocket, string message, Action<string> logAction)
+        {
+            try
+            {
+                var room = roomManager.GetPlayerRoom(clientSocket);
+                if (room != null && room.IsGameStarted)
+                {
+                    // Chuyển tiếp nước đi cho đối thủ
+                    roomManager.BroadcastToRoom(room.RoomId, message, clientSocket);
+                    logAction?.Invoke($"Chuyển tiếp nước đi trong phòng {room.RoomId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi khi xử lý nước đi: {ex.Message}");
+            }
+        }
+
+        // ✅ Xử lý rời phòng
+        private void HandleLeaveRoom(Socket clientSocket, Action<string> logAction)
+        {
+            try
+            {
+                var room = roomManager.GetPlayerRoom(clientSocket);
+                if (room != null)
+                {
+                    string roomId = room.RoomId;
+                    roomManager.LeaveRoom(clientSocket);
+
+                    // Thông báo cho đối thủ
+                    roomManager.BroadcastToRoom(roomId, "OPPONENT_LEFT");
+
+                    logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} rời phòng {roomId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi khi xử lý rời phòng: {ex.Message}");
             }
         }
     }

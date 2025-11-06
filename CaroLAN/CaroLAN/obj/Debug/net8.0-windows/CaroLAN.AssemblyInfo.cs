@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CaroLAN")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0f4227ce4c190889ea2f136a85806b370a9f4209")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d2b82be775eef23b20d1e70813703f4b2b0d0cd2")]
 [assembly: System.Reflection.AssemblyProductAttribute("CaroLAN")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CaroLAN")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

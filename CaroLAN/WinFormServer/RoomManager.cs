@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,5 +10,111 @@ namespace WinFormServer
 {
     internal class RoomManager
     {
+        private ConcurrentDictionary<string, GameRoom> rooms;
+        private ConcurrentDictionary<Socket, string> playerRooms; // Mapping player -> roomId
+
+        public RoomManager()
+        {
+            rooms = new ConcurrentDictionary<string, GameRoom>();
+            playerRooms = new ConcurrentDictionary<Socket, string>();
+        }
+
+        public string CreateRoom()
+        {
+            string roomId = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            var room = new GameRoom(roomId);
+            rooms.TryAdd(roomId, room);
+            return roomId;
+        }
+
+        public bool JoinRoom(Socket player, string roomId = null)
+        {
+            // Nếu không chỉ định roomId, tìm phòng có sẵn hoặc tạo mới
+            if (string.IsNullOrEmpty(roomId))
+            {
+                // Tìm phòng chưa đầy người
+                var availableRoom = rooms.Values.FirstOrDefault(r => !r.IsFull() && !r.IsGameStarted);
+
+                if (availableRoom != null)
+                {
+                    roomId = availableRoom.RoomId;
+                }
+                else
+                {
+                    // Tạo phòng mới
+                    roomId = CreateRoom();
+                }
+            }
+
+            // Kiểm tra phòng có tồn tại không
+            if (!rooms.TryGetValue(roomId, out GameRoom room))
+                return false;
+
+            // Thêm người chơi vào phòng
+            if (room.AddPlayer(player))
+            {
+                playerRooms.TryAdd(player, roomId);
+                return true;
+            }
+
+            return false;
+        }
+
+        public void LeaveRoom(Socket player)
+        {
+            if (playerRooms.TryRemove(player, out string roomId))
+            {
+                if (rooms.TryGetValue(roomId, out GameRoom room))
+                {
+                    room.RemovePlayer(player);
+
+                    // Xóa phòng nếu trống
+                    if (room.IsEmpty())
+                    {
+                        rooms.TryRemove(roomId, out _);
+                    }
+                }
+            }
+        }
+
+        public GameRoom GetPlayerRoom(Socket player)
+        {
+            if (playerRooms.TryGetValue(player, out string roomId))
+            {
+                rooms.TryGetValue(roomId, out GameRoom room);
+                return room;
+            }
+            return null;
+        }
+
+        public List<GameRoom> GetAllRooms()
+        {
+            return rooms.Values.ToList();
+        }
+
+        public void BroadcastToRoom(string roomId, string message, Socket sender = null)
+        {
+            if (rooms.TryGetValue(roomId, out GameRoom room))
+            {
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                lock(room.Players)
+                foreach (var player in room.Players)
+                {
+                    if ( player.Connected)
+                    {
+                        try
+                        {
+                            //d hieu sao phai co lenh messagebox o day moi gui dc du lieu:)))
+                            MessageBox.Show("Gui du lieu toi client");
+                            player.Send(data);
+                        }
+                        catch
+                        {
+                            // Ignore sending errors
+                        }
+                    }
+                }
+            }
+        }
     }
 }

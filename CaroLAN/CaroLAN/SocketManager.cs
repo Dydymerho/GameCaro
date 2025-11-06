@@ -67,6 +67,10 @@ namespace CaroLAN
             }
         }
 
-        
+        // ✅ Gửi nước đi
+        public void SendMove(int x, int y)
+        {
+            Send($"GAME_MOVE:{x},{y}");
+        }
     }
 }
