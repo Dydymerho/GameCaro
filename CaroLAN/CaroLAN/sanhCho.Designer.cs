@@ -69,6 +69,7 @@
             // 
             txtIP.Location = new Point(33, 31);
             txtIP.Name = "txtIP";
+            txtIP.ReadOnly = true;
             txtIP.Size = new Size(120, 27);
             txtIP.TabIndex = 11;
             txtIP.Text = "127.0.0.1";
@@ -125,6 +126,7 @@
             Controls.Add(lstClients);
             Name = "sanhCho";
             Text = "sanhCho";
+            Load += sanhCho_Load;
             ResumeLayout(false);
             PerformLayout();
         }
