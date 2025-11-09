@@ -273,13 +273,13 @@ namespace CaroLAN
                     {
                         // Khi form game đóng, hiện lại form sảnh chờ
                         this.Show();
-                        
+
                         // Reset trạng thái
                         isInRoom = false;
                         currentRoomId = null;
                         lblStatus.Text = "Đã kết nối đến server";
                     };
-                    
+
                     gameForm.Show();
                     this.Hide();
                 }
@@ -464,6 +464,21 @@ namespace CaroLAN
                 btnConnect.Enabled = true;
                 MessageBox.Show($"Lỗi khi ngắt kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnRequest_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lstRequests_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnAccept_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
