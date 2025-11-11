@@ -38,6 +38,7 @@ namespace WinFormServer
                 if (availableRoom != null)
                 {
                     roomId = availableRoom.RoomId;
+                    Console.WriteLine($"[RoomManager] Người chơi ghép vào phòng sẵn có: {roomId}");
                 }
                 else
                 {
@@ -54,6 +55,7 @@ namespace WinFormServer
             if (room.AddPlayer(player))
             {
                 playerRooms.TryAdd(player, roomId);
+                Console.WriteLine($"[RoomManager] Người chơi {player.RemoteEndPoint} vào phòng {roomId} ({room.Players.Count}/2)");
                 return true;
             }
 
@@ -67,11 +69,13 @@ namespace WinFormServer
                 if (rooms.TryGetValue(roomId, out GameRoom room))
                 {
                     room.RemovePlayer(player);
+                    Console.WriteLine($"[RoomManager] Người chơi {player.RemoteEndPoint} rời phòng {roomId}");
 
                     // Xóa phòng nếu trống
                     if (room.IsEmpty())
                     {
                         rooms.TryRemove(roomId, out _);
+                        Console.WriteLine($"[RoomManager] 🗑️ Phòng {roomId} đã bị xóa (trống)");
                     }
                 }
             }
@@ -97,23 +101,39 @@ namespace WinFormServer
             if (rooms.TryGetValue(roomId, out GameRoom room))
             {
                 byte[] data = Encoding.UTF8.GetBytes(message);
-                lock(room.Players)
-                foreach (var player in room.Players)
+                lock (room.Players)
                 {
+<<<<<<< HEAD
                     if (player != sender && player.Connected)
+=======
+                    foreach (var player in room.Players)
+>>>>>>> client
                     {
-                        try
+                        if (player != sender && player.Connected)
                         {
+<<<<<<< HEAD
                             MessageBox.Show("start");
                             player.Send(data);
                         }
                         catch
                         {
                             // Ignore sending errors
+=======
+                            try
+                            {
+                                player.Send(data);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Lỗi gửi dữ liệu tới {player.RemoteEndPoint}: {ex.Message}");
+                            }
+>>>>>>> client
                         }
                     }
                 }
             }
         }
+
     }
 }
+

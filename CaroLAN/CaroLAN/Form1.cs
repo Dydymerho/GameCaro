@@ -11,51 +11,74 @@ namespace CaroLAN
         SocketManager socket;
         Thread listenThread;
 
-        public Form1()
+        private string roomId; // ✅ tên phòng hiện tại
+        private bool isMyTurn = false; // ✅ xác định lượt
+        private int timeLeft = 20; // ✅ thời gian mỗi lượt
+        private System.Windows.Forms.Timer turnTimer;
+
+        public Form1(string roomId, SocketManager socket, bool startFirst)
         {
             InitializeComponent();
             Control.CheckForIllegalCrossThreadCalls = false;
 
+            this.roomId = roomId;
+            this.socket = socket;
+            this.isMyTurn = startFirst;
+
+            // ✅ tạo bàn cờ
             chessBoard = new ChessBoardManager(pnlChessBoard);
             chessBoard.PlayerClicked += ChessBoard_PlayerClicked;
             chessBoard.GameEnded += ChessBoard_GameEnded;
-            socket = new SocketManager();
+
+            lblRoom.Text = $"Phòng: {roomId}";
+            lblTurn.Text = startFirst ? "Lượt của bạn (X)" : "Lượt của đối thủ (O)";
+            lblTimer.Text = "";
+
+            InitTimer();
+
+            StartListening();
         }
 
-        private void btnCreateServer_Click(object sender, EventArgs e)
+        // ✅ Bộ đếm thời gian 20s mỗi lượt
+        private void InitTimer()
         {
-            //socket.CreateServer();
-            //lblStatus.Text = "Đang chờ kết nối...";
-            //StartListening();
+            turnTimer = new System.Windows.Forms.Timer();
+            turnTimer.Interval = 1000;
+            turnTimer.Tick += (s, e) =>
+            {
+                if (!chessBoard.isGameOver && isMyTurn)
+                {
+                    timeLeft--;
+                    lblTimer.Text = $"Thời gian: {timeLeft}s";
+
+                    if (timeLeft <= 0)
+                    {
+                        turnTimer.Stop();
+                        EndGameDueToTimeout();
+                    }
+                }
+            };
+            if (isMyTurn) StartTurnTimer();
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
+        private void StartTurnTimer()
         {
-            string serverIP = txtIP.Text.Trim();
-            if (socket.ConnectToServer(serverIP))
-            {
-                lblStatus.Text = "Đã kết nối đến server";
-                StartListening();
-                chessBoard.isPlayerTurn = false; // Client đi sau
-            }
-            else
-            {
-                lblStatus.Text = "Không kết nối được server!";
-            }
+            timeLeft = 20;
+            lblTimer.Text = $"Thời gian: {timeLeft}s";
+            turnTimer.Start();
         }
-        private void btnRestart_Click(object sender, EventArgs e)
+
+        private void StopTurnTimer()
         {
-            chessBoard.ResetBoard();
-
-            // Nếu có kết nối LAN, gửi tín hiệu chơi lại cho đối thủ
-            if (socket != null && socket.IsConnected)
-            {
-                socket.Send("RESTART");
-            }
-
-            lblStatus.Text = "Đã bắt đầu ván mới!";
+            turnTimer.Stop();
         }
 
+        private void EndGameDueToTimeout()
+        {
+            MessageBox.Show("Hết thời gian! Bạn đã thua lượt này.", "Thời gian hết", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            socket.Send("RESIGN"); // gửi tín hiệu đầu hàng do hết thời gian
+            EndGame("Thua do hết thời gian");
+        }
 
         private void StartListening()
         {
@@ -63,29 +86,55 @@ namespace CaroLAN
             {
                 while (true)
                 {
-                    string data = socket.Receive();
-                    if (string.IsNullOrEmpty(data))
-                        continue;
-
-                    // ✅ Nếu nhận tín hiệu chơi lại
-                    if (data == "RESTART")
+                    if (!socket.IsConnected)
                     {
-                        // Đặt lại bàn cờ
                         Invoke(new Action(() =>
                         {
-                            chessBoard.ResetBoard();
-                            lblStatus.Text = "Đối thủ đã khởi động lại ván!";
+                            MessageBox.Show("Mất kết nối tới server!", "Lỗi mạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            Close();
                         }));
+                        break;
+                    }
+
+                    string data = socket.Receive();
+                    if (string.IsNullOrEmpty(data))
+                    {
+                        Thread.Sleep(20);
                         continue;
                     }
 
-                    // ✅ Nhận nước đi từ đối thủ (dạng "x,y")
-                    string[] parts = data.Split(',');
-                    if (parts.Length == 2 && int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y))
+
+                    // ✅ Nhận nước đi từ đối thủ
+                    if (data.StartsWith("GAME_MOVE:"))
+                    {
+                        string[] parts = data.Substring(10).Split(',');
+                        if (parts.Length == 2 && int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y))
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                chessBoard.OtherPlayerMove(new Point(x, y));
+                                isMyTurn = true;
+                                lblTurn.Text = "Lượt của bạn";
+                                StartTurnTimer();
+                            }));
+                        }
+                    }
+
+                    // ✅ Nhận tín hiệu đầu hàng
+                    if (data == "RESIGN")
                     {
                         Invoke(new Action(() =>
                         {
-                            chessBoard.OtherPlayerMove(new Point(x, y));
+                            EndGame("Đối thủ đã đầu hàng!");
+                        }));
+                    }
+
+                    // ✅ Khi đối thủ rời phòng
+                    if (data == "OPPONENT_LEFT")
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            EndGame("Đối thủ đã thoát khỏi phòng.");
                         }));
                     }
                 }
@@ -95,25 +144,51 @@ namespace CaroLAN
             listenThread.Start();
         }
 
-
         private void ChessBoard_PlayerClicked(object sender, Point e)
         {
-            socket.Send($"{e.X},{e.Y}");
+            if (!isMyTurn || chessBoard.isGameOver) return;
+
+            chessBoard.isPlayerTurn = false;
+            StopTurnTimer();
+
+            // Gửi nước đi
+            socket.Send($"GAME_MOVE:{e.X},{e.Y}");
+
+            // Chuyển lượt
+            isMyTurn = false;
+            lblTurn.Text = "Lượt của đối thủ";
         }
 
         private void ChessBoard_GameEnded(object sender, Player winner)
         {
-            MessageBox.Show($"Người chơi {winner} thắng!");
+            StopTurnTimer();
+            string result = (winner == Player.One) ? "Bạn thắng!" : "Bạn thua!";
+            MessageBox.Show(result, "Kết thúc trận đấu");
         }
 
-        private void txtIP_TextChanged(object sender, EventArgs e)
+        private void btnResign_Click(object sender, EventArgs e)
         {
-
+            var confirm = MessageBox.Show("Bạn có chắc muốn đầu hàng?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (confirm == DialogResult.Yes)
+            {
+                socket.Send("RESIGN");
+                EndGame("Bạn đã đầu hàng!");
+            }
         }
 
-        private void lblStatus_Click(object sender, EventArgs e)
+        private void EndGame(string reason)
         {
+            StopTurnTimer();
+            chessBoard.isGameOver = true;
+            MessageBox.Show(reason, "Kết thúc ván", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Close();
+        }
 
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            StopTurnTimer();
+            if (listenThread != null && listenThread.IsAlive) listenThread.Abort();
+            base.OnFormClosing(e);
         }
     }
 }
