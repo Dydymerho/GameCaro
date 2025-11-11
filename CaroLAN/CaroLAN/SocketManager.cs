@@ -166,6 +166,23 @@ namespace CaroLAN
             }
         }
 
+        // ✅ Lấy địa chỉ local endpoint của chính client này
+        public string GetLocalEndPoint()
+        {
+            try
+            {
+                if (socket != null && socket.Connected)
+                {
+                    return socket.LocalEndPoint?.ToString() ?? "Unknown";
+                }
+                return "Not connected";
+            }
+            catch
+            {
+                return "Error";
+            }
+        }
+
         public void Disconnect()
         {
             try

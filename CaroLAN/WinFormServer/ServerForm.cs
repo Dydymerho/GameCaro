@@ -68,6 +68,9 @@ namespace WinFormServer
         private void button1_Click(object sender, EventArgs e)
         {
             UpdateClientList();
+            LogToTextBox("Cập nhật danh sách client...");
+            List<string> connectedClients = socket.GetConnectedClients();
+            LogToTextBox($"Number of connected clients: {connectedClients.Count}");
         }
 
         private void UpdateClientList()
@@ -77,10 +80,10 @@ namespace WinFormServer
                 lstClients.Invoke(new Action(UpdateClientList));
                 return;
             }
-
-            LogToTextBox("Cập nhật danh sách client...");
+                
+            //LogToTextBox("Cập nhật danh sách client...");
             List<string> connectedClients = socket.GetConnectedClients();
-            LogToTextBox($"Number of connected clients: {connectedClients.Count}");
+            //LogToTextBox($"Number of connected clients: {connectedClients.Count}");
 
             // Cập nhật lstClients trên giao diện
             lstClients.BeginUpdate();
@@ -90,10 +93,9 @@ namespace WinFormServer
                 lstClients.Items.Add(client);
             }
             lstClients.EndUpdate();
-
-            LogToTextBox("Client list updated.");
         }
 
+        // btn ngắt kết nối client
         private void button2_Click(object sender, EventArgs e)
         {
             if (lstClients.SelectedItem != null)

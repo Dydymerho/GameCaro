@@ -17,15 +17,24 @@ namespace CaroLAN
         ChessBoardManager chessBoard;
         SocketManager socket;
         Thread listenThread;
-        private CancellationTokenSource cancellationTokenSource; // ✅ Thêm CancellationTokenSource
+        private CancellationTokenSource cancellationTokenSource;
 
-        private string currentRoomId; // ✅ Lưu ID phòng hiện tại
-        private bool isInRoom = false; // ✅ Trạng thái có trong phòng hay không
+        private string currentRoomId;
+        private bool isInRoom = false;
+        
+        // ✅ Quản lý lời mời
+        private Dictionary<string, string> receivedInvitations; // invitationId -> senderEndPoint
+        private Dictionary<string, DateTime> invitationTimestamps; // invitationId -> thời gian nhận
+        
+        // ✅ Lưu địa chỉ endpoint của chính client này
+        private string myEndPoint;
 
         public sanhCho()
         {
             InitializeComponent();
             socket = new SocketManager();
+            receivedInvitations = new Dictionary<string, string>();
+            invitationTimestamps = new Dictionary<string, DateTime>();
         }
 
         private void btnConnect_Click_1(object sender, EventArgs e)
@@ -62,6 +71,7 @@ namespace CaroLAN
                             {
                                 lblStatus.Text = "Kết nối đến server đã bị mất!";
                                 lstClients.Items.Clear();
+                                lstRequests.Items.Clear();
                                 btnConnect.Text = "Kết nối";
                                 btnConnect.Enabled = true;
                                 txtIP.Enabled = true;
@@ -76,7 +86,13 @@ namespace CaroLAN
                         string data = socket.Receive();
                         if (string.IsNullOrEmpty(data))
                         {
-                            Thread.Sleep(10); // Tránh CPU 100%
+                            Thread.Sleep(10);
+                            continue;
+                        }
+
+                        // ✅ Bỏ qua message phản hồi chung từ server
+                        if (data.StartsWith("Server đã nhận:"))
+                        {
                             continue;
                         }
 
@@ -87,12 +103,94 @@ namespace CaroLAN
                             {
                                 lblStatus.Text = "Server đã dừng!";
                                 lstClients.Items.Clear();
+                                lstRequests.Items.Clear();
                                 btnConnect.Text = "Kết nối";
                                 btnConnect.Enabled = true;
                                 txtIP.Enabled = true;
                                 MessageBox.Show("Server đã dừng hoạt động!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }));
                             break;
+                        }
+
+                        // ✅ Xử lý nhận lời mời
+                        if (data.StartsWith("INVITATION_RECEIVED:"))
+                        {
+                            HandleInvitationReceived(data);
+                        }
+
+                        // ✅ Xử lý lời mời đã gửi thành công
+                        if (data.StartsWith("INVITATION_SENT:"))
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                lblStatus.Text = "Lời mời đã được gửi!";
+                            }));
+                        }
+
+                        // ✅ Xử lý lời mời bị từ chối
+                        if (data.StartsWith("INVITATION_REJECTED:"))
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                lblStatus.Text = "Lời mời bị từ chối!";
+                                MessageBox.Show("Đối thủ đã từ chối lời mời của bạn.", "Thông báo");
+                            }));
+                        }
+
+                        // ✅ Xử lý lời mời được chấp nhận
+                        if (data.StartsWith("INVITATION_ACCEPTED:"))
+                        {
+                            string[] parts = data.Split(':');
+                            if (parts.Length >= 3)
+                            {
+                                currentRoomId = parts[2];
+                                Invoke(new Action(() =>
+                                {
+                                    isInRoom = true;
+                                    lblStatus.Text = $"Lời mời được chấp nhận! Phòng: {currentRoomId}";
+                                }));
+                            }
+                        }
+
+                        // ✅ Xử lý lời mời hết hạn
+                        if (data.StartsWith("INVITATION_EXPIRED:"))
+                        {
+                            string[] parts = data.Split(':');
+                            if (parts.Length >= 2)
+                            {
+                                string invitationId = parts[1];
+                                Invoke(new Action(() =>
+                                {
+                                    RemoveInvitationFromList(invitationId);
+                                }));
+                            }
+                        }
+
+                        // ✅ Xử lý lời mời bị hủy (người gửi ngắt kết nối)
+                        if (data.StartsWith("INVITATION_CANCELLED:"))
+                        {
+                            string[] parts = data.Split(':', 2);
+                            if (parts.Length >= 2)
+                            {
+                                string invitationId = parts[1];
+                                Invoke(new Action(() =>
+                                {
+                                    RemoveInvitationFromList(invitationId);
+                                    lblStatus.Text = "Lời mời đã bị hủy";
+                                }));
+                            }
+                        }
+
+                        // ✅ Xử lý lỗi gửi lời mời
+                        if (data.StartsWith("INVITATION_SEND_FAILED:"))
+                        {
+                            string[] parts = data.Split(':', 2); // Chỉ split thành 2 phần
+                            string reason = parts.Length > 1 ? parts[1] : "Unknown error";
+                            Invoke(new Action(() =>
+                            {
+                                lblStatus.Text = "Không thể gửi lời mời!";
+                                MessageBox.Show($"Không thể gửi lời mời: {reason}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }));
                         }
 
                         // Xử lý tham gia phòng thành công
@@ -159,11 +257,7 @@ namespace CaroLAN
                             string[] clients = data.Substring("CLIENT_LIST:".Length).Split(',');
                             Invoke(new Action(() =>
                             {
-                                lstClients.Items.Clear();
-                                if (clients.Length > 0 && !string.IsNullOrEmpty(clients[0]))
-                                {
-                                    lstClients.Items.AddRange(clients);
-                                }
+                                UpdateClientList(clients);
                             }));
                         }
 
@@ -231,6 +325,112 @@ namespace CaroLAN
 
             listenThread.IsBackground = true;
             listenThread.Start();
+        }
+
+        // ✅ Xử lý khi nhận lời mời
+        private void HandleInvitationReceived(string data)
+        {
+            try
+            {
+                // Format: INVITATION_RECEIVED:invitationId:senderEndPoint
+                string[] parts = data.Split(':', 3); // Split thành tối đa 3 phần
+                if (parts.Length >= 3)
+                {
+                    string invitationId = parts[1];
+                    string senderEndPoint = parts[2];
+
+                    Invoke(new Action(() =>
+                    {
+                        // Lưu lời mời
+                        if (!receivedInvitations.ContainsKey(invitationId))
+                        {
+                            receivedInvitations[invitationId] = senderEndPoint;
+                            invitationTimestamps[invitationId] = DateTime.Now;
+
+                            // Thêm vào danh sách hiển thị
+                            lstRequests.Items.Add($"{senderEndPoint} (ID: {invitationId})");
+                            lblStatus.Text = $"Nhận lời mời từ {senderEndPoint}";
+                        }
+                    }));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi xử lý lời mời: {ex.Message}");
+            }
+        }
+
+        // ✅ Xóa lời mời khỏi danh sách
+        private void RemoveInvitationFromList(string invitationId)
+        {
+            if (receivedInvitations.ContainsKey(invitationId))
+            {
+                string senderEndPoint = receivedInvitations[invitationId];
+                receivedInvitations.Remove(invitationId);
+                invitationTimestamps.Remove(invitationId);
+
+                // Xóa khỏi ListBox
+                for (int i = 0; i < lstRequests.Items.Count; i++)
+                {
+                    string item = lstRequests.Items[i].ToString();
+                    if (item.Contains(invitationId))
+                    {
+                        lstRequests.Items.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // ✅ Cập nhật danh sách client với trạng thái
+        private void UpdateClientList(string[] clients)
+        {
+            lstClients.Items.Clear();
+            
+            if (clients.Length == 0 || string.IsNullOrEmpty(clients[0]))
+            {
+                return;
+            }
+
+            // Phân loại client: available và busy
+            List<string> availableClients = new List<string>();
+            List<string> busyClients = new List<string>();
+
+            foreach (string client in clients)
+            {
+                if (string.IsNullOrWhiteSpace(client))
+                    continue;
+
+                // ✅ Loại bỏ chính mình khỏi danh sách
+                string cleanEndpoint = client.Replace("|BUSY", "");
+                if (cleanEndpoint == myEndPoint)
+                {
+                    continue; // Bỏ qua chính mình
+                }
+
+                if (client.Contains("|BUSY"))
+                {
+                    // Client đang bận - loại bỏ suffix và thêm prefix
+                    string endpoint = client.Replace("|BUSY", "");
+                    busyClients.Add($"[BUSY] {endpoint}");
+                }
+                else
+                {
+                    availableClients.Add(client);
+                }
+            }
+
+            // Thêm client available trước
+            foreach (string client in availableClients)
+            {
+                lstClients.Items.Add(client);
+            }
+
+            // Thêm client busy sau (xuống cuối danh sách)
+            foreach (string client in busyClients)
+            {
+                lstClients.Items.Add(client);
+            }
         }
 
         // button bat dau choi
@@ -343,9 +543,7 @@ namespace CaroLAN
             btnConnect.Text = "Kết nối";
         }
 
-        /// <summary>
-        /// Kết nối đến server
-        /// </summary>
+        // Kết nối đến server
         private void ConnectToServer()
         {
             string serverIP = txtIP.Text.Trim();
@@ -372,6 +570,9 @@ namespace CaroLAN
                     btnConnect.Enabled = true;
                     txtIP.Enabled = false; // Vô hiệu hóa textbox IP
 
+                    // Lưu địa chỉ endpoint của chính mình
+                    myEndPoint = socket.GetLocalEndPoint();
+
                     // Bắt đầu lắng nghe
                     lobbyListening();
                 }
@@ -381,11 +582,7 @@ namespace CaroLAN
                     lblStatus.Text = "Không kết nối được server!";
                     btnConnect.Enabled = true;
                     MessageBox.Show(
-                        "Không thể kết nối đến server.\n\n" +
-                        "Vui lòng kiểm tra:\n" +
-                        "- Địa chỉ IP có đúng không?\n" +
-                        "- Server có đang chạy không?\n" +
-                        "- Firewall có chặn kết nối không?",
+                        "Không thể kết nối đến server.\n\n",
                         "Lỗi kết nối",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
@@ -466,19 +663,104 @@ namespace CaroLAN
             }
         }
 
+        // ✅ Xử lý nút mời chơi
         private void btnRequest_Click(object sender, EventArgs e)
         {
+            if (!socket.IsConnected)
+            {
+                MessageBox.Show("Bạn chưa kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
+            if (isInRoom)
+            {
+                MessageBox.Show("Bạn đang trong phòng chơi!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (lstClients.SelectedItem == null)
+            {
+                MessageBox.Show("Vui lòng chọn một người chơi để mời!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                string selectedClient = lstClients.SelectedItem.ToString();
+                
+                // ✅ Kiểm tra xem client có đang bận không
+                if (selectedClient.StartsWith("[BUSY]"))
+                {
+                    MessageBox.Show("Người chơi này đang bận!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                // Gửi lời mời
+                socket.Send($"SEND_INVITATION:{selectedClient}");
+                lblStatus.Text = $"Đang gửi lời mời đến {selectedClient}...";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi gửi lời mời: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // ✅ Xử lý nút chấp nhận
+        private void btnAccept_Click(object sender, EventArgs e)
+        {
+            if (!socket.IsConnected)
+            {
+                MessageBox.Show("Bạn chưa kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (isInRoom)
+            {
+                MessageBox.Show("Bạn đang trong phòng chơi!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (lstRequests.SelectedItem == null)
+            {
+                MessageBox.Show("Vui lòng chọn một lời mời để chấp nhận!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                string selectedRequest = lstRequests.SelectedItem.ToString();
+                
+                // Lấy invitationId từ chuỗi hiển thị
+                int idIndex = selectedRequest.IndexOf("(ID: ");
+                if (idIndex >= 0)
+                {
+                    string invitationId = selectedRequest.Substring(idIndex + 5).TrimEnd(')');
+
+                    // Kiểm tra xem lời mời còn hợp lệ không
+                    if (!receivedInvitations.ContainsKey(invitationId))
+                    {
+                        MessageBox.Show("Lời mời không còn hợp lệ!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        lstRequests.Items.Remove(selectedRequest);
+                        return;
+                    }
+
+                    // Gửi chấp nhận
+                    socket.Send($"ACCEPT_INVITATION:{invitationId}");
+                    lblStatus.Text = "Đang chấp nhận lời mời...";
+
+                    // Xóa lời mời khỏi danh sách
+                    RemoveInvitationFromList(invitationId);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi chấp nhận lời mời: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void lstRequests_SelectedIndexChanged(object sender, EventArgs e)
         {
-
-        }
-
-        private void btnAccept_Click(object sender, EventArgs e)
-        {
-
+            // Có thể thêm xử lý khi chọn lời mời nếu cần
         }
     }
 }

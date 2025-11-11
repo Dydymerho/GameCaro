@@ -100,12 +100,10 @@ namespace WinFormServer
                 lock(room.Players)
                 foreach (var player in room.Players)
                 {
-                    if ( player.Connected)
+                    if (player != sender && player.Connected)
                     {
                         try
                         {
-                            //d hieu sao phai co lenh messagebox o day moi gui dc du lieu:)))
-                            MessageBox.Show("Gui du lieu toi client");
                             player.Send(data);
                         }
                         catch
