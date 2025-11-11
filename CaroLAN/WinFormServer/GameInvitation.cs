@@ -28,7 +28,7 @@ namespace WinFormServer
 
         public bool IsValid()
         {
-            // Ki?m tra l?i m?i còn hi?u l?c (10 giây)
+            // kiem tra han loi moi 10s
             return !IsExpired && (DateTime.Now - CreatedTime).TotalSeconds < 10;
         }
     }

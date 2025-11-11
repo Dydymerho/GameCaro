@@ -18,7 +18,6 @@ namespace WinFormServer
         private RoomManager roomManager;
         private ConcurrentDictionary<string, GameInvitation> invitations; // ✅ Quản lý lời mời
         private System.Threading.Timer invitationCleanupTimer; // ✅ Timer dọn dẹp lời mời hết hạn
-        private System.Threading.Timer clientListUpdateTimer; // ✅ Timer cập nhật danh sách client
         private Action<string> globalLogAction; // ✅ Lưu log action
         private Action globalUpdateClientListAction; // ✅ Lưu update action
 
@@ -31,7 +30,7 @@ namespace WinFormServer
             invitationCleanupTimer = new System.Threading.Timer(CleanupExpiredInvitations, null, 2000, 2000);
         }
 
-        // ✅ Dọn dẹp lời mời hết hạn
+        //xoa lời mời hết hạn
         private void CleanupExpiredInvitations(object state)
         {
             var expiredInvitations = invitations.Values
@@ -57,25 +56,6 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Cập nhật danh sách client định kỳ
-        private void UpdateClientListPeriodically(object state)
-        {
-            if (!isRunning) return;
-
-            try
-            {
-                // Cập nhật danh sách trên giao diện server
-                globalUpdateClientListAction?.Invoke();
-
-                // Gửi danh sách client đến tất cả client
-                SendClientListToAll(globalLogAction);
-            }
-            catch (Exception ex)
-            {
-                globalLogAction?.Invoke($"Lỗi khi cập nhật danh sách client: {ex.Message}");
-            }
-        }
-
         public void CreateServer(Action<string> logAction, Action updateClientList)
         {
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -84,14 +64,10 @@ namespace WinFormServer
             socket.Listen(100);
             isRunning = true;
 
-            // ✅ Lưu các action để dùng trong timer
             globalLogAction = logAction;
             globalUpdateClientListAction = updateClientList;
 
             logAction?.Invoke($"Server đang lắng nghe trên cổng {PORT}...");
-
-            // ✅ Khởi tạo timer cập nhật danh sách client mỗi 1 giây
-            //clientListUpdateTimer = new System.Threading.Timer(UpdateClientListPeriodically, null, 1000, 1000);
 
             Thread acceptThread = new Thread(() =>
             {
@@ -105,6 +81,8 @@ namespace WinFormServer
                         {
                             clients.Add(client);
                         }
+                        
+                        // Cập nhật danh sách khi có client mới kết nối
                         SendClientListToAll(logAction);
                         updateClientList.Invoke();
 
@@ -127,8 +105,6 @@ namespace WinFormServer
             acceptThread.IsBackground = true;
             acceptThread.Start();
             lock (threads) threads.Add(acceptThread);
-
-
         }
 
         //server nhan du lieu tu client va phan hoi lai
@@ -186,7 +162,8 @@ namespace WinFormServer
                         break;
                     }
 
-                    // ✅ Chỉ gửi phản hồi chung cho các message không được xử lý đặc biệt
+                    // Chỉ gửi phản hồi chung cho các message không được xử lý đặc biệt
+                    // ham nay giu lai tham khao, ko co tac dung nhieu
                     if (!handled && !string.IsNullOrEmpty(message))
                     {
                         string response = $"Server đã nhận: {message}";
@@ -219,14 +196,17 @@ namespace WinFormServer
                 // Xóa các lời mời liên quan đến client này
                 RemoveClientInvitations(clientSocket);
                 
-                SendClientListToAll(logAction);
-
                 // Loại bỏ client khỏi danh sách và đóng kết nối
                 lock (clients)
                 {
                     clients.Remove(clientSocket);
                 }
                 clientSocket.Close();
+                
+                // ✅ Cập nhật danh sách khi có client ngắt kết nối
+                SendClientListToAll(logAction);
+                globalUpdateClientListAction?.Invoke();
+                
                 //logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} đã ngắt kết nối.");
             }
         }
@@ -297,9 +277,8 @@ namespace WinFormServer
                 logAction?.Invoke("Đang dừng server...");
                 Broadcast("SERVER_STOPPED", clients, logAction);
 
-                // Dừng các timer
+                // Dừng timer dọn dẹp lời mời
                 invitationCleanupTimer?.Dispose();
-                clientListUpdateTimer?.Dispose();
 
                 //dong tat ca ket noi client
                 lock (clients)
@@ -391,6 +370,7 @@ namespace WinFormServer
         {
             lock (clients)
             {
+                remoteEndPoint = remoteEndPoint.Replace("|BUSY", ""); // Loại bỏ suffix |BUSY nếu có
                 // Tìm client dựa trên RemoteEndPoint
                 var client = clients.FirstOrDefault(c => c.RemoteEndPoint?.ToString() == remoteEndPoint);
                 if (client != null)
@@ -417,7 +397,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xử lý tham gia phòng
+        //Xử lý tham gia phòng
         private void HandleJoinRoom(Socket clientSocket, string message, Action<string> logAction)
         {
             try
@@ -439,6 +419,10 @@ namespace WinFormServer
 
                     logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} tham gia phòng {room.RoomId}");
 
+                    // ✅ Cập nhật danh sách client khi có người vào phòng (trạng thái BUSY)
+                    SendClientListToAll(logAction);
+                    globalUpdateClientListAction?.Invoke();
+
                     // Nếu phòng đủ 2 người, bắt đầu game
                     if (room.IsFull())
                     {
@@ -459,7 +443,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xử lý nước đi trong game
+        //Xử lý nước đi trong game
         private void HandleGameMove(Socket clientSocket, string message, Action<string> logAction)
         {
             try
@@ -478,7 +462,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xử lý rời phòng
+        //Xử lý rời phòng
         private void HandleLeaveRoom(Socket clientSocket, Action<string> logAction)
         {
             try
@@ -493,6 +477,10 @@ namespace WinFormServer
                     roomManager.BroadcastToRoom(roomId, "OPPONENT_LEFT");
 
                     logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} rời phòng {roomId}");
+                    
+                    // ✅ Cập nhật danh sách client khi có người rời phòng (trở lại trạng thái rảnh)
+                    SendClientListToAll(logAction);
+                    globalUpdateClientListAction?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -501,7 +489,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xử lý gửi lời mời chơi game
+        //Xử lý gửi lời mời chơi game
         private void HandleSendInvitation(Socket senderSocket, string message, Action<string> logAction)
         {
             try
@@ -575,7 +563,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xử lý chấp nhận lời mời
+        //Xử lý chấp nhận lời mời
         private void HandleAcceptInvitation(Socket receiverSocket, string message, Action<string> logAction)
         {
             try
@@ -633,6 +621,10 @@ namespace WinFormServer
                     roomManager.BroadcastToRoom(roomId, "GAME_START");
 
                     logAction?.Invoke($"Lời mời {invitationId} được chấp nhận. Tạo phòng {roomId} cho 2 người chơi.");
+                    
+                    // ✅ Cập nhật danh sách client khi cả hai người vào phòng (trạng thái BUSY)
+                    SendClientListToAll(logAction);
+                    globalUpdateClientListAction?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -642,7 +634,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xử lý từ chối lời mời
+        //Xử lý từ chối lời mời
         private void HandleRejectInvitation(Socket receiverSocket, string message, Action<string> logAction)
         {
             try
@@ -670,7 +662,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xóa các lời mời liên quan đến client
+        //Xóa các lời mời liên quan đến client
         private void RemoveClientInvitations(Socket clientSocket)
         {
             var relatedInvitations = invitations.Values
@@ -695,7 +687,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Helper method để gửi tin nhắn đến một client cụ thể
+        //Helper method để gửi tin nhắn đến một client cụ thể
         private void SendToClient(Socket clientSocket, string message)
         {
             try

@@ -104,6 +104,7 @@ namespace WinFormServer
                     {
                         try
                         {
+                            MessageBox.Show("start");
                             player.Send(data);
                         }
                         catch
