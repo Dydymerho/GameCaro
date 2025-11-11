@@ -11,7 +11,7 @@ namespace WinFormServer
         {
             InitializeComponent();
         }
-
+        //comment
 
         private void txtLog_TextChanged(object sender, EventArgs e)
         {
