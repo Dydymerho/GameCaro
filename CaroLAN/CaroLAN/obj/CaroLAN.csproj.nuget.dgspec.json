@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\CaroGame_LapTrinhMang\\Dydymerho\\GameCaro\\CaroLAN\\CaroLAN\\CaroLAN.csproj": {}
+    "C:\\Users\\Admin\\Documents\\LẬP TRÌNH MẠNG\\BTL\\CaroLAN\\CaroLAN\\CaroLAN.csproj": {}
   },
   "projects": {
-    "D:\\CaroGame_LapTrinhMang\\Dydymerho\\GameCaro\\CaroLAN\\CaroLAN\\CaroLAN.csproj": {
+    "C:\\Users\\Admin\\Documents\\LẬP TRÌNH MẠNG\\BTL\\CaroLAN\\CaroLAN\\CaroLAN.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\CaroGame_LapTrinhMang\\Dydymerho\\GameCaro\\CaroLAN\\CaroLAN\\CaroLAN.csproj",
+        "projectUniqueName": "C:\\Users\\Admin\\Documents\\LẬP TRÌNH MẠNG\\BTL\\CaroLAN\\CaroLAN\\CaroLAN.csproj",
         "projectName": "CaroLAN",
-        "projectPath": "D:\\CaroGame_LapTrinhMang\\Dydymerho\\GameCaro\\CaroLAN\\CaroLAN\\CaroLAN.csproj",
-        "packagesPath": "C:\\Users\\Nguyen thai tuan\\.nuget\\packages\\",
-        "outputPath": "D:\\CaroGame_LapTrinhMang\\Dydymerho\\GameCaro\\CaroLAN\\CaroLAN\\obj\\",
+        "projectPath": "C:\\Users\\Admin\\Documents\\LẬP TRÌNH MẠNG\\BTL\\CaroLAN\\CaroLAN\\CaroLAN.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Admin\\Documents\\LẬP TRÌNH MẠNG\\BTL\\CaroLAN\\CaroLAN\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Nguyen thai tuan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -42,9 +42,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "direct"
+          "auditMode": "all"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0-windows7.0": {
@@ -68,7 +68,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

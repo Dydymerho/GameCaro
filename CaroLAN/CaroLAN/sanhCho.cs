@@ -21,6 +21,7 @@ namespace CaroLAN
 
         private string currentRoomId; // ✅ Lưu ID phòng hiện tại
         private bool isInRoom = false; // ✅ Trạng thái có trong phòng hay không
+        private bool amFirst = false; // ✅ Xác định mình là người vào phòng đầu tiên hay không
 
         public sanhCho()
         {
@@ -103,6 +104,7 @@ namespace CaroLAN
                             {
                                 currentRoomId = parts[1];
                                 int playerCount = int.Parse(parts[2]);
+                                amFirst = (playerCount == 1); // ✅ nếu mình là người đầu tiên, đi trước
 
                                 Invoke(new Action(() =>
                                 {
@@ -264,29 +266,21 @@ namespace CaroLAN
         {
             try
             {
-                // Khởi tạo hoặc reset bàn cờ
-                if (chessBoard == null)
+                // Mở form mới cho game
+                Form1 gameForm = new Form1(currentRoomId, socket, amFirst);
+                gameForm.FormClosed += (s, args) =>
                 {
-                    // Mở form mới cho game
-                    Form1 gameForm = new Form1();
-                    gameForm.FormClosed += (s, args) =>
-                    {
-                        // Khi form game đóng, hiện lại form sảnh chờ
-                        this.Show();
+                    // Khi form game đóng, hiện lại form sảnh chờ
+                    this.Show();
 
-                        // Reset trạng thái
-                        isInRoom = false;
-                        currentRoomId = null;
-                        lblStatus.Text = "Đã kết nối đến server";
-                    };
+                    // Reset trạng thái
+                    isInRoom = false;
+                    currentRoomId = null;
+                    lblStatus.Text = "Đã kết nối đến server";
+                };
 
-                    gameForm.Show();
-                    this.Hide();
-                }
-                else
-                {
-                    chessBoard.ResetBoard();
-                }
+                gameForm.Show();
+                this.Hide();
             }
             catch (Exception ex)
             {

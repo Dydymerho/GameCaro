@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace CaroLAN
 {
-    internal class SocketManager
+    public class SocketManager
     {
         public const int PORT = 9999;
         private Socket socket;
@@ -25,9 +25,9 @@ namespace CaroLAN
 
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                // time out 5s
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 5000);
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 5000);
+                // time out 60s
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 60000);
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 60000);
 
                 IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Parse(ip), PORT);
                 socket.Connect(serverEndpoint);
@@ -83,24 +83,35 @@ namespace CaroLAN
         {
             try
             {
+                if (socket == null || !socket.Connected)
+                    return string.Empty;
+                
                 byte[] buffer = new byte[1024];
                 int recv = socket.Receive(buffer);
-                return Encoding.UTF8.GetString(buffer, 0, recv);
 
-                // Nếu nhận 0 byte, server đã đóng kết nối
                 if (recv == 0)
                 {
+                    // Server đã đóng kết nối
                     isConnected = false;
                     return string.Empty;
                 }
-            }
-            catch
-            {
-                isConnected = false;
 
+                return Encoding.UTF8.GetString(buffer, 0, recv);
+            }
+            catch (SocketException)
+            {
+                // Server hoặc network tạm thời mất kết nối
+                isConnected = false;
+                return string.Empty;
+            }
+            catch (Exception)
+            {
+                // Các lỗi khác
+                isConnected = false;
                 return string.Empty;
             }
         }
+
 
         public bool IsConnected
         {

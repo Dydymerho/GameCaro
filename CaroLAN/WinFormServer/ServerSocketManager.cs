@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace WinFormServer
 {
@@ -15,7 +17,7 @@ namespace WinFormServer
         private List<Socket> clients = new List<Socket>();
         private List<Thread> threads = new List<Thread>();
         private bool isRunning = false;
-        private RoomManager roomManager; // ✅ Thêm room manager
+        private RoomManager roomManager;
 
         public ServerSocketManager()
         {
@@ -32,7 +34,6 @@ namespace WinFormServer
 
             logAction?.Invoke($"Server đang lắng nghe trên cổng {PORT}...");
 
-
             Thread acceptThread = new Thread(() =>
             {
                 while (isRunning)
@@ -45,33 +46,31 @@ namespace WinFormServer
                         {
                             clients.Add(client);
                         }
-                        SendClientListToAll(logAction);
-                        updateClientList.Invoke();
 
-                        Thread clientThread = new Thread(() => HandleClient(client,  logAction));
+                        SendClientListToAll(logAction);
+                        updateClientList?.Invoke();
+
+                        Thread clientThread = new Thread(() => HandleClient(client, logAction));
                         logAction?.Invoke($"Client {client.RemoteEndPoint} đã kết nối.");
                         clientThread.IsBackground = true;
                         clientThread.Start();
                     }
                     catch (SocketException)
                     {
-                        if (!isRunning) return; // Thoát nếu server đã dừng
+                        if (!isRunning) return;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        logAction?.Invoke("Lỗi khi chấp nhận kết nối từ client.");
+                        logAction?.Invoke($"Lỗi khi chấp nhận kết nối: {ex.Message}");
                     }
                 }
-                
             });
+
             acceptThread.IsBackground = true;
             acceptThread.Start();
             lock (threads) threads.Add(acceptThread);
-
-
         }
 
-        //server nhan du lieu tu client va phan hoi lai
         private void HandleClient(Socket clientSocket, Action<string> logAction)
         {
             try
@@ -80,12 +79,12 @@ namespace WinFormServer
                 {
                     byte[] buffer = new byte[1024];
                     int receivedBytes = clientSocket.Receive(buffer);
-                    if (receivedBytes == 0) break; // Client ngắt kết nối
-                      
-                    string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
-                    logAction?.Invoke($"Nhận từ client {clientSocket.RemoteEndPoint}: {message}");
+                    if (receivedBytes == 0) break;
 
-                    // ✅ Xử lý các lệnh room
+                    string message = Encoding.UTF8.GetString(buffer, 0, receivedBytes);
+                    logAction?.Invoke($"📩 Nhận từ {clientSocket.RemoteEndPoint}: {message}");
+
+                    // ✅ Xử lý các lệnh chính
                     if (message.StartsWith("JOIN_ROOM"))
                     {
                         HandleJoinRoom(clientSocket, message, logAction);
@@ -98,76 +97,33 @@ namespace WinFormServer
                     {
                         HandleLeaveRoom(clientSocket, logAction);
                     }
-                    //----------------------------------
 
-                    // Gửi phản hồi lại cho client (tùy chọn)
-                    string response = $"Server đã nhận: {message}";
-                    byte[] responseData = Encoding.UTF8.GetBytes(response);
-                    clientSocket.Send(responseData);
+                    // ✅ Tùy chọn: phản hồi echo để debug
+                    // string response = $"Server đã nhận: {message}";
+                    // clientSocket.Send(Encoding.UTF8.GetBytes(response));
                 }
             }
             catch (SocketException)
             {
-                if (!isRunning) return; // Thoát nếu server đã dừng
+                if (!isRunning) return;
             }
-            
             catch (Exception ex)
             {
-                //logAction?.Invoke($"Lỗi khi xử lý client {clientSocket.RemoteEndPoint}: {ex.Message}");
-                Console.WriteLine($"Lỗi khi xử lý client: {ex.Message}");
+                logAction?.Invoke($"❌ Lỗi xử lý client {clientSocket.RemoteEndPoint}: {ex.Message}");
             }
             finally
             {
                 roomManager.LeaveRoom(clientSocket);
                 SendClientListToAll(logAction);
-
-                // Loại bỏ client khỏi danh sách và đóng kết nối
                 lock (clients)
                 {
                     clients.Remove(clientSocket);
                 }
                 clientSocket.Close();
-                //logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} đã ngắt kết nối.");
             }
         }
 
-        public void Send(string message)
-        {
-            if (socket != null && socket.Connected)
-            {
-                try
-                {
-                    byte[] data = Encoding.UTF8.GetBytes(message);
-                    socket.Send(data);
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Lỗi khi gửi dữ liệu.");
-                    throw;
-                }
-                
-            }
-        }
-
-        public string Receive()
-        {
-            if (socket == null)
-            {
-                throw new InvalidOperationException("Socket is not initialized. Ensure CreateServer is called first.");
-            }
-            try
-            {
-                byte[] buffer = new byte[1024];
-                int recv = socket.Receive(buffer);
-                return Encoding.UTF8.GetString(buffer, 0, recv);
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-
-        //ham send cho nhieu client
+        // ✅ Giữ nguyên hàm Broadcast
         public void Broadcast(string message, List<Socket> clients, Action<string> logAction)
         {
             byte[] data = Encoding.UTF8.GetBytes(message);
@@ -183,13 +139,12 @@ namespace WinFormServer
                         }
                         catch (Exception ex)
                         {
-                            logAction?.Invoke($"Lỗi khi gửi đến client {client.RemoteEndPoint}: {ex.Message}");
+                            logAction?.Invoke($"Lỗi khi gửi đến {client.RemoteEndPoint}: {ex.Message}");
                         }
                     }
                 }
             }
         }
-
         internal void stopServer(Action<string> logAction)
         {
             try
@@ -231,7 +186,7 @@ namespace WinFormServer
                     socket = null;
                 }
 
-                
+
 
                 logAction?.Invoke("Server đã dừng.");
             }
@@ -239,45 +194,26 @@ namespace WinFormServer
             {
                 logAction?.Invoke("Lỗi khi dừng server.");
             }
-            
+
+        }
+
+        private void SendClientListToAll(Action<string> logAction)
+        {
+            List<string> connectedClients = GetConnectedClients();
+            string clientListMessage = "CLIENT_LIST:" + string.Join(",", connectedClients);
+            Broadcast(clientListMessage, clients, logAction);
         }
 
         public List<string> GetConnectedClients()
         {
             lock (clients)
             {
-                List<string> connectedClients = new List<string>();
-
-                foreach (var client in clients)
-                {
-                    try
-                    {
-                        // Perform a non-blocking check to ensure the client is still connected
-                        if (client.Connected)
-                        {
-                            connectedClients.Add(client.RemoteEndPoint.ToString());
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log the exception and skip this client
-                        Console.WriteLine($"Error checking client connection: {ex.Message}");
-                    }
-                }
-
-                return connectedClients;
+                return clients
+                    .Where(c => c.Connected)
+                    .Select(c => c.RemoteEndPoint.ToString())
+                    .ToList();
             }
         }
-        private void SendClientListToAll(Action<string> logAction)
-        {
-            // Lấy danh sách các client hiện tại
-            List<string> connectedClients = GetConnectedClients();
-            string clientListMessage = "CLIENT_LIST:" + string.Join(",", connectedClients);
-
-            // Gửi danh sách client đến tất cả các client
-            Broadcast(clientListMessage, clients, logAction);
-        }
-
         public void DisconnectClient(string remoteEndPoint, Action<string> logAction)
         {
             lock (clients)
@@ -308,7 +244,7 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Xử lý tham gia phòng
+        // ✅ Cải tiến log & xử lý JOIN_ROOM
         private void HandleJoinRoom(Socket clientSocket, string message, Action<string> logAction)
         {
             try
@@ -325,32 +261,30 @@ namespace WinFormServer
                 {
                     var room = roomManager.GetPlayerRoom(clientSocket);
                     string response = $"ROOM_JOINED:{room.RoomId}:{room.Players.Count}";
-                    byte[] data = Encoding.UTF8.GetBytes(response);
-                    clientSocket.Send(data);
+                    clientSocket.Send(Encoding.UTF8.GetBytes(response));
 
-                    logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} tham gia phòng {room.RoomId}");
+                    logAction?.Invoke($"✅ {clientSocket.RemoteEndPoint} tham gia phòng {room.RoomId} ({room.Players.Count}/2)");
 
-                    // Nếu phòng đủ 2 người, bắt đầu game
-                    if (room.IsFull())
+                    // Khi đủ 2 người → bắt đầu game
+                    if (room.IsFull() && !room.IsGameStarted)
                     {
                         room.IsGameStarted = true;
                         roomManager.BroadcastToRoom(room.RoomId, "GAME_START");
-                        logAction?.Invoke($"Bắt đầu game trong phòng {room.RoomId}");
+                        logAction?.Invoke($"🔥 Bắt đầu game trong phòng {room.RoomId}");
                     }
                 }
                 else
                 {
-                    byte[] errorData = Encoding.UTF8.GetBytes("ROOM_JOIN_FAILED");
-                    clientSocket.Send(errorData);
+                    clientSocket.Send(Encoding.UTF8.GetBytes("ROOM_JOIN_FAILED"));
                 }
             }
             catch (Exception ex)
             {
-                logAction?.Invoke($"Lỗi khi xử lý tham gia phòng: {ex.Message}");
+                logAction?.Invoke($"Lỗi khi xử lý JOIN_ROOM: {ex.Message}");
             }
         }
 
-        // ✅ Xử lý nước đi trong game
+        // ✅ Truyền nước đi giữa 2 người chơi
         private void HandleGameMove(Socket clientSocket, string message, Action<string> logAction)
         {
             try
@@ -358,18 +292,17 @@ namespace WinFormServer
                 var room = roomManager.GetPlayerRoom(clientSocket);
                 if (room != null && room.IsGameStarted)
                 {
-                    // Chuyển tiếp nước đi cho đối thủ
                     roomManager.BroadcastToRoom(room.RoomId, message, clientSocket);
-                    logAction?.Invoke($"Chuyển tiếp nước đi trong phòng {room.RoomId}");
+                    logAction?.Invoke($"➡️ Truyền nước đi trong phòng {room.RoomId}");
                 }
             }
             catch (Exception ex)
             {
-                logAction?.Invoke($"Lỗi khi xử lý nước đi: {ex.Message}");
+                logAction?.Invoke($"Lỗi GAME_MOVE: {ex.Message}");
             }
         }
 
-        // ✅ Xử lý rời phòng
+        // ✅ Khi người chơi thoát khỏi phòng
         private void HandleLeaveRoom(Socket clientSocket, Action<string> logAction)
         {
             try
@@ -383,12 +316,12 @@ namespace WinFormServer
                     // Thông báo cho đối thủ
                     roomManager.BroadcastToRoom(roomId, "OPPONENT_LEFT");
 
-                    logAction?.Invoke($"Client {clientSocket.RemoteEndPoint} rời phòng {roomId}");
+                    logAction?.Invoke($"👋 {clientSocket.RemoteEndPoint} rời phòng {roomId}");
                 }
             }
             catch (Exception ex)
             {
-                logAction?.Invoke($"Lỗi khi xử lý rời phòng: {ex.Message}");
+                logAction?.Invoke($"Lỗi khi xử lý LEAVE_ROOM: {ex.Message}");
             }
         }
     }
