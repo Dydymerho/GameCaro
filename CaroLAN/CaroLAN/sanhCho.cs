@@ -19,21 +19,16 @@ namespace CaroLAN
         Thread listenThread;
         private CancellationTokenSource cancellationTokenSource;
 
-<<<<<<< HEAD
         private string currentRoomId;
         private bool isInRoom = false;
-        
+        private bool amFirst = false;
+
         // ✅ Quản lý lời mời
         private Dictionary<string, string> receivedInvitations; // invitationId -> senderEndPoint
         private Dictionary<string, DateTime> invitationTimestamps; // invitationId -> thời gian nhận
         
         // ✅ Lưu địa chỉ endpoint của chính client này
         private string myEndPoint;
-=======
-        private string currentRoomId; // ✅ Lưu ID phòng hiện tại
-        private bool isInRoom = false; // ✅ Trạng thái có trong phòng hay không
-        private bool amFirst = false; // ✅ Xác định mình là người vào phòng đầu tiên hay không
->>>>>>> client
 
         public sanhCho()
         {

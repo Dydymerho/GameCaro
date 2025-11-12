@@ -102,35 +102,21 @@ namespace WinFormServer
             {
                 byte[] data = Encoding.UTF8.GetBytes(message);
                 lock (room.Players)
-                {
-<<<<<<< HEAD
-                    if (player != sender && player.Connected)
-=======
                     foreach (var player in room.Players)
->>>>>>> client
                     {
                         if (player != sender && player.Connected)
                         {
-<<<<<<< HEAD
-                            MessageBox.Show("start");
-                            player.Send(data);
-                        }
-                        catch
-                        {
-                            // Ignore sending errors
-=======
                             try
                             {
+                                MessageBox.Show("start");
                                 player.Send(data);
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Lỗi gửi dữ liệu tới {player.RemoteEndPoint}: {ex.Message}");
                             }
->>>>>>> client
                         }
                     }
-                }
             }
         }
 
