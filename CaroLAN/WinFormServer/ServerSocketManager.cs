@@ -22,11 +22,15 @@ namespace WinFormServer
         private System.Threading.Timer invitationCleanupTimer; // ✅ Timer dọn dẹp lời mời hết hạn
         private Action<string> globalLogAction; // ✅ Lưu log action
         private Action globalUpdateClientListAction; // ✅ Lưu update action
+        private UserManager userManager; // ✅ Quản lý user
+        private ConcurrentDictionary<Socket, User> authenticatedUsers; // ✅ Lưu user đã đăng nhập
 
-        public ServerSocketManager()
+        public ServerSocketManager(UserManager userManager)
         {
+            this.userManager = userManager;
             roomManager = new RoomManager();
             invitations = new ConcurrentDictionary<string, GameInvitation>();
+            authenticatedUsers = new ConcurrentDictionary<Socket, User>();
             
             // Khởi tạo timer để dọn dẹp lời mời hết hạn mỗi 2 giây
             invitationCleanupTimer = new System.Threading.Timer(CleanupExpiredInvitations, null, 2000, 2000);
@@ -125,7 +129,22 @@ namespace WinFormServer
                     // ✅ Xử lý các lệnh - KHÔNG GỬI RESPONSE CHUNG NẾU ĐÃ XỬ LÝ
                     bool handled = false;
                     
-                    if (message.StartsWith("JOIN_ROOM"))
+                    if (message.StartsWith("REGISTER:"))
+                    {
+                        HandleRegister(clientSocket, message, logAction);
+                        handled = true;
+                    }
+                    else if (message.StartsWith("LOGIN:"))
+                    {
+                        HandleLogin(clientSocket, message, logAction);
+                        handled = true;
+                    }
+                    else if (!IsAuthenticated(clientSocket))
+                    {
+                        SendToClient(clientSocket, "AUTH_REQUIRED:Vui lòng đăng nhập trước");
+                        handled = true;
+                    }
+                    else if (message.StartsWith("JOIN_ROOM"))
                     {
                         HandleJoinRoom(clientSocket, message, logAction);
                         handled = true;
@@ -194,6 +213,9 @@ namespace WinFormServer
                 
                 // Xóa các lời mời liên quan đến client này
                 RemoveClientInvitations(clientSocket);
+                
+                // ✅ Xóa user đã đăng nhập
+                authenticatedUsers.TryRemove(clientSocket, out _);
                 
                 // Loại bỏ client khỏi danh sách và đóng kết nối
                 lock (clients)
@@ -301,16 +323,17 @@ namespace WinFormServer
                         // Perform a non-blocking check to ensure the client is still connected
                         if (client.Connected)
                         {
-                            string endpoint = client.RemoteEndPoint.ToString();
+                            // ✅ Lấy username nếu đã đăng nhập, nếu không thì dùng endpoint
+                            string displayName = GetUsername(client);
                             
                             // ✅ Kiểm tra xem client có đang trong phòng không
                             var room = roomManager.GetPlayerRoom(client);
                             if (room != null)
                             {
-                                endpoint += "|BUSY"; // Đánh dấu client đang bận
+                                displayName += "|BUSY"; // Đánh dấu client đang bận
                             }
                             
-                            connectedClients.Add(endpoint);
+                            connectedClients.Add(displayName);
                         }
                     }
                     catch (Exception ex)
@@ -328,7 +351,7 @@ namespace WinFormServer
         {
             lock (clients)
             {
-                remoteEndPoint = remoteEndPoint.Replace("|BUSY", ""); // Loại bỏ suffix |BUSY nếu có
+                remoteEndPoint = remoteEndPoint.Replace("|BUSY", ""); // Loại bỏ suffix 
                 // Tìm client dựa trên RemoteEndPoint
                 var client = clients.FirstOrDefault(c => c.RemoteEndPoint?.ToString() == remoteEndPoint);
                 if (client != null)
@@ -457,8 +480,10 @@ namespace WinFormServer
                     return;
                 }
 
-                string receiverEndPoint = parts[1]+":"+parts[2];
-                
+                string receiverEndPoint = parts.Length >= 3
+                    ? parts[1] + ":" + parts[2]
+                    : parts[1];
+
                 // ✅ Loại bỏ suffix |BUSY nếu có
                 receiverEndPoint = receiverEndPoint.Replace("|BUSY", "");
 
@@ -473,6 +498,12 @@ namespace WinFormServer
                 {
                     SendToClient(senderSocket, "INVITATION_SEND_FAILED:Client not found");
                     logAction?.Invoke($"Không tìm thấy client {receiverEndPoint}");
+                    return;
+                }
+
+                if (receiverSocket == senderSocket)
+                {
+                    SendToClient(senderSocket, "INVITATION_SEND_FAILED:Cannot invite yourself");
                     return;
                 }
 
@@ -657,6 +688,122 @@ namespace WinFormServer
             {
                 // Ignore sending errors
             }
+        }
+
+        // ✅ Xử lý đăng ký
+        private void HandleRegister(Socket clientSocket, string message, Action<string> logAction)
+        {
+            try
+            {
+                // Format: REGISTER:username:password:email
+                string[] parts = message.Split(':');
+                if (parts.Length < 3)
+                {
+                    SendToClient(clientSocket, "REGISTER_FAILED:Định dạng không hợp lệ");
+                    return;
+                }
+
+                string username = parts[1];
+                string password = parts[2];
+                string email = parts.Length > 3 ? parts[3] : "";
+
+                // Validate
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                {
+                    SendToClient(clientSocket, "REGISTER_FAILED:Username và password không được để trống");
+                    return;
+                }
+
+                if (username.Length < 3 || username.Length > 50)
+                {
+                    SendToClient(clientSocket, "REGISTER_FAILED:Username phải từ 3-50 ký tự");
+                    return;
+                }
+
+                if (password.Length < 6)
+                {
+                    SendToClient(clientSocket, "REGISTER_FAILED:Mật khẩu phải có ít nhất 6 ký tự");
+                    return;
+                }
+
+                // Đăng ký
+                bool success = userManager.Register(username, password, email);
+                if (success)
+                {
+                    SendToClient(clientSocket, "REGISTER_SUCCESS:Đăng ký thành công");
+                    logAction?.Invoke($"✅ User đăng ký: {username}");
+                }
+                else
+                {
+                    SendToClient(clientSocket, "REGISTER_FAILED:Username đã tồn tại");
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi xử lý đăng ký: {ex.Message}");
+                SendToClient(clientSocket, "REGISTER_FAILED:Lỗi server");
+            }
+        }
+
+        // ✅ Xử lý đăng nhập
+        private void HandleLogin(Socket clientSocket, string message, Action<string> logAction)
+        {
+            try
+            {
+                // Format: LOGIN:username:password
+                string[] parts = message.Split(':');
+                if (parts.Length < 3)
+                {
+                    SendToClient(clientSocket, "LOGIN_FAILED:Định dạng không hợp lệ");
+                    return;
+                }
+
+                string username = parts[1];
+                string password = parts[2];
+
+                // Đăng nhập
+                User? user = userManager.Login(username, password);
+                if (user != null)
+                {
+                    // Lưu thông tin user đã đăng nhập
+                    authenticatedUsers[clientSocket] = user;
+                    
+                    // Gửi thông tin user về client
+                    string response = $"LOGIN_SUCCESS:{user.Id}:{user.Username}:{user.TotalGames}:{user.Wins}:{user.Losses}";
+                    SendToClient(clientSocket, response);
+                    
+                    logAction?.Invoke($"✅ User đăng nhập: {user.Username} (ID: {user.Id})");
+                    
+                    // Cập nhật danh sách client
+                    SendClientListToAll(logAction);
+                    globalUpdateClientListAction?.Invoke();
+                }
+                else
+                {
+                    SendToClient(clientSocket, "LOGIN_FAILED:Username hoặc password không đúng");
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi xử lý đăng nhập: {ex.Message}");
+                SendToClient(clientSocket, "LOGIN_FAILED:Lỗi server");
+            }
+        }
+
+        // ✅ Kiểm tra đã đăng nhập chưa
+        private bool IsAuthenticated(Socket clientSocket)
+        {
+            return authenticatedUsers.ContainsKey(clientSocket);
+        }
+
+        // ✅ Lấy username từ socket
+        private string GetUsername(Socket clientSocket)
+        {
+            if (authenticatedUsers.TryGetValue(clientSocket, out User? user))
+            {
+                return user.Username;
+            }
+            return clientSocket.RemoteEndPoint?.ToString() ?? "Unknown";
         }
     }
 }

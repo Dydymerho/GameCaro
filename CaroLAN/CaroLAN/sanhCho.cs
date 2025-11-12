@@ -15,13 +15,14 @@ namespace CaroLAN
     public partial class sanhCho : Form
     {
         ChessBoardManager chessBoard;
-        SocketManager socket;
+        private readonly SocketManager socket;
         Thread listenThread;
         private CancellationTokenSource cancellationTokenSource;
 
         private string currentRoomId;
         private bool isInRoom = false;
         private bool amFirst = false;
+        private string username = string.Empty;
 
         // ✅ Quản lý lời mời
         private Dictionary<string, string> receivedInvitations; // invitationId -> senderEndPoint
@@ -30,12 +31,59 @@ namespace CaroLAN
         // ✅ Lưu địa chỉ endpoint của chính client này
         private string myEndPoint;
 
-        public sanhCho()
+        public sanhCho() : this(string.Empty, null)
+        {
+        }
+
+        public sanhCho(string username, SocketManager? existingSocket)
         {
             InitializeComponent();
-            socket = new SocketManager();
+            this.username = username;
+            socket = existingSocket ?? new SocketManager();
             receivedInvitations = new Dictionary<string, string>();
             invitationTimestamps = new Dictionary<string, DateTime>();
+            cancellationTokenSource = new CancellationTokenSource();
+
+            FormClosing += sanhCho_FormClosing;
+
+            btnConnect.Enabled = true;
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                Text = $"GameCaro - {username}";
+            }
+
+            if (socket.IsConnected)
+            {
+                lblStatus.Text = string.IsNullOrEmpty(username)
+                    ? "Đã kết nối đến server"
+                    : $"Đã kết nối - {username}";
+                btnConnect.Text = "Ngắt kết nối";
+                txtIP.Enabled = false;
+
+                try
+                {
+                    string? remoteEndpoint = socket.GetServerEndPoint();
+                    if (!string.IsNullOrEmpty(remoteEndpoint) && remoteEndpoint.Contains(':'))
+                    {
+                        txtIP.Text = remoteEndpoint.Split(':')[0];
+                    }
+                }
+                catch
+                {
+                    // ignore parse errors
+                }
+
+                myEndPoint = socket.GetLocalEndPoint();
+                lobbyListening();
+            }
+            else
+            {
+                lblStatus.Text = "Chưa kết nối";
+                btnConnect.Text = "Kết nối";
+                txtIP.Enabled = true;
+                myEndPoint = string.Empty;
+            }
         }
 
         private void btnConnect_Click_1(object sender, EventArgs e)
@@ -521,7 +569,6 @@ namespace CaroLAN
                     listenThread.Join(1000); // Đợi tối đa 1 giây
                 }
 
-                // Ngắt kết nối socket
                 socket.Disconnect();
             }
             catch
@@ -532,9 +579,20 @@ namespace CaroLAN
 
         private void sanhCho_Load(object sender, EventArgs e)
         {
-            // Thiết lập trạng thái ban đầu
-            lblStatus.Text = "Chưa kết nối";
-            btnConnect.Text = "Kết nối";
+            if (socket.IsConnected)
+            {
+                lblStatus.Text = string.IsNullOrEmpty(username)
+                    ? "Đã kết nối đến server"
+                    : $"Đã kết nối - {username}";
+                btnConnect.Text = "Ngắt kết nối";
+                txtIP.Enabled = false;
+            }
+            else
+            {
+                lblStatus.Text = "Chưa kết nối";
+                btnConnect.Text = "Kết nối";
+                txtIP.Enabled = true;
+            }
         }
 
         // Kết nối đến server

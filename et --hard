@@ -1,0 +1,40 @@
+[33m420b818[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mlogin[m[33m, [m[1;31morigin/login[m[33m)[m thêm đăng ký, đăng nhập
+[33m8b7a7d8[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m fix: conflict 12/11
+[33m3a12426[m Merge branch 'client'
+[33m7e19346[m check gitignore
+[33m0738cb1[m[33m ([m[1;31morigin/Client[m[33m)[m Delete CaroGameSolution directory
+[33mb9f6881[m Add .gitignore file for project configuration
+[33m068413e[m Delete .vs directory
+[33m3d4969d[m Delete .vs directory
+[33m63da010[m Add .gitignore file to exclude build and temp file
+[33m488539f[m Delete CaroGameSolution directory
+[33m55a802d[m Delete CaroLAN/CaroLAN/obj directory
+[33mb57efa3[m Delete CaroLAN/CaroLAN/bin/Debug/net8.0-windows directory
+[33md94dd88[m Delete CaroLAN/CaroLAN/obj directory
+[33m1ca73f2[m Delete CaroLAN/CaroLAN/bin/Debug/net8.0-windows directory
+[33m965ff87[m fix: disconnect client busy
+[33mdd01b74[m feat: game invite
+[33m087e69b[m thay đổi giao diện bàn cờ, thêm đếm thời gian, xác định người chơi đi trước
+[33m87bc6f3[m feat: add form request
+[33m705fc01[m refactor: client connect, disconnect Enhance socket handling and connection robustness
+[33m8f0a011[m refactor
+[33md2b82be[m refactor: connection
+[33m0f4227c[m sanh cho da nhan lstClient
+[33m37c7f4f[m feat: create lobby
+[33m6803a52[m feat: server
+[33m146ed19[m feat: thêm server socket lắng nghe kết nối
+[33m9e3e162[m Delete CaroGame.Shared directory
+[33m49820ef[m Delete CaroGame.Server directory
+[33mbf031cf[m Delete CaroGame.Core directory
+[33ma1bb9c4[m Delete CaroGame.Client directory
+[33m3114731[m Add files via upload
+[33mea8b98e[m client connect server
+[33m73f526f[m Initial project structure with all 4 modules and gitignore
+[33m27b4855[m ***
+[33m6c45aa6[m Create README.md
+[33mc298875[m Update README.md
+[33m06ffdc0[m Update README with server functionality details
+[33mc350330[m Create README.md
+[33mb5f27d1[m Add README for server directory
+[33m0439140[m Add README with Caro game logic library description
+[33m1a37fe8[m Initial commit
