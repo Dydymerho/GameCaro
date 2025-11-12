@@ -8,14 +8,15 @@ namespace WinFormServer
     {
         ServerSocketManager socket;
         UserManager userManager;
-        
-        // database config
+
+        // database config localhost
         private const string DB_SERVER = "localhost";
-        // private const string DB_SERVER = "127.0.0.1";
         private const string DB_DATABASE = "gamecaro";
         private const string DB_USER = "root";
         private const string DB_PASSWORD = "";
-        
+
+
+
         public ServerForm()
         {
             InitializeComponent();
