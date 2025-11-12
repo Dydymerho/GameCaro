@@ -95,31 +95,84 @@ namespace WinFormServer
         {
             return rooms.Values.ToList();
         }
-
-        public void BroadcastToRoom(string roomId, string message, Socket sender = null)
+        public void BroadcastToRoom(string roomId, string message, Socket? sender = null)
         {
-            if (rooms.TryGetValue(roomId, out GameRoom room))
+            if (!rooms.TryGetValue(roomId, out GameRoom? room))
+                return;
+
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            lock (room.Players)
             {
-                byte[] data = Encoding.UTF8.GetBytes(message);
-                lock (room.Players)
-                    foreach (var player in room.Players)
+                foreach (var player in room.Players)
+                {
+                    if (player != sender && player.Connected)
                     {
-                        if (player != sender && player.Connected)
+                        try
                         {
-                            try
-                            {
-                                MessageBox.Show("start");
-                                player.Send(data);
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Lỗi gửi dữ liệu tới {player.RemoteEndPoint}: {ex.Message}");
-                            }
+                            player.Send(data);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Lỗi gửi dữ liệu tới {player.RemoteEndPoint}: {ex.Message}");
                         }
                     }
+                }
             }
         }
 
+        // Gửi tin nhắn từ sender tới các client khác trong cùng phòng (chat phòng / relay)
+        public bool RelayMessage(Socket sender, string message)
+        {
+            var room = GetPlayerRoom(sender);
+            if (room == null) return false;
+
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            lock (room.Players)
+            {
+                foreach (var player in room.Players)
+                {
+                    if (player != sender && player.Connected)
+                    {
+                        try
+                        {
+                            player.Send(data);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Lỗi gửi tin nhắn tới {player.RemoteEndPoint}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Gửi tin nhắn riêng tới một client xác định bởi endpoint string (ví dụ "127.0.0.1:12345")
+        public bool SendPrivateMessage(Socket sender, string recipientEndpointString, string message)
+        {
+            var room = GetPlayerRoom(sender);
+            if (room == null) return false;
+
+            Socket? recipient = null;
+            lock (room.Players)
+            {
+                recipient = room.Players.FirstOrDefault(p => p.RemoteEndPoint?.ToString() == recipientEndpointString);
+            }
+
+            if (recipient == null || !recipient.Connected) return false;
+
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            try
+            {
+                recipient.Send(data);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi gửi private message tới {recipient.RemoteEndPoint}: {ex.Message}");
+                return false;
+            }
+        }
     }
 }
 
