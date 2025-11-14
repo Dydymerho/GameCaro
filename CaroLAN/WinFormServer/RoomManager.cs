@@ -64,22 +64,32 @@ namespace WinFormServer
 
         public void LeaveRoom(Socket player)
         {
-            if (playerRooms.TryRemove(player, out string roomId))
-            {
-                if (rooms.TryGetValue(roomId, out GameRoom room))
-                {
-                    room.RemovePlayer(player);
-                    Console.WriteLine($"[RoomManager] Người chơi {player.RemoteEndPoint} rời phòng {roomId}");
+            if (!playerRooms.TryRemove(player, out string roomId))
+                return;
 
-                    // Xóa phòng nếu trống
-                    if (room.IsEmpty())
-                    {
-                        rooms.TryRemove(roomId, out _);
-                        Console.WriteLine($"[RoomManager] 🗑️ Phòng {roomId} đã bị xóa (trống)");
-                    }
-                }
+            if (!rooms.TryGetValue(roomId, out GameRoom room))
+                return;
+
+            // Xóa player khỏi room
+            room.RemovePlayer(player);
+            Console.WriteLine($"[RoomManager] Người chơi {player.RemoteEndPoint} rời phòng {roomId}");
+
+            // Nếu còn một người → xóa mapping của người còn lại để họ trở thành rảnh
+            if (room.Players.Count == 1)
+            {
+                Socket remaining = room.Players[0];
+                playerRooms.TryRemove(remaining, out _);  // 
+                Console.WriteLine($"[RoomManager] Người chơi còn lại {remaining.RemoteEndPoint} được giải phóng khỏi phòng");
+            }
+
+            // Nếu phòng trống → xóa phòng
+            if (room.IsEmpty())
+            {
+                rooms.TryRemove(roomId, out _);
+                Console.WriteLine($"[RoomManager] 🗑️ Phòng {roomId} đã bị xóa (trống)");
             }
         }
+
 
         public GameRoom GetPlayerRoom(Socket player)
         {

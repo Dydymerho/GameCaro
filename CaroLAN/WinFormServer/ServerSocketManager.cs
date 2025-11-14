@@ -39,28 +39,19 @@ namespace WinFormServer
         //xoa lời mời hết hạn
         private void CleanupExpiredInvitations(object state)
         {
-            var expiredInvitations = invitations.Values
-                .Where(inv => !inv.IsValid())
-                .ToList();
+            var expired = invitations.Values.Where(inv => !inv.IsValid()).ToList();
 
-            foreach (var invitation in expiredInvitations)
+            foreach (var inv in expired)
             {
-                if (invitations.TryRemove(invitation.InvitationId, out _))
+                if (invitations.TryRemove(inv.InvitationId, out _))
                 {
-                    // Thông báo cho receiver rằng lời mời đã hết hạn
-                    try
-                    {
-                        if (invitation.Receiver != null && invitation.Receiver.Connected)
-                        {
-                            string message = $"INVITATION_EXPIRED:{invitation.InvitationId}:{invitation.SenderEndPoint}";
-                            byte[] data = Encoding.UTF8.GetBytes(message);
-                            invitation.Receiver.Send(data);
-                        }
-                    }
-                    catch { }
+                    // Báo cho người gửi & người nhận
+                    SendToClient(inv.Sender, $"INVITATION_EXPIRED:{inv.InvitationId}");
+                    SendToClient(inv.Receiver, $"INVITATION_EXPIRED:{inv.InvitationId}");
                 }
             }
         }
+
 
         public void CreateServer(Action<string> logAction, Action updateClientList)
         {
@@ -472,7 +463,7 @@ namespace WinFormServer
         {
             try
             {
-                // Format: SEND_INVITATION:receiverEndPoint
+                // Format: SEND_INVITATION:<username>
                 string[] parts = message.Split(':');
                 if (parts.Length < 2)
                 {
@@ -480,81 +471,70 @@ namespace WinFormServer
                     return;
                 }
 
-                string receiverEndPoint = parts.Length >= 3
-                    ? parts[1] + ":" + parts[2]
-                    : parts[1];
+                string receiverName = parts[1].Trim();
 
-                // ✅ Loại bỏ suffix |BUSY nếu có
-                receiverEndPoint = receiverEndPoint.Replace("|BUSY", "");
-
-                // Tìm socket của receiver
-                Socket receiverSocket = null;
-                lock (clients)
-                {
-                    receiverSocket = clients.FirstOrDefault(c => c.RemoteEndPoint?.ToString() == receiverEndPoint);
-                }
+                // Tìm socket receiver theo username trước
+                Socket receiverSocket = authenticatedUsers
+                    .Where(x => x.Value.Username == receiverName)
+                    .Select(x => x.Key)
+                    .FirstOrDefault();
 
                 if (receiverSocket == null)
                 {
                     SendToClient(senderSocket, "INVITATION_SEND_FAILED:Client not found");
-                    logAction?.Invoke($"Không tìm thấy client {receiverEndPoint}");
                     return;
                 }
 
+                // Không thể tự mời chính mình
                 if (receiverSocket == senderSocket)
                 {
                     SendToClient(senderSocket, "INVITATION_SEND_FAILED:Cannot invite yourself");
                     return;
                 }
 
-                // Kiểm tra xem người gửi đã trong phòng chưa
-                var senderRoom = roomManager.GetPlayerRoom(senderSocket);
-                if (senderRoom != null)
+                // Người gửi trong phòng? → không được gửi
+                if (roomManager.GetPlayerRoom(senderSocket) != null)
                 {
                     SendToClient(senderSocket, "INVITATION_SEND_FAILED:You are already in a room");
                     return;
                 }
 
-                // ✅ Kiểm tra xem người nhận đã trong phòng chưa
-                var receiverRoom = roomManager.GetPlayerRoom(receiverSocket);
-                if (receiverRoom != null)
+                // Người nhận đang bận?
+                if (roomManager.GetPlayerRoom(receiverSocket) != null)
                 {
                     SendToClient(senderSocket, "INVITATION_SEND_FAILED:Receiver is busy");
-                    logAction?.Invoke($"Client {receiverEndPoint} đang bận");
                     return;
                 }
 
                 // Tạo lời mời mới
-                var invitation = new GameInvitation(senderSocket, receiverSocket);
-                if (invitations.TryAdd(invitation.InvitationId, invitation))
-                {
-                    // Gửi lời mời đến receiver
-                    string invitationMessage = $"INVITATION_RECEIVED:{invitation.InvitationId}:{invitation.SenderEndPoint}";
-                    SendToClient(receiverSocket, invitationMessage);
+                GameInvitation invitation = new GameInvitation(senderSocket, receiverSocket);
+                invitations.TryAdd(invitation.InvitationId, invitation);
 
-                    // Thông báo cho sender rằng đã gửi thành công
-                    SendToClient(senderSocket, $"INVITATION_SENT:{invitation.InvitationId}:{receiverEndPoint}");
+                string senderName = GetUsername(senderSocket);
 
-                    logAction?.Invoke($"Client {senderSocket.RemoteEndPoint} gửi lời mời đến {receiverEndPoint} (ID: {invitation.InvitationId})");
-                }
-                else
-                {
-                    SendToClient(senderSocket, "INVITATION_SEND_FAILED:Could not create invitation");
-                }
+                // Gửi lời mời đến receiver
+                SendToClient(receiverSocket,
+                    $"INVITATION_RECEIVED:{invitation.InvitationId}:{senderName}");
+
+                // Gửi thông báo cho sender
+                SendToClient(senderSocket,
+                    $"INVITATION_SENT:{invitation.InvitationId}:{receiverName}");
+
+                logAction?.Invoke($"📨 {senderName} gửi lời mời đến {receiverName}");
             }
             catch (Exception ex)
             {
-                logAction?.Invoke($"Lỗi khi xử lý gửi lời mời: {ex.Message}");
+                logAction?.Invoke($"Lỗi HandleSendInvitation: {ex.Message}");
                 SendToClient(senderSocket, "INVITATION_SEND_FAILED:Server error");
             }
         }
+
 
         //Xử lý chấp nhận lời mời
         private void HandleAcceptInvitation(Socket receiverSocket, string message, Action<string> logAction)
         {
             try
             {
-                // Format: ACCEPT_INVITATION:invitationId
                 string[] parts = message.Split(':');
                 if (parts.Length < 2)
                 {
@@ -564,114 +544,95 @@ namespace WinFormServer
 
                 string invitationId = parts[1];
 
-                if (!invitations.TryGetValue(invitationId, out GameInvitation invitation))
+                if (!invitations.TryRemove(invitationId, out GameInvitation invitation))
                 {
                     SendToClient(receiverSocket, "INVITATION_ACCEPT_FAILED:Invitation not found");
                     return;
                 }
 
-                // Kiểm tra tính hợp lệ
-                if (!invitation.IsValid())
-                {
-                    invitations.TryRemove(invitationId, out _);
-                    SendToClient(receiverSocket, "INVITATION_ACCEPT_FAILED:Invitation expired");
-                    return;
-                }
-
-                // Kiểm tra người nhận có đúng không
+                // Sai người nhận?
                 if (invitation.Receiver != receiverSocket)
                 {
                     SendToClient(receiverSocket, "INVITATION_ACCEPT_FAILED:Invalid receiver");
                     return;
                 }
 
-                // Đánh dấu đã chấp nhận và xóa khỏi danh sách
-                invitation.IsAccepted = true;
-                invitations.TryRemove(invitationId, out _);
+                // Hết hạn?
+                if (!invitation.IsValid())
+                {
+                    SendToClient(receiverSocket, "INVITATION_ACCEPT_FAILED:Invitation expired");
+                    return;
+                }
 
-                // Tạo phòng mới và cho cả hai vào
+                // Tạo phòng mới
                 string roomId = roomManager.CreateRoom();
                 roomManager.JoinRoom(invitation.Sender, roomId);
                 roomManager.JoinRoom(invitation.Receiver, roomId);
 
-                var room = roomManager.GetPlayerRoom(invitation.Sender);
-                if (room != null && room.IsFull())
-                {
-                    room.IsGameStarted = true;
+                // Gửi thông báo ACCEPTED cho cả hai
+                SendToClient(invitation.Sender, $"INVITATION_ACCEPTED:{invitationId}:{roomId}");
+                SendToClient(invitation.Receiver, $"INVITATION_ACCEPTED:{invitationId}:{roomId}");
 
-                    // Thông báo cho cả hai người chơi
-                    SendToClient(invitation.Sender, $"INVITATION_ACCEPTED:{invitationId}:{roomId}");
-                    SendToClient(invitation.Receiver, $"INVITATION_ACCEPTED:{invitationId}:{roomId}");
+                // Bắt đầu game
+                roomManager.BroadcastToRoom(roomId, "GAME_START");
 
-                    // Gửi tín hiệu bắt đầu game
-                    roomManager.BroadcastToRoom(roomId, "GAME_START");
+                logAction?.Invoke($"✔ Lời mời {invitationId} được chấp nhận → tạo phòng {roomId}");
 
-                    logAction?.Invoke($"Lời mời {invitationId} được chấp nhận. Tạo phòng {roomId} cho 2 người chơi.");
-                    
-                    // ✅ Cập nhật danh sách client khi cả hai người vào phòng (trạng thái BUSY)
-                    SendClientListToAll(logAction);
-                    globalUpdateClientListAction?.Invoke();
-                }
+                // Cập nhật lại danh sách client (BUSY)
+                SendClientListToAll(logAction);
+                globalUpdateClientListAction?.Invoke();
             }
             catch (Exception ex)
             {
-                logAction?.Invoke($"Lỗi khi xử lý chấp nhận lời mời: {ex.Message}");
                 SendToClient(receiverSocket, "INVITATION_ACCEPT_FAILED:Server error");
+                logAction?.Invoke("Lỗi HandleAcceptInvitation: " + ex.Message);
             }
         }
+
 
         //Xử lý từ chối lời mời
         private void HandleRejectInvitation(Socket receiverSocket, string message, Action<string> logAction)
         {
             try
             {
-                // Format: REJECT_INVITATION:invitationId
                 string[] parts = message.Split(':');
-                if (parts.Length < 2)
-                {
-                    return;
-                }
+                if (parts.Length < 2) return;
 
                 string invitationId = parts[1];
 
                 if (invitations.TryRemove(invitationId, out GameInvitation invitation))
                 {
-                    // Thông báo cho sender rằng lời mời bị từ chối
-                    SendToClient(invitation.Sender, $"INVITATION_REJECTED:{invitationId}:{invitation.ReceiverEndPoint}");
-
-                    logAction?.Invoke($"Lời mời {invitationId} bị từ chối");
+                    SendToClient(invitation.Sender, $"INVITATION_REJECTED:{invitationId}");
+                    logAction?.Invoke($"❌ Lời mời {invitationId} bị từ chối");
                 }
             }
             catch (Exception ex)
             {
-                logAction?.Invoke($"Lỗi khi xử lý từ chối lời mời: {ex.Message}");
+                logAction?.Invoke("Lỗi HandleRejectInvitation: " + ex.Message);
             }
         }
 
         //Xóa các lời mời liên quan đến client
         private void RemoveClientInvitations(Socket clientSocket)
         {
-            var relatedInvitations = invitations.Values
+            var related = invitations.Values
                 .Where(inv => inv.Sender == clientSocket || inv.Receiver == clientSocket)
                 .ToList();
 
-            foreach (var invitation in relatedInvitations)
+            foreach (var inv in related)
             {
-                if (invitations.TryRemove(invitation.InvitationId, out _))
+                if (invitations.TryRemove(inv.InvitationId, out _))
                 {
-                    // Thông báo cho người còn lại
-                    try
-                    {
-                        Socket otherPlayer = invitation.Sender == clientSocket ? invitation.Receiver : invitation.Sender;
-                        if (otherPlayer != null && otherPlayer.Connected)
-                        {
-                            SendToClient(otherPlayer, $"INVITATION_CANCELLED:{invitation.InvitationId}");
-                        }
-                    }
-                    catch { }
+                    Socket other = inv.Sender == clientSocket ? inv.Receiver : inv.Sender;
+
+                    SendToClient(other, $"INVITATION_CANCELLED:{inv.InvitationId}");
                 }
             }
+            SendClientListToAll(globalLogAction);
+            globalUpdateClientListAction?.Invoke();
+
         }
+
 
         //Helper method để gửi tin nhắn đến một client cụ thể
         private void SendToClient(Socket clientSocket, string message)
