@@ -13,7 +13,6 @@ namespace WinFormServer
     {
         public const int PORT = 9999;
         private Socket socket;
-        private string IP = "127.0.0.1";
         private List<Socket> clients = new List<Socket>();
         private List<Thread> threads = new List<Thread>();
         private bool isRunning = false;
