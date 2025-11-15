@@ -12,6 +12,7 @@ namespace CaroLAN
 
         private bool isLoggedIn;
         private string currentUsername = string.Empty;
+        private string currentPassword = string.Empty; // ✅ Lưu password để tự động đăng nhập lại
         private int userId;
         private int totalGames;
         private int wins;
@@ -93,6 +94,9 @@ namespace CaroLAN
                 return;
             }
 
+            // ✅ Lưu password để tự động đăng nhập lại khi reconnect
+            currentPassword = password;
+
             socket.Send($"LOGIN:{username}:{password}");
             lblStatus.Text = "Đang đăng nhập...";
         }
@@ -102,7 +106,6 @@ namespace CaroLAN
             string username = txtRegisterUsername.Text.Trim();
             string password = txtRegisterPassword.Text.Trim();
             string confirmPassword = txtRegisterConfirmPassword.Text.Trim();
-            string email = txtRegisterEmail.Text.Trim();
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
@@ -128,9 +131,8 @@ namespace CaroLAN
                 return;
             }
 
-            string registerMessage = string.IsNullOrEmpty(email)
-                ? $"REGISTER:{username}:{password}"
-                : $"REGISTER:{username}:{password}:{email}";
+            // Bỏ email: gửi luôn REGISTER:{username}:{password}
+            string registerMessage = $"REGISTER:{username}:{password}";
 
             socket.Send(registerMessage);
             lblStatus.Text = "Đang đăng ký...";
@@ -240,6 +242,7 @@ namespace CaroLAN
         }
 
         public string GetUsername() => currentUsername;
+        public string GetPassword() => currentPassword; // ✅ Trả về password để tự động đăng nhập lại
         public int GetUserId() => userId;
         public bool IsLoggedIn() => isLoggedIn;
         public SocketManager GetSocket() => socket;

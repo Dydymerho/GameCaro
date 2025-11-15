@@ -21,9 +21,21 @@ namespace WinFormServer
         {
             InitializeComponent();
             
-            // Khởi tạo UserManager
-            userManager = new UserManager(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD);
-            socket = new ServerSocketManager(userManager);
+            // Kiểm tra và tạo database nếu chưa có
+            LogToTextBox("Đang kiểm tra database...");
+            bool dbInitialized = UserManager.InitializeDatabase(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD, LogToTextBox);
+            
+            if (dbInitialized)
+            {
+                // Khởi tạo UserManager
+                userManager = new UserManager(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD);
+                socket = new ServerSocketManager(userManager);
+                LogToTextBox("Server đã sẵn sàng. Nhấn 'Start' để bắt đầu server.");
+            }
+            else
+            {
+                LogToTextBox("Lỗi: Không thể khởi tạo database. Vui lòng kiểm tra kết nối MySQL.");
+            }
         }
         //comment
 

@@ -14,6 +14,102 @@ namespace WinFormServer
             connectionString = $"Server={server};Database={database};Uid={userId};Pwd={password};CharSet=utf8mb4;";
         }
 
+        // Kiểm tra và tạo database nếu chưa có
+        public static bool InitializeDatabase(string server, string database, string userId, string password, Action<string>? logAction = null)
+        {
+            try
+            {
+                // Kết nối đến MySQL server (không chỉ định database)
+                string serverConnectionString = $"Server={server};Uid={userId};Pwd={password};CharSet=utf8mb4;";
+                
+                using (MySqlConnection conn = new MySqlConnection(serverConnectionString))
+                {
+                    conn.Open();
+                    logAction?.Invoke("Đã kết nối đến MySQL server.");
+
+                    // Kiểm tra xem database có tồn tại không
+                    string checkDbQuery = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{database}'";
+                    using (MySqlCommand cmd = new MySqlCommand(checkDbQuery, conn))
+                    {
+                        object? result = cmd.ExecuteScalar();
+                        
+                        if (result == null)
+                        {
+                            // Database chưa tồn tại, tạo mới
+                            logAction?.Invoke($"Database '{database}' chưa tồn tại. Đang tạo database...");
+                            string createDbQuery = $"CREATE DATABASE IF NOT EXISTS {database} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+                            using (MySqlCommand createCmd = new MySqlCommand(createDbQuery, conn))
+                            {
+                                createCmd.ExecuteNonQuery();
+                                logAction?.Invoke($"Đã tạo database '{database}' thành công.");
+                            }
+                        }
+                        else
+                        {
+                            logAction?.Invoke($"Database '{database}' đã tồn tại.");
+                        }
+                    }
+
+                    // Kết nối đến database vừa tạo/kiểm tra để tạo tables
+                    string dbConnectionString = $"Server={server};Database={database};Uid={userId};Pwd={password};CharSet=utf8mb4;";
+                    using (MySqlConnection dbConn = new MySqlConnection(dbConnectionString))
+                    {
+                        dbConn.Open();
+                        
+                        // Tạo bảng users nếu chưa có
+                        string createUsersTable = @"
+                            CREATE TABLE IF NOT EXISTS users (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                username VARCHAR(50) UNIQUE NOT NULL,
+                                password_hash VARCHAR(255) NOT NULL,
+                                email VARCHAR(100),
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                last_login TIMESTAMP NULL,
+                                total_games INT DEFAULT 0,
+                                wins INT DEFAULT 0,
+                                losses INT DEFAULT 0,
+                                INDEX idx_username (username)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+                        
+                        using (MySqlCommand cmd = new MySqlCommand(createUsersTable, dbConn))
+                        {
+                            cmd.ExecuteNonQuery();
+                            logAction?.Invoke("Đã kiểm tra/tạo bảng 'users'.");
+                        }
+
+                        // Tạo bảng game_history nếu chưa có
+                        string createGameHistoryTable = @"
+                            CREATE TABLE IF NOT EXISTS game_history (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                room_id VARCHAR(20),
+                                player1_id INT,
+                                player2_id INT,
+                                winner_id INT,
+                                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                ended_at TIMESTAMP NULL,
+                                FOREIGN KEY (player1_id) REFERENCES users(id),
+                                FOREIGN KEY (player2_id) REFERENCES users(id),
+                                FOREIGN KEY (winner_id) REFERENCES users(id)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+                        
+                        using (MySqlCommand cmd = new MySqlCommand(createGameHistoryTable, dbConn))
+                        {
+                            cmd.ExecuteNonQuery();
+                            logAction?.Invoke("Đã kiểm tra/tạo bảng 'game_history'.");
+                        }
+                    }
+
+                    logAction?.Invoke("Khởi tạo database hoàn tất.");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi khi khởi tạo database: {ex.Message}");
+                return false;
+            }
+        }
+
         // Hash password
         private string HashPassword(string password)
         {

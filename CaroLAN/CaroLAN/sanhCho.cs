@@ -23,6 +23,7 @@ namespace CaroLAN
         private bool isInRoom = false;
         private bool amFirst = false;
         private string username = string.Empty;
+        private string password = string.Empty; // ✅ Lưu password để tự động đăng nhập lại
 
         // ✅ Quản lý lời mời
         private Dictionary<string, string> receivedInvitations; // invitationId -> senderEndPoint
@@ -31,14 +32,19 @@ namespace CaroLAN
         // ✅ Lưu địa chỉ endpoint của chính client này
         private string myEndPoint;
 
-        public sanhCho() : this(string.Empty, null)
+        public sanhCho() : this(string.Empty, string.Empty, null)
         {
         }
 
-        public sanhCho(string username, SocketManager? existingSocket)
+        public sanhCho(string username, SocketManager? existingSocket) : this(username, string.Empty, existingSocket)
+        {
+        }
+
+        public sanhCho(string username, string password, SocketManager? existingSocket)
         {
             InitializeComponent();
             this.username = username;
+            this.password = password; // ✅ Lưu password để tự động đăng nhập lại
             socket = existingSocket ?? new SocketManager();
             receivedInvitations = new Dictionary<string, string>();
             invitationTimestamps = new Dictionary<string, DateTime>();
@@ -142,6 +148,52 @@ namespace CaroLAN
                         // ✅ Bỏ qua message phản hồi chung từ server
                         if (data.StartsWith("Server đã nhận:"))
                         {
+                            continue;
+                        }
+
+                        // ✅ Xử lý đăng nhập lại thành công
+                        if (data.StartsWith("LOGIN_SUCCESS:"))
+                        {
+                            string[] parts = data.Split(':');
+                            if (parts.Length >= 3)
+                            {
+                                string loggedInUsername = parts[2];
+                                Invoke(new Action(() =>
+                                {
+                                    username = loggedInUsername; // Cập nhật username
+                                    Text = $"GameCaro - {username}";
+                                    lblStatus.Text = $"Đã đăng nhập lại: {username}";
+                                }));
+                            }
+                            continue;
+                        }
+
+                        // ✅ Xử lý đăng nhập lại thất bại
+                        if (data.StartsWith("LOGIN_FAILED:"))
+                        {
+                            string error = data.Substring("LOGIN_FAILED:".Length);
+                            Invoke(new Action(() =>
+                            {
+                                lblStatus.Text = $"Đăng nhập lại thất bại: {error}";
+                            }));
+                            continue;
+                        }
+
+                        // ✅ Xử lý yêu cầu đăng nhập (nếu chưa đăng nhập)
+                        if (data.StartsWith("AUTH_REQUIRED:"))
+                        {
+                            // Tự động đăng nhập lại nếu có thông tin
+                            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                            {
+                                try
+                                {
+                                    socket.Send($"LOGIN:{username}:{password}");
+                                }
+                                catch
+                                {
+                                    // Bỏ qua lỗi
+                                }
+                            }
                             continue;
                         }
 
@@ -448,13 +500,21 @@ namespace CaroLAN
         private void UpdateClientList(string[] clients)
         {
             lstClients.Items.Clear();
-            
+
             if (clients.Length == 0 || string.IsNullOrEmpty(clients[0]))
-            {
                 return;
+
+            // ✅ Lấy endpoint hiện tại từ socket (cập nhật mỗi lần để đảm bảo đúng sau khi reconnect)
+            string currentEndPoint = string.Empty;
+            if (socket.IsConnected)
+            {
+                currentEndPoint = socket.GetLocalEndPoint();
+                if (!string.IsNullOrEmpty(currentEndPoint) && currentEndPoint != "Not connected" && currentEndPoint != "Error")
+                {
+                    myEndPoint = currentEndPoint; // Cập nhật myEndPoint với giá trị hiện tại
+                }
             }
 
-            // Phân loại client: available và busy
             List<string> availableClients = new List<string>();
             List<string> busyClients = new List<string>();
 
@@ -463,52 +523,75 @@ namespace CaroLAN
                 if (string.IsNullOrWhiteSpace(client))
                     continue;
 
-                // ✅ Loại bỏ chính mình khỏi danh sách
-                // Server gửi username (nếu đã đăng nhập) hoặc RemoteEndPoint
-                string cleanClient = client.Replace("|BUSY", "");
-                
-                // So sánh với username trước (nếu có), sau đó mới so sánh với endpoint
-                bool isMyself = false;
+                string cleanClient = client.Replace("|BUSY", "").Trim();
+
+                // ✅ So sánh để xác định đây có phải là chính mình không
+                bool isMe = false;
+
+                // 1. So sánh với username nếu có (ưu tiên cao nhất)
                 if (!string.IsNullOrEmpty(username))
                 {
-                    // Nếu có username, so sánh với username
-                    isMyself = (cleanClient == username);
-                }
-                else
-                {
-                    // Nếu không có username, so sánh với endpoint
-                    isMyself = (cleanClient == myEndPoint);
+                    isMe = cleanClient.Equals(username.Trim(), StringComparison.OrdinalIgnoreCase);
                 }
                 
-                if (isMyself)
+                // 2. Nếu chưa khớp với username, so sánh với endpoint hiện tại
+                if (!isMe && !string.IsNullOrEmpty(currentEndPoint) && currentEndPoint != "Not connected" && currentEndPoint != "Error")
                 {
-                    continue; // Bỏ qua chính mình
+                    isMe = cleanClient.Equals(currentEndPoint.Trim(), StringComparison.OrdinalIgnoreCase);
                 }
+
+                // 3. Nếu vẫn chưa khớp và có myEndPoint cũ, so sánh với nó (phòng trường hợp reconnect nhưng chưa cập nhật)
+                if (!isMe && !string.IsNullOrEmpty(myEndPoint) && myEndPoint != "Not connected" && myEndPoint != "Error")
+                {
+                    isMe = cleanClient.Equals(myEndPoint.Trim(), StringComparison.OrdinalIgnoreCase);
+                }
+
+                // 4. So sánh theo IP nếu endpoint có format IP:Port (phòng trường hợp port thay đổi nhưng IP giống)
+                if (!isMe && !string.IsNullOrEmpty(currentEndPoint) && currentEndPoint.Contains(':'))
+                {
+                    try
+                    {
+                        string myIP = currentEndPoint.Split(':')[0];
+                        if (cleanClient.Contains(':'))
+                        {
+                            string clientIP = cleanClient.Split(':')[0];
+                            // Chỉ so sánh IP nếu cả hai đều là localhost hoặc cùng IP
+                            if (myIP == clientIP && (myIP == "127.0.0.1" || myIP == "localhost" || myIP.StartsWith("192.168.") || myIP.StartsWith("10.")))
+                            {
+                                // Nếu IP giống và đều là localhost/local network, có thể là cùng một client
+                                // Nhưng để an toàn, chỉ bỏ qua nếu format endpoint hoàn toàn giống nhau
+                                // (tránh bỏ qua nhầm người khác có cùng IP)
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Bỏ qua lỗi khi parse
+                    }
+                }
+
+                if (isMe)
+                    continue; // Bỏ qua chính mình
 
                 if (client.Contains("|BUSY"))
                 {
-                    // Client đang bận - loại bỏ suffix và thêm prefix
-                    string endpoint = client.Replace("|BUSY", "");
-                    busyClients.Add($"[BUSY] {endpoint}");
+                    busyClients.Add($"[BUSY] {cleanClient}");
                 }
                 else
                 {
-                    availableClients.Add(client);
+                    availableClients.Add(cleanClient);
                 }
             }
 
             // Thêm client available trước
             foreach (string client in availableClients)
-            {
                 lstClients.Items.Add(client);
-            }
 
-            // Thêm client busy sau (xuống cuối danh sách)
+            // Thêm client busy xuống cuối
             foreach (string client in busyClients)
-            {
                 lstClients.Items.Add(client);
-            }
         }
+
 
         // button bat dau choi
         private void button3_Click(object sender, EventArgs e)
@@ -651,6 +734,20 @@ namespace CaroLAN
 
                     // Lưu địa chỉ endpoint của chính mình
                     myEndPoint = socket.GetLocalEndPoint();
+
+                    // ✅ Tự động đăng nhập lại nếu có username và password
+                    if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                    {
+                        try
+                        {
+                            socket.Send($"LOGIN:{username}:{password}");
+                            lblStatus.Text = "Đang đăng nhập lại...";
+                        }
+                        catch
+                        {
+                            // Bỏ qua lỗi nếu không gửi được
+                        }
+                    }
 
                     // Bắt đầu lắng nghe
                     lobbyListening();
