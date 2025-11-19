@@ -30,7 +30,7 @@ namespace WinFormServer
                 // Khởi tạo UserManager
                 userManager = new UserManager(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD);
                 socket = new ServerSocketManager(userManager);
-                LogToTextBox("Server đã sẵn sàng. Nhấn 'Start' để bắt đầu server.");
+                LogToTextBox("Server đã sẵn sàng. Nhấn 'Bat server' để bắt đầu server.");
             }
             else
             {
