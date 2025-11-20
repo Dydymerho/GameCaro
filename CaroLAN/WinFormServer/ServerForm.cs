@@ -69,6 +69,8 @@ namespace WinFormServer
                 lblStatus.Text = "Server đã dừng.";
                 btnStart.Enabled = true;
                 btnStop.Enabled = false;
+                button1.Enabled = false;
+                button2.Enabled = false;
             }
             catch
             {
