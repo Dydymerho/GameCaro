@@ -118,6 +118,7 @@
             // button1
             // 
             button1.BackColor = SystemColors.ButtonHighlight;
+            button1.Enabled = false;
             button1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             button1.Location = new Point(15, 460);
             button1.Name = "button1";
@@ -130,6 +131,7 @@
             // button2
             // 
             button2.BackColor = SystemColors.ButtonHighlight;
+            button2.Enabled = false;
             button2.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             button2.Location = new Point(195, 460);
             button2.Name = "button2";

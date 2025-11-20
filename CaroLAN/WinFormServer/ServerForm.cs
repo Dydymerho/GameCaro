@@ -56,6 +56,8 @@ namespace WinFormServer
 
             btnStart.Enabled = false;
             btnStop.Enabled = true;
+            button1.Enabled = true;
+            button2.Enabled = true;
         }
 
         private void btnStop_Click(object sender, EventArgs e)
