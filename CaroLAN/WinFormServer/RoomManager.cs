@@ -118,7 +118,7 @@ namespace WinFormServer
                         {
                             try
                             {
-                                MessageBox.Show("start");
+                                // MessageBox.Show("start");
                                 player.Send(data);
                             }
                             catch (Exception ex)

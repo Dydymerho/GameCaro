@@ -622,6 +622,7 @@ namespace CaroLAN
 
         private void StartGame()
         {
+            cancellationTokenSource?.Cancel(); // Hủy token để vòng lặp lobbyListening kết thúc
             try
             {
                 // Mở form mới cho game

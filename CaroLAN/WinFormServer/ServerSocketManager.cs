@@ -144,6 +144,11 @@ namespace WinFormServer
                         HandleGameMove(clientSocket, message, logAction);
                         handled = true;
                     }
+                    else if (message.StartsWith("GAME_WIN:")) // ✅ XỬ LÝ KHI CÓ NGƯỜI THẮNG
+                    {
+                        HandleGameWin(clientSocket, message, logAction);
+                        handled = true;
+                    }
                     else if (message == "LEAVE_ROOM")
                     {
                         HandleLeaveRoom(clientSocket, logAction);
@@ -428,6 +433,55 @@ namespace WinFormServer
             {
                 logAction?.Invoke($"Lỗi GAME_MOVE: {ex.Message}");
             }
+        }
+
+        // ✅ Xử lý khi một người chơi tuyên bố thắng
+        private void HandleGameWin(Socket winnerSocket, string message, Action<string> logAction)
+        {
+            try
+            {
+                var room = roomManager.GetPlayerRoom(winnerSocket);
+                if (room == null || !room.IsGameStarted) return;
+
+                string moveData = message.Substring("GAME_WIN:".Length);
+
+                Socket loserSocket = room.GetOpponent(winnerSocket);
+
+                User? winner = GetAuthenticatedUser(winnerSocket);
+                User? loser = GetAuthenticatedUser(loserSocket);
+
+                if (loserSocket.Connected)
+                {
+                    SendToClient(loserSocket, $"OPPONENT_WON:{moveData}");
+                }
+
+                SendToClient(winnerSocket, "YOU_WON");
+
+                if (winner != null)
+                {
+                    userManager.UpdateGameStats(winner.Id, true);
+                    logAction?.Invoke($"🏆 {winner.Username} thắng.");
+                }
+                if (loser != null)
+                {
+                    userManager.UpdateGameStats(loser.Id, false);
+                    logAction?.Invoke($"💀 {loser.Username} thua.");
+                }
+
+                SendClientListToAll(logAction);
+                globalUpdateClientListAction?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi HandleGameWin: {ex.Message}");
+            }
+        }
+
+        // Hàm hỗ trợ để lấy User từ Socket 
+        private User? GetAuthenticatedUser(Socket clientSocket)
+        {
+            authenticatedUsers.TryGetValue(clientSocket, out User? user);
+            return user;
         }
 
         // ✅ Khi người chơi thoát khỏi phòng

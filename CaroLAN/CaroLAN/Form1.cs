@@ -148,6 +148,31 @@ namespace CaroLAN
                                 EndGame("Đối thủ đã thoát khỏi phòng.");
                             }));
                         }
+                        // ✅ Nhận thông báo đối thủ thắng (mình thua)
+                        if (data.StartsWith("OPPONENT_WON:"))
+                        {
+                            string moveData = data.Substring("OPPONENT_WON:".Length);
+                            string[] parts = moveData.Split(',');
+
+                            // Vẫn phải hiển thị nước đi cuối của đối thủ (đó chính là nước đi thắng)
+                            if (parts.Length == 2 && int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y))
+                            {
+                                Invoke(new Action(() =>
+                                {
+                                    chessBoard.OtherPlayerMove(new Point(x, y)); // Hiển thị nước đi thắng
+                                    EndGame("Bạn đã thua trận đấu này!");
+                                }));
+                            }
+                        }
+
+                        // ✅ Nhận thông báo mình thắng
+                        if (data == "YOU_WON")
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                EndGame("Chúc mừng, bạn đã thắng trận đấu!");
+                            }));
+                        }
                     }
                     catch (Exception)
                     {
@@ -166,23 +191,18 @@ namespace CaroLAN
         private void ChessBoard_PlayerClicked(object sender, Point e)
         {
             if (!isMyTurn || chessBoard.isGameOver) return;
+            bool isWinner = chessBoard.CheckWin(e.X, e.Y);
+            string messageToSend = isWinner ? $"GAME_WIN:{e.X},{e.Y}" : $"GAME_MOVE:{e.X},{e.Y}";
+            socket.Send(messageToSend);
 
-            chessBoard.isPlayerTurn = false;
             StopTurnTimer();
 
-            // Gửi nước đi
-            socket.Send($"GAME_MOVE:{e.X},{e.Y}");
-
-            // Chuyển lượt
-            isMyTurn = false;
             lblTurn.Text = "Lượt của đối thủ";
         }
 
         private void ChessBoard_GameEnded(object sender, Player winner)
         {
             StopTurnTimer();
-            string result = (winner == Player.One) ? "Bạn thắng!" : "Bạn thua!";
-            MessageBox.Show(result, "Kết thúc trận đấu");
         }
 
         private void btnResign_Click(object sender, EventArgs e)
