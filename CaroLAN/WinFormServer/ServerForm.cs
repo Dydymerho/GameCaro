@@ -30,7 +30,7 @@ namespace WinFormServer
                 // Khởi tạo UserManager
                 userManager = new UserManager(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD);
                 socket = new ServerSocketManager(userManager);
-                LogToTextBox("Server đã sẵn sàng. Nhấn 'Start' để bắt đầu server.");
+                LogToTextBox("Server đã sẵn sàng. Nhấn 'Bat server' để bắt đầu server.");
             }
             else
             {
@@ -56,6 +56,8 @@ namespace WinFormServer
 
             btnStart.Enabled = false;
             btnStop.Enabled = true;
+            button1.Enabled = true;
+            button2.Enabled = true;
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -67,6 +69,8 @@ namespace WinFormServer
                 lblStatus.Text = "Server đã dừng.";
                 btnStart.Enabled = true;
                 btnStop.Enabled = false;
+                button1.Enabled = false;
+                button2.Enabled = false;
             }
             catch
             {
