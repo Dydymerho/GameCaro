@@ -23,8 +23,18 @@ namespace WinFormServer
             
             // Kiểm tra và tạo database nếu chưa có
             LogToTextBox("Đang kiểm tra database...");
-            bool dbInitialized = UserManager.InitializeDatabase(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD, LogToTextBox);
-            
+            bool dbInitialized = false;
+
+            try
+            {
+                dbInitialized = UserManager.InitializeDatabase(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD, LogToTextBox);
+            }
+            catch (Exception ex)
+            {
+                LogToTextBox($"Lỗi khi khởi tạo database: {ex.Message}");
+            }
+
+
             if (dbInitialized)
             {
                 // Khởi tạo UserManager
@@ -51,14 +61,22 @@ namespace WinFormServer
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            socket.CreateServer(LogToTextBox, UpdateClientList);
-            lblStatus.Text = "Đang chờ kết nối...";
-
-            btnStart.Enabled = false;
-            btnStop.Enabled = true;
-            button1.Enabled = true;
-            button2.Enabled = true;
+            try
+            {
+                socket.CreateServer(LogToTextBox, UpdateClientList);
+                lblStatus.Text = "Đang chờ kết nối...";
+                btnStart.Enabled = false;
+                btnStop.Enabled = true;
+                button1.Enabled = true;
+                button2.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                LogToTextBox($"Lỗi khi bật server: {ex.Message}");
+                MessageBox.Show("Không thể bật server. Vui lòng kiểm tra PORT hoặc Firewall.");
+            }
         }
+
 
         private void btnStop_Click(object sender, EventArgs e)
         {
@@ -72,12 +90,13 @@ namespace WinFormServer
                 button1.Enabled = false;
                 button2.Enabled = false;
             }
-            catch
+            catch (Exception ex)
             {
-                txtLog.AppendText("Lỗi khi dừng server.\n");
+                LogToTextBox($"Lỗi khi dừng server: {ex.Message}");
+                MessageBox.Show("Có lỗi xảy ra khi dừng server!");
             }
-
         }
+
 
         private void LogToTextBox(string message)
         {
@@ -97,11 +116,19 @@ namespace WinFormServer
         //nut refresh danh sach client
         private void button1_Click(object sender, EventArgs e)
         {
-            UpdateClientList();
-            LogToTextBox("Cập nhật danh sách client...");
-            List<string> connectedClients = socket.GetConnectedClients();
-            LogToTextBox($"Number of connected clients: {connectedClients.Count}");
+            try
+            {
+                UpdateClientList();
+                LogToTextBox("Cập nhật danh sách client...");
+                List<string> connectedClients = socket.GetConnectedClients();
+                LogToTextBox($"Số client đang kết nối: {connectedClients.Count}");
+            }
+            catch (Exception ex)
+            {
+                LogToTextBox($"Lỗi khi cập nhật danh sách client: {ex.Message}");
+            }
         }
+
 
         private void UpdateClientList()
         {
@@ -130,14 +157,22 @@ namespace WinFormServer
         {
             if (lstClients.SelectedItem != null)
             {
-                string selectedClient = lstClients.SelectedItem.ToString();
-                socket.DisconnectClient(selectedClient, LogToTextBox);
-                UpdateClientList();
+                try
+                {
+                    string selectedClient = lstClients.SelectedItem.ToString();
+                    socket.DisconnectClient(selectedClient, LogToTextBox);
+                    UpdateClientList();
+                }
+                catch (Exception ex)
+                {
+                    LogToTextBox($"Lỗi khi ngắt client: {ex.Message}");
+                }
             }
             else
             {
                 MessageBox.Show("Vui lòng chọn một client để ngắt kết nối.");
             }
         }
+
     }
 }

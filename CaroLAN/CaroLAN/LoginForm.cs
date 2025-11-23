@@ -18,12 +18,24 @@ namespace CaroLAN
         private int wins;
         private int losses;
 
+        private void LoginForm_Load(object sender, EventArgs e)
+        {
+            // Nếu đã nhập sẵn IP thì tự động connect
+            if (!string.IsNullOrWhiteSpace(txtServerIP.Text))
+            {
+                btnConnect_Click(null, null);  // Tự động kết nối khi form chạy
+            }
+        }
+
+
         public LoginForm()
         {
             InitializeComponent();
             socket = new SocketManager();
             cancellationTokenSource = new CancellationTokenSource();
             lblStatus.Text = "Chưa kết nối";
+
+            this.Load += LoginForm_Load; // auto connect to localhost
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -277,6 +289,11 @@ namespace CaroLAN
 
             cancellationTokenSource?.Dispose();
             base.OnFormClosing(e);
+        }
+
+        private void txtServerIP_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -17,270 +17,285 @@ namespace CaroLAN
 
         private void InitializeComponent()
         {
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPageLogin = new System.Windows.Forms.TabPage();
-            this.btnLogin = new System.Windows.Forms.Button();
-            this.txtLoginPassword = new System.Windows.Forms.TextBox();
-            this.lblLoginPassword = new System.Windows.Forms.Label();
-            this.txtLoginUsername = new System.Windows.Forms.TextBox();
-            this.lblLoginUsername = new System.Windows.Forms.Label();
-            this.tabPageRegister = new System.Windows.Forms.TabPage();
-            this.btnRegister = new System.Windows.Forms.Button();
-            this.txtRegisterEmail = new System.Windows.Forms.TextBox();
-            this.lblRegisterEmail = new System.Windows.Forms.Label();
-            this.txtRegisterConfirmPassword = new System.Windows.Forms.TextBox();
-            this.lblRegisterConfirmPassword = new System.Windows.Forms.Label();
-            this.txtRegisterPassword = new System.Windows.Forms.TextBox();
-            this.lblRegisterPassword = new System.Windows.Forms.Label();
-            this.txtRegisterUsername = new System.Windows.Forms.TextBox();
-            this.lblRegisterUsername = new System.Windows.Forms.Label();
-            this.lblServerIP = new System.Windows.Forms.Label();
-            this.txtServerIP = new System.Windows.Forms.TextBox();
-            this.btnConnect = new System.Windows.Forms.Button();
-            this.lblStatus = new System.Windows.Forms.Label();
-            this.lblUserInfo = new System.Windows.Forms.Label();
-            this.tabControl1.SuspendLayout();
-            this.tabPageLogin.SuspendLayout();
-            this.tabPageRegister.SuspendLayout();
-            this.SuspendLayout();
+            tabControl1 = new TabControl();
+            tabPageLogin = new TabPage();
+            btnLogin = new Button();
+            txtLoginPassword = new TextBox();
+            lblLoginPassword = new Label();
+            txtLoginUsername = new TextBox();
+            lblLoginUsername = new Label();
+            tabPageRegister = new TabPage();
+            btnRegister = new Button();
+            txtRegisterEmail = new TextBox();
+            lblRegisterEmail = new Label();
+            txtRegisterConfirmPassword = new TextBox();
+            lblRegisterConfirmPassword = new Label();
+            txtRegisterPassword = new TextBox();
+            lblRegisterPassword = new Label();
+            txtRegisterUsername = new TextBox();
+            lblRegisterUsername = new Label();
+            lblServerIP = new Label();
+            txtServerIP = new TextBox();
+            btnConnect = new Button();
+            lblStatus = new Label();
+            lblUserInfo = new Label();
+            tabControl1.SuspendLayout();
+            tabPageLogin.SuspendLayout();
+            tabPageRegister.SuspendLayout();
+            SuspendLayout();
             // 
             // tabControl1
             // 
-            this.tabControl1.Controls.Add(this.tabPageLogin);
-            this.tabControl1.Controls.Add(this.tabPageRegister);
-            this.tabControl1.Location = new System.Drawing.Point(12, 100);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(400, 320);
-            this.tabControl1.TabIndex = 0;
+            tabControl1.Controls.Add(tabPageLogin);
+            tabControl1.Controls.Add(tabPageRegister);
+            tabControl1.Location = new Point(10, 75);
+            tabControl1.Margin = new Padding(3, 2, 3, 2);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(350, 240);
+            tabControl1.TabIndex = 0;
             // 
             // tabPageLogin
             // 
-            this.tabPageLogin.Controls.Add(this.btnLogin);
-            this.tabPageLogin.Controls.Add(this.txtLoginPassword);
-            this.tabPageLogin.Controls.Add(this.lblLoginPassword);
-            this.tabPageLogin.Controls.Add(this.txtLoginUsername);
-            this.tabPageLogin.Controls.Add(this.lblLoginUsername);
-            this.tabPageLogin.Location = new System.Drawing.Point(4, 29);
-            this.tabPageLogin.Name = "tabPageLogin";
-            this.tabPageLogin.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageLogin.Size = new System.Drawing.Size(392, 287);
-            this.tabPageLogin.TabIndex = 0;
-            this.tabPageLogin.Text = "Đăng nhập";
-            this.tabPageLogin.UseVisualStyleBackColor = true;
+            tabPageLogin.Controls.Add(btnLogin);
+            tabPageLogin.Controls.Add(txtLoginPassword);
+            tabPageLogin.Controls.Add(lblLoginPassword);
+            tabPageLogin.Controls.Add(txtLoginUsername);
+            tabPageLogin.Controls.Add(lblLoginUsername);
+            tabPageLogin.Location = new Point(4, 24);
+            tabPageLogin.Margin = new Padding(3, 2, 3, 2);
+            tabPageLogin.Name = "tabPageLogin";
+            tabPageLogin.Padding = new Padding(3, 2, 3, 2);
+            tabPageLogin.Size = new Size(342, 212);
+            tabPageLogin.TabIndex = 0;
+            tabPageLogin.Text = "Đăng nhập";
+            tabPageLogin.UseVisualStyleBackColor = true;
             // 
             // btnLogin
             // 
-            this.btnLogin.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
-            this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLogin.ForeColor = System.Drawing.Color.White;
-            this.btnLogin.Location = new System.Drawing.Point(20, 170);
-            this.btnLogin.Name = "btnLogin";
-            this.btnLogin.Size = new System.Drawing.Size(350, 45);
-            this.btnLogin.TabIndex = 4;
-            this.btnLogin.Text = "Đăng nhập";
-            this.btnLogin.UseVisualStyleBackColor = false;
-            this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
+            btnLogin.BackColor = Color.FromArgb(0, 122, 204);
+            btnLogin.FlatStyle = FlatStyle.Flat;
+            btnLogin.ForeColor = Color.White;
+            btnLogin.Location = new Point(18, 128);
+            btnLogin.Margin = new Padding(3, 2, 3, 2);
+            btnLogin.Name = "btnLogin";
+            btnLogin.Size = new Size(306, 34);
+            btnLogin.TabIndex = 4;
+            btnLogin.Text = "Đăng nhập";
+            btnLogin.UseVisualStyleBackColor = false;
+            btnLogin.Click += btnLogin_Click;
             // 
             // txtLoginPassword
             // 
-            this.txtLoginPassword.Location = new System.Drawing.Point(20, 120);
-            this.txtLoginPassword.Name = "txtLoginPassword";
-            this.txtLoginPassword.PasswordChar = '*';
-            this.txtLoginPassword.Size = new System.Drawing.Size(350, 27);
-            this.txtLoginPassword.TabIndex = 3;
+            txtLoginPassword.Location = new Point(18, 90);
+            txtLoginPassword.Margin = new Padding(3, 2, 3, 2);
+            txtLoginPassword.Name = "txtLoginPassword";
+            txtLoginPassword.PasswordChar = '*';
+            txtLoginPassword.Size = new Size(307, 23);
+            txtLoginPassword.TabIndex = 3;
             // 
             // lblLoginPassword
             // 
-            this.lblLoginPassword.AutoSize = true;
-            this.lblLoginPassword.Location = new System.Drawing.Point(20, 95);
-            this.lblLoginPassword.Name = "lblLoginPassword";
-            this.lblLoginPassword.Size = new System.Drawing.Size(73, 20);
-            this.lblLoginPassword.TabIndex = 2;
-            this.lblLoginPassword.Text = "Password:";
+            lblLoginPassword.AutoSize = true;
+            lblLoginPassword.Location = new Point(18, 71);
+            lblLoginPassword.Name = "lblLoginPassword";
+            lblLoginPassword.Size = new Size(60, 15);
+            lblLoginPassword.TabIndex = 2;
+            lblLoginPassword.Text = "Password:";
             // 
             // txtLoginUsername
             // 
-            this.txtLoginUsername.Location = new System.Drawing.Point(20, 55);
-            this.txtLoginUsername.Name = "txtLoginUsername";
-            this.txtLoginUsername.Size = new System.Drawing.Size(350, 27);
-            this.txtLoginUsername.TabIndex = 1;
+            txtLoginUsername.Location = new Point(18, 41);
+            txtLoginUsername.Margin = new Padding(3, 2, 3, 2);
+            txtLoginUsername.Name = "txtLoginUsername";
+            txtLoginUsername.Size = new Size(307, 23);
+            txtLoginUsername.TabIndex = 1;
             // 
             // lblLoginUsername
             // 
-            this.lblLoginUsername.AutoSize = true;
-            this.lblLoginUsername.Location = new System.Drawing.Point(20, 30);
-            this.lblLoginUsername.Name = "lblLoginUsername";
-            this.lblLoginUsername.Size = new System.Drawing.Size(75, 20);
-            this.lblLoginUsername.TabIndex = 0;
-            this.lblLoginUsername.Text = "Username:";
+            lblLoginUsername.AutoSize = true;
+            lblLoginUsername.Location = new Point(18, 22);
+            lblLoginUsername.Name = "lblLoginUsername";
+            lblLoginUsername.Size = new Size(63, 15);
+            lblLoginUsername.TabIndex = 0;
+            lblLoginUsername.Text = "Username:";
             // 
             // tabPageRegister
             // 
-            this.tabPageRegister.Controls.Add(this.btnRegister);
-            this.tabPageRegister.Controls.Add(this.txtRegisterEmail);
-            this.tabPageRegister.Controls.Add(this.lblRegisterEmail);
-            this.tabPageRegister.Controls.Add(this.txtRegisterConfirmPassword);
-            this.tabPageRegister.Controls.Add(this.lblRegisterConfirmPassword);
-            this.tabPageRegister.Controls.Add(this.txtRegisterPassword);
-            this.tabPageRegister.Controls.Add(this.lblRegisterPassword);
-            this.tabPageRegister.Controls.Add(this.txtRegisterUsername);
-            this.tabPageRegister.Controls.Add(this.lblRegisterUsername);
-            this.tabPageRegister.Location = new System.Drawing.Point(4, 29);
-            this.tabPageRegister.Name = "tabPageRegister";
-            this.tabPageRegister.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageRegister.Size = new System.Drawing.Size(392, 287);
-            this.tabPageRegister.TabIndex = 1;
-            this.tabPageRegister.Text = "Đăng ký";
-            this.tabPageRegister.UseVisualStyleBackColor = true;
+            tabPageRegister.Controls.Add(btnRegister);
+            tabPageRegister.Controls.Add(txtRegisterEmail);
+            tabPageRegister.Controls.Add(lblRegisterEmail);
+            tabPageRegister.Controls.Add(txtRegisterConfirmPassword);
+            tabPageRegister.Controls.Add(lblRegisterConfirmPassword);
+            tabPageRegister.Controls.Add(txtRegisterPassword);
+            tabPageRegister.Controls.Add(lblRegisterPassword);
+            tabPageRegister.Controls.Add(txtRegisterUsername);
+            tabPageRegister.Controls.Add(lblRegisterUsername);
+            tabPageRegister.Location = new Point(4, 24);
+            tabPageRegister.Margin = new Padding(3, 2, 3, 2);
+            tabPageRegister.Name = "tabPageRegister";
+            tabPageRegister.Padding = new Padding(3, 2, 3, 2);
+            tabPageRegister.Size = new Size(342, 212);
+            tabPageRegister.TabIndex = 1;
+            tabPageRegister.Text = "Đăng ký";
+            tabPageRegister.UseVisualStyleBackColor = true;
             // 
             // btnRegister
             // 
-            this.btnRegister.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
-            this.btnRegister.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRegister.ForeColor = System.Drawing.Color.White;
-            this.btnRegister.Location = new System.Drawing.Point(20, 240);
-            this.btnRegister.Name = "btnRegister";
-            this.btnRegister.Size = new System.Drawing.Size(350, 45);
-            this.btnRegister.TabIndex = 8;
-            this.btnRegister.Text = "Đăng ký";
-            this.btnRegister.UseVisualStyleBackColor = false;
-            this.btnRegister.Click += new System.EventHandler(this.btnRegister_Click);
+            btnRegister.BackColor = Color.FromArgb(40, 167, 69);
+            btnRegister.FlatStyle = FlatStyle.Flat;
+            btnRegister.ForeColor = Color.White;
+            btnRegister.Location = new Point(18, 180);
+            btnRegister.Margin = new Padding(3, 2, 3, 2);
+            btnRegister.Name = "btnRegister";
+            btnRegister.Size = new Size(306, 34);
+            btnRegister.TabIndex = 8;
+            btnRegister.Text = "Đăng ký";
+            btnRegister.UseVisualStyleBackColor = false;
+            btnRegister.Click += btnRegister_Click;
             // 
             // txtRegisterEmail
             // 
-            this.txtRegisterEmail.Location = new System.Drawing.Point(20, 200);
-            this.txtRegisterEmail.Name = "txtRegisterEmail";
-            this.txtRegisterEmail.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterEmail.TabIndex = 7;
+            txtRegisterEmail.Location = new Point(18, 150);
+            txtRegisterEmail.Margin = new Padding(3, 2, 3, 2);
+            txtRegisterEmail.Name = "txtRegisterEmail";
+            txtRegisterEmail.Size = new Size(307, 23);
+            txtRegisterEmail.TabIndex = 7;
             // 
             // lblRegisterEmail
             // 
-            this.lblRegisterEmail.AutoSize = true;
-            this.lblRegisterEmail.Location = new System.Drawing.Point(20, 175);
-            this.lblRegisterEmail.Name = "lblRegisterEmail";
-            this.lblRegisterEmail.Size = new System.Drawing.Size(49, 20);
-            this.lblRegisterEmail.TabIndex = 6;
-            this.lblRegisterEmail.Text = "Email:";
+            lblRegisterEmail.AutoSize = true;
+            lblRegisterEmail.Location = new Point(18, 131);
+            lblRegisterEmail.Name = "lblRegisterEmail";
+            lblRegisterEmail.Size = new Size(39, 15);
+            lblRegisterEmail.TabIndex = 6;
+            lblRegisterEmail.Text = "Email:";
             // 
             // txtRegisterConfirmPassword
             // 
-            this.txtRegisterConfirmPassword.Location = new System.Drawing.Point(20, 145);
-            this.txtRegisterConfirmPassword.Name = "txtRegisterConfirmPassword";
-            this.txtRegisterConfirmPassword.PasswordChar = '*';
-            this.txtRegisterConfirmPassword.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterConfirmPassword.TabIndex = 5;
+            txtRegisterConfirmPassword.Location = new Point(18, 109);
+            txtRegisterConfirmPassword.Margin = new Padding(3, 2, 3, 2);
+            txtRegisterConfirmPassword.Name = "txtRegisterConfirmPassword";
+            txtRegisterConfirmPassword.PasswordChar = '*';
+            txtRegisterConfirmPassword.Size = new Size(307, 23);
+            txtRegisterConfirmPassword.TabIndex = 5;
             // 
             // lblRegisterConfirmPassword
             // 
-            this.lblRegisterConfirmPassword.AutoSize = true;
-            this.lblRegisterConfirmPassword.Location = new System.Drawing.Point(20, 120);
-            this.lblRegisterConfirmPassword.Name = "lblRegisterConfirmPassword";
-            this.lblRegisterConfirmPassword.Size = new System.Drawing.Size(140, 20);
-            this.lblRegisterConfirmPassword.TabIndex = 4;
-            this.lblRegisterConfirmPassword.Text = "Xác nhận Password:";
+            lblRegisterConfirmPassword.AutoSize = true;
+            lblRegisterConfirmPassword.Location = new Point(18, 90);
+            lblRegisterConfirmPassword.Name = "lblRegisterConfirmPassword";
+            lblRegisterConfirmPassword.Size = new Size(112, 15);
+            lblRegisterConfirmPassword.TabIndex = 4;
+            lblRegisterConfirmPassword.Text = "Xác nhận Password:";
             // 
             // txtRegisterPassword
             // 
-            this.txtRegisterPassword.Location = new System.Drawing.Point(20, 95);
-            this.txtRegisterPassword.Name = "txtRegisterPassword";
-            this.txtRegisterPassword.PasswordChar = '*';
-            this.txtRegisterPassword.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterPassword.TabIndex = 3;
+            txtRegisterPassword.Location = new Point(18, 71);
+            txtRegisterPassword.Margin = new Padding(3, 2, 3, 2);
+            txtRegisterPassword.Name = "txtRegisterPassword";
+            txtRegisterPassword.PasswordChar = '*';
+            txtRegisterPassword.Size = new Size(307, 23);
+            txtRegisterPassword.TabIndex = 3;
             // 
             // lblRegisterPassword
             // 
-            this.lblRegisterPassword.AutoSize = true;
-            this.lblRegisterPassword.Location = new System.Drawing.Point(20, 70);
-            this.lblRegisterPassword.Name = "lblRegisterPassword";
-            this.lblRegisterPassword.Size = new System.Drawing.Size(73, 20);
-            this.lblRegisterPassword.TabIndex = 2;
-            this.lblRegisterPassword.Text = "Password:";
+            lblRegisterPassword.AutoSize = true;
+            lblRegisterPassword.Location = new Point(18, 52);
+            lblRegisterPassword.Name = "lblRegisterPassword";
+            lblRegisterPassword.Size = new Size(60, 15);
+            lblRegisterPassword.TabIndex = 2;
+            lblRegisterPassword.Text = "Password:";
             // 
             // txtRegisterUsername
             // 
-            this.txtRegisterUsername.Location = new System.Drawing.Point(20, 45);
-            this.txtRegisterUsername.Name = "txtRegisterUsername";
-            this.txtRegisterUsername.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterUsername.TabIndex = 1;
+            txtRegisterUsername.Location = new Point(18, 34);
+            txtRegisterUsername.Margin = new Padding(3, 2, 3, 2);
+            txtRegisterUsername.Name = "txtRegisterUsername";
+            txtRegisterUsername.Size = new Size(307, 23);
+            txtRegisterUsername.TabIndex = 1;
             // 
             // lblRegisterUsername
             // 
-            this.lblRegisterUsername.AutoSize = true;
-            this.lblRegisterUsername.Location = new System.Drawing.Point(20, 20);
-            this.lblRegisterUsername.Name = "lblRegisterUsername";
-            this.lblRegisterUsername.Size = new System.Drawing.Size(75, 20);
-            this.lblRegisterUsername.TabIndex = 0;
-            this.lblRegisterUsername.Text = "Username:";
+            lblRegisterUsername.AutoSize = true;
+            lblRegisterUsername.Location = new Point(18, 15);
+            lblRegisterUsername.Name = "lblRegisterUsername";
+            lblRegisterUsername.Size = new Size(63, 15);
+            lblRegisterUsername.TabIndex = 0;
+            lblRegisterUsername.Text = "Username:";
             // 
             // lblServerIP
             // 
-            this.lblServerIP.AutoSize = true;
-            this.lblServerIP.Location = new System.Drawing.Point(12, 20);
-            this.lblServerIP.Name = "lblServerIP";
-            this.lblServerIP.Size = new System.Drawing.Size(70, 20);
-            this.lblServerIP.TabIndex = 1;
-            this.lblServerIP.Text = "Server IP:";
+            lblServerIP.AutoSize = true;
+            lblServerIP.Location = new Point(10, 15);
+            lblServerIP.Name = "lblServerIP";
+            lblServerIP.Size = new Size(55, 15);
+            lblServerIP.TabIndex = 1;
+            lblServerIP.Text = "Server IP:";
             // 
             // txtServerIP
             // 
-            this.txtServerIP.Location = new System.Drawing.Point(88, 17);
-            this.txtServerIP.Name = "txtServerIP";
-            this.txtServerIP.Size = new System.Drawing.Size(160, 27);
-            this.txtServerIP.TabIndex = 2;
-            this.txtServerIP.Text = "127.0.0.1";
+            txtServerIP.Location = new Point(77, 13);
+            txtServerIP.Margin = new Padding(3, 2, 3, 2);
+            txtServerIP.Name = "txtServerIP";
+            txtServerIP.Size = new Size(140, 23);
+            txtServerIP.TabIndex = 2;
+            txtServerIP.Text = "127.0.0.1";
+            txtServerIP.TextChanged += txtServerIP_TextChanged;
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(254, 16);
-            this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(120, 30);
-            this.btnConnect.TabIndex = 3;
-            this.btnConnect.Text = "Kết nối";
-            this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+            btnConnect.Location = new Point(222, 12);
+            btnConnect.Margin = new Padding(3, 2, 3, 2);
+            btnConnect.Name = "btnConnect";
+            btnConnect.Size = new Size(105, 22);
+            btnConnect.TabIndex = 3;
+            btnConnect.Text = "Kết nối";
+            btnConnect.UseVisualStyleBackColor = true;
+            btnConnect.Click += btnConnect_Click;
             // 
             // lblStatus
             // 
-            this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new System.Drawing.Point(12, 60);
-            this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(79, 20);
-            this.lblStatus.TabIndex = 4;
-            this.lblStatus.Text = "Chưa kết nối";
+            lblStatus.AutoSize = true;
+            lblStatus.Location = new Point(10, 45);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(74, 15);
+            lblStatus.TabIndex = 4;
+            lblStatus.Text = "Chưa kết nối";
             // 
             // lblUserInfo
             // 
-            this.lblUserInfo.AutoSize = true;
-            this.lblUserInfo.Location = new System.Drawing.Point(12, 80);
-            this.lblUserInfo.Name = "lblUserInfo";
-            this.lblUserInfo.Size = new System.Drawing.Size(0, 20);
-            this.lblUserInfo.TabIndex = 5;
+            lblUserInfo.AutoSize = true;
+            lblUserInfo.Location = new Point(10, 60);
+            lblUserInfo.Name = "lblUserInfo";
+            lblUserInfo.Size = new Size(0, 15);
+            lblUserInfo.TabIndex = 5;
             // 
             // LoginForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(424, 430);
-            this.Controls.Add(this.lblUserInfo);
-            this.Controls.Add(this.lblStatus);
-            this.Controls.Add(this.btnConnect);
-            this.Controls.Add(this.txtServerIP);
-            this.Controls.Add(this.lblServerIP);
-            this.Controls.Add(this.tabControl1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "LoginForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Đăng nhập - GameCaro";
-            this.tabControl1.ResumeLayout(false);
-            this.tabPageLogin.ResumeLayout(false);
-            this.tabPageLogin.PerformLayout();
-            this.tabPageRegister.ResumeLayout(false);
-            this.tabPageRegister.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(371, 322);
+            Controls.Add(lblUserInfo);
+            Controls.Add(lblStatus);
+            Controls.Add(btnConnect);
+            Controls.Add(txtServerIP);
+            Controls.Add(lblServerIP);
+            Controls.Add(tabControl1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Margin = new Padding(3, 2, 3, 2);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "LoginForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Đăng nhập - GameCaro";
+            tabControl1.ResumeLayout(false);
+            tabPageLogin.ResumeLayout(false);
+            tabPageLogin.PerformLayout();
+            tabPageRegister.ResumeLayout(false);
+            tabPageRegister.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
