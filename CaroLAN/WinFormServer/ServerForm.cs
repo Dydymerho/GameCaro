@@ -6,10 +6,36 @@ namespace WinFormServer
 {
     public partial class ServerForm : Form
     {
-        ServerSocketManager socket = new ServerSocketManager();
+        ServerSocketManager socket;
+        UserManager userManager;
+
+        // database config localhost
+        private const string DB_SERVER = "localhost";
+        private const string DB_DATABASE = "gamecaro";
+        private const string DB_USER = "root";
+        private const string DB_PASSWORD = "";
+
+
+
         public ServerForm()
         {
             InitializeComponent();
+            
+            // Kiểm tra và tạo database nếu chưa có
+            LogToTextBox("Đang kiểm tra database...");
+            bool dbInitialized = UserManager.InitializeDatabase(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD, LogToTextBox);
+            
+            if (dbInitialized)
+            {
+                // Khởi tạo UserManager
+                userManager = new UserManager(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD);
+                socket = new ServerSocketManager(userManager);
+                LogToTextBox("Server đã sẵn sàng. Nhấn 'Bat server' để bắt đầu server.");
+            }
+            else
+            {
+                LogToTextBox("Lỗi: Không thể khởi tạo database. Vui lòng kiểm tra kết nối MySQL.");
+            }
         }
         //comment
 
@@ -30,6 +56,8 @@ namespace WinFormServer
 
             btnStart.Enabled = false;
             btnStop.Enabled = true;
+            button1.Enabled = true;
+            button2.Enabled = true;
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -41,6 +69,8 @@ namespace WinFormServer
                 lblStatus.Text = "Server đã dừng.";
                 btnStart.Enabled = true;
                 btnStop.Enabled = false;
+                button1.Enabled = false;
+                button2.Enabled = false;
             }
             catch
             {

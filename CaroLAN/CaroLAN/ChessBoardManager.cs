@@ -72,15 +72,11 @@ namespace CaroLAN
                 matrix[point.X, point.Y] = 2;
             }
 
+            // ✅ KIỂM TRA THẮNG CHO CHÍNH NGƯỜI VỪA ĐI
+            bool isWinner = CheckWin(point.X, point.Y);
+
             // Gửi tọa độ nước đi ra ngoài
             PlayerClicked?.Invoke(this, point);
-
-            // ✅ Kiểm tra thắng cho chính người đang đi
-            if (CheckWin(point.X, point.Y))
-            {
-                isGameOver = true;
-                GameEnded?.Invoke(this, currentPlayer);
-            }
 
             isPlayerTurn = false;
         }
@@ -105,19 +101,10 @@ namespace CaroLAN
                 matrix[point.X, point.Y] = 1;
             }
 
-            // ✅ Kiểm tra thắng cho đối thủ
-            if (CheckWin(point.X, point.Y))
-            {
-                isGameOver = true;
-                // Đối thủ thắng = người không phải currentPlayer
-                Player opponent = (currentPlayer == Player.One) ? Player.Two : Player.One;
-                GameEnded?.Invoke(this, opponent);
-            }
-
             isPlayerTurn = true;
         }
 
-        private bool CheckWin(int row, int col)
+        public bool CheckWin(int row, int col)
         {
             int player = matrix[row, col];
             int[][] dirs = new int[][]
