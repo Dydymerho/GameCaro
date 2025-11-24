@@ -29,14 +29,25 @@ namespace CaroLAN
             // ✅ Khởi tạo CancellationTokenSource
             cancellationTokenSource = new CancellationTokenSource();
 
-            // ✅ Tạo bàn cờ với thông tin ai đi trước
-            chessBoard = new ChessBoardManager(pnlChessBoard);
-            chessBoard.currentPlayer = startFirst ? Player.One : Player.Two;
+            // ✅ Tạo bàn cờ với constructor mới - truyền thẳng startFirst
+            // startFirst = true  → Player.One → X (màu xanh) → đi trước
+            // startFirst = false → Player.Two → O (màu đỏ) → đi sau
+            chessBoard = new ChessBoardManager(pnlChessBoard, startFirst);
             chessBoard.PlayerClicked += ChessBoard_PlayerClicked;
             chessBoard.GameEnded += ChessBoard_GameEnded;
 
             lblRoom.Text = $"Phòng: {roomId}";
-            lblTurn.Text = startFirst ? "Lượt của bạn (X)" : "Lượt của đối thủ (O)";
+            
+            // ✅ Hiển thị vai trò rõ ràng
+            if (startFirst)
+            {
+                lblTurn.Text = "Lượt của bạn - Bạn là X (đi trước)";
+            }
+            else
+            {
+                lblTurn.Text = "Lượt của đối thủ - Bạn là O (đi sau)";
+            }
+            
             lblTimer.Text = "";
 
             InitTimer();
@@ -190,7 +201,11 @@ namespace CaroLAN
 
         private void ChessBoard_PlayerClicked(object sender, Point e)
         {
-            if (!isMyTurn || chessBoard.isGameOver) return;
+            if (!isMyTurn || chessBoard.isGameOver)
+            {
+                MessageBox.Show("Chưa đến lượt bạn!");
+                return;
+            }
             bool isWinner = chessBoard.CheckWin(e.X, e.Y);
             string messageToSend = isWinner ? $"GAME_WIN:{e.X},{e.Y}" : $"GAME_MOVE:{e.X},{e.Y}";
             socket.Send(messageToSend);

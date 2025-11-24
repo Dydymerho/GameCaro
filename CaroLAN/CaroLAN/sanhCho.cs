@@ -244,13 +244,21 @@ namespace CaroLAN
                             string[] parts = data.Split(':');
                             string invitationId = parts[1];
                             string roomId = parts[2];
+                            string position = parts.Length > 3 ? parts[3] : ""; // ✅ Lấy vị trí FIRST/SECOND
 
                             Invoke(new Action(() =>
                             {
                                 RemoveInvitationFromList(invitationId);
                                 currentRoomId = roomId;
                                 isInRoom = true;
-                                lblStatus.Text = $"Lời mời được chấp nhận. Vào phòng {roomId}";
+                                
+                                // ✅ XÁC ĐỊNH AI ĐI TRƯỚC DỰA VÀO VỊ TRÍ
+                                // FIRST = người gửi lời mời = đi trước (X)
+                                // SECOND = người nhận lời mời = đi sau (O)
+                                amFirst = (position == "FIRST");
+                                
+                                string positionText = amFirst ? "Bạn đi trước (X)" : "Bạn đi sau (O)";
+                                lblStatus.Text = $"Lời mời được chấp nhận. Vào phòng {roomId} - {positionText}";
                             }));
                         }
 

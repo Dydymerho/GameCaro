@@ -622,14 +622,24 @@ namespace WinFormServer
                 roomManager.JoinRoom(invitation.Sender, roomId);
                 roomManager.JoinRoom(invitation.Receiver, roomId);
 
-                // Gửi thông báo ACCEPTED cho cả hai
-                SendToClient(invitation.Sender, $"INVITATION_ACCEPTED:{invitationId}:{roomId}");
-                SendToClient(invitation.Receiver, $"INVITATION_ACCEPTED:{invitationId}:{roomId}");
+                // ✅ GỬI THÔNG TIN VỊ TRÍ CHO CẢ HAI NGƯỜI CHƠI
+                // Người gửi lời mời (Sender) = người đầu tiên vào phòng = đi TRƯỚC (X)
+                SendToClient(invitation.Sender, $"INVITATION_ACCEPTED:{invitationId}:{roomId}:FIRST");
+                
+                // Người nhận lời mời (Receiver) = người thứ hai vào phòng = đi SAU (O)
+                SendToClient(invitation.Receiver, $"INVITATION_ACCEPTED:{invitationId}:{roomId}:SECOND");
+
+                // ✅ Đánh dấu game đã bắt đầu
+                var room = roomManager.GetPlayerRoom(invitation.Sender);
+                if (room != null)
+                {
+                    room.IsGameStarted = true;
+                }
 
                 // Bắt đầu game
                 roomManager.BroadcastToRoom(roomId, "GAME_START");
 
-                logAction?.Invoke($"✔ Lời mời {invitationId} được chấp nhận → tạo phòng {roomId}");
+                logAction?.Invoke($"✔ Lời mời {invitationId} được chấp nhận → tạo phòng {roomId}. Sender đi trước (X), Receiver đi sau (O)");
 
                 // Cập nhật lại danh sách client (BUSY)
                 SendClientListToAll(logAction);
