@@ -259,6 +259,7 @@ namespace CaroLAN
                                 
                                 string positionText = amFirst ? "Bạn đi trước (X)" : "Bạn đi sau (O)";
                                 lblStatus.Text = $"Lời mời được chấp nhận. Vào phòng {roomId} - {positionText}";
+                                StartGame();
                             }));
                         }
 
