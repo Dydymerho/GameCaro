@@ -632,6 +632,16 @@ namespace CaroLAN
         private void StartGame()
         {
             cancellationTokenSource?.Cancel(); // Hủy token để vòng lặp lobbyListening kết thúc
+
+            // ✅ Đợi thread kết thúc trước khi tiếp tục
+            if (listenThread != null && listenThread.IsAlive)
+            {
+                if (!listenThread.Join(2000)) // Đợi tối đa 2 giây
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ Thread lobbyListening không dừng kịp thời");
+                }
+            }
+
             try
             {
                 // Mở form mới cho game
@@ -645,6 +655,9 @@ namespace CaroLAN
                     isInRoom = false;
                     currentRoomId = null;
                     lblStatus.Text = "Đã kết nối đến server";
+
+                    // ✅ Khởi động lại lobbyListening khi quay về
+                    lobbyListening();
                 };
 
                 gameForm.Show();
