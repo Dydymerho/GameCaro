@@ -39,6 +39,16 @@
             lstRequests = new ListBox();
             btnAccept = new Button();
             label3 = new Label();
+            tabHistory = new TabControl();
+            tabAllHistory = new TabPage();
+            lstAllHistory = new ListBox();
+            btnRefreshAll = new Button();
+            tabMyHistory = new TabPage();
+            lstMyHistory = new ListBox();
+            btnRefreshMy = new Button();
+            tabHistory.SuspendLayout();
+            tabAllHistory.SuspendLayout();
+            tabMyHistory.SuspendLayout();
             SuspendLayout();
             // 
             // label1
@@ -56,7 +66,7 @@
             lstClients.Location = new Point(286, 61);
             lstClients.Name = "lstClients";
             lstClients.ScrollAlwaysVisible = true;
-            lstClients.Size = new Size(272, 344);
+            lstClients.Size = new Size(272, 300);
             lstClients.TabIndex = 8;
             // 
             // btnConnect
@@ -107,9 +117,9 @@
             // 
             // btnRequest
             // 
-            btnRequest.Location = new Point(464, 411);
+            btnRequest.Location = new Point(286, 370);
             btnRequest.Name = "btnRequest";
-            btnRequest.Size = new Size(94, 29);
+            btnRequest.Size = new Size(120, 35);
             btnRequest.TabIndex = 17;
             btnRequest.Text = "Mời chơi";
             btnRequest.UseVisualStyleBackColor = true;
@@ -121,17 +131,17 @@
             lstRequests.Location = new Point(614, 61);
             lstRequests.Name = "lstRequests";
             lstRequests.ScrollAlwaysVisible = true;
-            lstRequests.Size = new Size(272, 344);
+            lstRequests.Size = new Size(272, 300);
             lstRequests.TabIndex = 18;
             lstRequests.SelectedIndexChanged += lstRequests_SelectedIndexChanged;
             // 
             // btnAccept
             // 
-            btnAccept.Location = new Point(792, 411);
+            btnAccept.Location = new Point(766, 370);
             btnAccept.Name = "btnAccept";
-            btnAccept.Size = new Size(94, 29);
+            btnAccept.Size = new Size(120, 35);
             btnAccept.TabIndex = 19;
-            btnAccept.Text = "Chap nhan";
+            btnAccept.Text = "Chấp nhận";
             btnAccept.UseVisualStyleBackColor = true;
             btnAccept.Click += btnAccept_Click;
             // 
@@ -144,11 +154,82 @@
             label3.TabIndex = 20;
             label3.Text = "Loi moi so tai tu nguoi choi khac";
             // 
+            // tabHistory
+            // 
+            tabHistory.Controls.Add(tabAllHistory);
+            tabHistory.Controls.Add(tabMyHistory);
+            tabHistory.Location = new Point(33, 410);
+            tabHistory.Name = "tabHistory";
+            tabHistory.SelectedIndex = 0;
+            tabHistory.Size = new Size(853, 130);
+            tabHistory.TabIndex = 21;
+            // 
+            // tabAllHistory
+            // 
+            tabAllHistory.Controls.Add(lstAllHistory);
+            tabAllHistory.Controls.Add(btnRefreshAll);
+            tabAllHistory.Location = new Point(4, 29);
+            tabAllHistory.Name = "tabAllHistory";
+            tabAllHistory.Padding = new Padding(3);
+            tabAllHistory.Size = new Size(845, 97);
+            tabAllHistory.TabIndex = 0;
+            tabAllHistory.Text = "Tất cả lịch sử";
+            tabAllHistory.UseVisualStyleBackColor = true;
+            // 
+            // lstAllHistory
+            // 
+            lstAllHistory.FormattingEnabled = true;
+            lstAllHistory.Location = new Point(6, 6);
+            lstAllHistory.Name = "lstAllHistory";
+            lstAllHistory.Size = new Size(733, 91);
+            lstAllHistory.TabIndex = 0;
+            // 
+            // btnRefreshAll
+            // 
+            btnRefreshAll.Location = new Point(745, 6);
+            btnRefreshAll.Name = "btnRefreshAll";
+            btnRefreshAll.Size = new Size(94, 29);
+            btnRefreshAll.TabIndex = 1;
+            btnRefreshAll.Text = "Làm mới";
+            btnRefreshAll.UseVisualStyleBackColor = true;
+            btnRefreshAll.Click += btnRefreshAll_Click;
+            // 
+            // tabMyHistory
+            // 
+            tabMyHistory.Controls.Add(lstMyHistory);
+            tabMyHistory.Controls.Add(btnRefreshMy);
+            tabMyHistory.Location = new Point(4, 29);
+            tabMyHistory.Name = "tabMyHistory";
+            tabMyHistory.Padding = new Padding(3);
+            tabMyHistory.Size = new Size(845, 97);
+            tabMyHistory.TabIndex = 1;
+            tabMyHistory.Text = "Lịch sử của tôi";
+            tabMyHistory.UseVisualStyleBackColor = true;
+            // 
+            // lstMyHistory
+            // 
+            lstMyHistory.FormattingEnabled = true;
+            lstMyHistory.Location = new Point(6, 6);
+            lstMyHistory.Name = "lstMyHistory";
+            lstMyHistory.Size = new Size(733, 91);
+            lstMyHistory.TabIndex = 0;
+            // 
+            // btnRefreshMy
+            // 
+            btnRefreshMy.Location = new Point(745, 6);
+            btnRefreshMy.Name = "btnRefreshMy";
+            btnRefreshMy.Size = new Size(94, 29);
+            btnRefreshMy.TabIndex = 1;
+            btnRefreshMy.Text = "Làm mới";
+            btnRefreshMy.UseVisualStyleBackColor = true;
+            btnRefreshMy.Click += btnRefreshMy_Click;
+            // 
             // sanhCho
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(929, 545);
+            Controls.Add(tabHistory);
             Controls.Add(label3);
             Controls.Add(btnAccept);
             Controls.Add(lstRequests);
@@ -163,6 +244,9 @@
             Name = "sanhCho";
             Text = "sanhCho";
             Load += sanhCho_Load;
+            tabHistory.ResumeLayout(false);
+            tabAllHistory.ResumeLayout(false);
+            tabMyHistory.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -180,5 +264,12 @@
         private ListBox lstRequests;
         private Button btnAccept;
         private Label label3;
+        private TabControl tabHistory;
+        private TabPage tabAllHistory;
+        private ListBox lstAllHistory;
+        private Button btnRefreshAll;
+        private TabPage tabMyHistory;
+        private ListBox lstMyHistory;
+        private Button btnRefreshMy;
     }
 }

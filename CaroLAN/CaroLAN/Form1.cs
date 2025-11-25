@@ -185,6 +185,23 @@ namespace CaroLAN
                             }));
                         }
                     }
+                    catch (InvalidOperationException)
+                    {
+                        // Form đã bị đóng hoặc Invoke không thể thực thi
+                        if (!token.IsCancellationRequested)
+                        {
+                            try
+                            {
+                                Invoke(new Action(() =>
+                                {
+                                    MessageBox.Show("Mất kết nối tới server!", "Lỗi mạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    Close();
+                                }));
+                            }
+                            catch { }
+                        }
+                        break;
+                    }
                     catch (Exception)
                     {
                         if (!token.IsCancellationRequested)
@@ -208,7 +225,17 @@ namespace CaroLAN
             }
             bool isWinner = chessBoard.CheckWin(e.X, e.Y);
             string messageToSend = isWinner ? $"GAME_WIN:{e.X},{e.Y}" : $"GAME_MOVE:{e.X},{e.Y}";
-            socket.Send(messageToSend);
+            
+            try
+            {
+                socket.Send(messageToSend);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi gửi nước đi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                EndGame("Mất kết nối với server");
+                return;
+            }
 
             StopTurnTimer();
 
@@ -225,7 +252,14 @@ namespace CaroLAN
             var confirm = MessageBox.Show("Bạn có chắc muốn đầu hàng?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (confirm == DialogResult.Yes)
             {
-                socket.Send("RESIGN");
+                try
+                {
+                    socket.Send("RESIGN");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Lỗi khi gửi RESIGN: {ex.Message}");
+                }
                 EndGame("Bạn đã đầu hàng!");
             }
         }

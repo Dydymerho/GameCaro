@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using MySql.Data.MySqlClient;
@@ -318,6 +319,146 @@ namespace WinFormServer
                 Console.WriteLine($"Lỗi lấy thông tin user: {ex.Message}");
                 return null;
             }
+        }
+
+        // Lưu lịch sử đấu
+        public bool SaveMatchHistory(string roomId, int player1Id, int player2Id, int? winnerId)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = @"INSERT INTO game_history (room_id, player1_id, player2_id, winner_id, ended_at) 
+                                     VALUES (@room_id, @player1_id, @player2_id, @winner_id, NOW())";
+                    
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@room_id", roomId);
+                        cmd.Parameters.AddWithValue("@player1_id", player1Id);
+                        cmd.Parameters.AddWithValue("@player2_id", player2Id);
+                        cmd.Parameters.AddWithValue("@winner_id", winnerId == null ? DBNull.Value : winnerId);
+                        
+                        int result = cmd.ExecuteNonQuery();
+                        return result > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lưu lịch sử đấu: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Lấy tất cả lịch sử đấu (server-wide)
+        public List<MatchHistory> GetAllMatchHistory(int limit = 100)
+        {
+            List<MatchHistory> history = new List<MatchHistory>();
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = @"SELECT gh.id, gh.room_id, gh.player1_id, gh.player2_id, gh.winner_id, 
+                                            gh.started_at, gh.ended_at,
+                                            u1.username as player1_username,
+                                            u2.username as player2_username,
+                                            uw.username as winner_username
+                                     FROM game_history gh
+                                     LEFT JOIN users u1 ON gh.player1_id = u1.id
+                                     LEFT JOIN users u2 ON gh.player2_id = u2.id
+                                     LEFT JOIN users uw ON gh.winner_id = uw.id
+                                     ORDER BY gh.ended_at DESC
+                                     LIMIT @limit";
+                    
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@limit", limit);
+                        
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                history.Add(new MatchHistory
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    RoomId = reader.GetString("room_id"),
+                                    Player1Id = reader.GetInt32("player1_id"),
+                                    Player1Username = reader.GetString("player1_username"),
+                                    Player2Id = reader.GetInt32("player2_id"),
+                                    Player2Username = reader.GetString("player2_username"),
+                                    WinnerId = reader.IsDBNull(reader.GetOrdinal("winner_id")) ? null : reader.GetInt32("winner_id"),
+                                    WinnerUsername = reader.IsDBNull(reader.GetOrdinal("winner_username")) ? "Hòa" : reader.GetString("winner_username"),
+                                    StartedAt = reader.GetDateTime("started_at"),
+                                    EndedAt = reader.IsDBNull(reader.GetOrdinal("ended_at")) ? null : reader.GetDateTime("ended_at")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lấy lịch sử đấu: {ex.Message}");
+            }
+            return history;
+        }
+
+        // Lấy lịch sử đấu của một user cụ thể
+        public List<MatchHistory> GetUserMatchHistory(int userId, int limit = 100)
+        {
+            List<MatchHistory> history = new List<MatchHistory>();
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = @"SELECT gh.id, gh.room_id, gh.player1_id, gh.player2_id, gh.winner_id, 
+                                            gh.started_at, gh.ended_at,
+                                            u1.username as player1_username,
+                                            u2.username as player2_username,
+                                            uw.username as winner_username
+                                     FROM game_history gh
+                                     LEFT JOIN users u1 ON gh.player1_id = u1.id
+                                     LEFT JOIN users u2 ON gh.player2_id = u2.id
+                                     LEFT JOIN users uw ON gh.winner_id = uw.id
+                                     WHERE gh.player1_id = @user_id OR gh.player2_id = @user_id
+                                     ORDER BY gh.ended_at DESC
+                                     LIMIT @limit";
+                    
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@user_id", userId);
+                        cmd.Parameters.AddWithValue("@limit", limit);
+                        
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                history.Add(new MatchHistory
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    RoomId = reader.GetString("room_id"),
+                                    Player1Id = reader.GetInt32("player1_id"),
+                                    Player1Username = reader.GetString("player1_username"),
+                                    Player2Id = reader.GetInt32("player2_id"),
+                                    Player2Username = reader.GetString("player2_username"),
+                                    WinnerId = reader.IsDBNull(reader.GetOrdinal("winner_id")) ? null : reader.GetInt32("winner_id"),
+                                    WinnerUsername = reader.IsDBNull(reader.GetOrdinal("winner_username")) ? "Hòa" : reader.GetString("winner_username"),
+                                    StartedAt = reader.GetDateTime("started_at"),
+                                    EndedAt = reader.IsDBNull(reader.GetOrdinal("ended_at")) ? null : reader.GetDateTime("ended_at")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lấy lịch sử đấu của user: {ex.Message}");
+            }
+            return history;
         }
     }
 }

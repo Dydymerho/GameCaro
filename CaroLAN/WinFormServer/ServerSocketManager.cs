@@ -149,9 +149,24 @@ namespace WinFormServer
                         HandleGameWin(clientSocket, message, logAction);
                         handled = true;
                     }
+                    else if (message == "RESIGN") // ✅ XỬ LÝ KHI NGƯỜI CHƠI ĐẦU HÀNG
+                    {
+                        HandleResign(clientSocket, logAction);
+                        handled = true;
+                    }
                     else if (message == "LEAVE_ROOM")
                     {
                         HandleLeaveRoom(clientSocket, logAction);
+                        handled = true;
+                    }
+                    else if (message == "GET_ALL_HISTORY") // ✅ LẤY TẤT CẢ LỊCH SỬ
+                    {
+                        HandleGetAllHistory(clientSocket, logAction);
+                        handled = true;
+                    }
+                    else if (message == "GET_MY_HISTORY") // ✅ LẤY LỊCH SỬ CỦA USER
+                    {
+                        HandleGetMyHistory(clientSocket, logAction);
                         handled = true;
                     }
                     else if (message.StartsWith("SEND_INVITATION:"))
@@ -491,12 +506,78 @@ namespace WinFormServer
                     logAction?.Invoke($"💀 {loser.Username} thua.");
                 }
 
+                // ✅ Lưu lịch sử đấu (player1 là người đầu tiên vào phòng, player2 là người thứ hai)
+                if (winner != null && loser != null && room.Players.Count >= 2)
+                {
+                    int player1Id = GetAuthenticatedUser(room.Players[0])?.Id ?? 0;
+                    int player2Id = GetAuthenticatedUser(room.Players[1])?.Id ?? 0;
+                    if (player1Id > 0 && player2Id > 0)
+                    {
+                        userManager.SaveMatchHistory(room.RoomId, player1Id, player2Id, winner.Id);
+                        logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {room.RoomId}");
+                        
+                        // ✅ Broadcast thông báo có match mới cho tất cả client
+                        Broadcast("NEW_MATCH_RECORDED", clients, logAction);
+                    }
+                }
+
                 SendClientListToAll(logAction);
                 globalUpdateClientListAction?.Invoke();
             }
             catch (Exception ex)
             {
                 logAction?.Invoke($"Lỗi HandleGameWin: {ex.Message}");
+            }
+        }
+
+        // ✅ Xử lý khi người chơi đầu hàng
+        private void HandleResign(Socket resignerSocket, Action<string> logAction)
+        {
+            try
+            {
+                var room = roomManager.GetPlayerRoom(resignerSocket);
+                if (room == null || !room.IsGameStarted) return;
+
+                Socket opponentSocket = room.GetOpponent(resignerSocket);
+
+                User? resigner = GetAuthenticatedUser(resignerSocket);
+                User? opponent = GetAuthenticatedUser(opponentSocket);
+
+                // Người đầu hàng thua, đối thủ thắng
+                if (opponentSocket.Connected)
+                {
+                    SendToClient(opponentSocket, "RESIGN");
+                }
+
+                if (resigner != null)
+                {
+                    userManager.UpdateGameStats(resigner.Id, false);
+                    logAction?.Invoke($"💀 {resigner.Username} đầu hàng.");
+                }
+                if (opponent != null)
+                {
+                    userManager.UpdateGameStats(opponent.Id, true);
+                    logAction?.Invoke($"🏆 {opponent.Username} thắng (đối thủ đầu hàng).");
+                }
+
+                // ✅ Lưu lịch sử đấu (player1 là người đầu tiên vào phòng, player2 là người thứ hai)
+                if (resigner != null && opponent != null && room.Players.Count >= 2)
+                {
+                    int player1Id = GetAuthenticatedUser(room.Players[0])?.Id ?? 0;
+                    int player2Id = GetAuthenticatedUser(room.Players[1])?.Id ?? 0;
+                    if (player1Id > 0 && player2Id > 0)
+                    {
+                        userManager.SaveMatchHistory(room.RoomId, player1Id, player2Id, opponent.Id);
+                        logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {room.RoomId}");
+                        
+                        // ✅ Broadcast thông báo có match mới cho tất cả client
+                        Broadcast("NEW_MATCH_RECORDED", clients, logAction);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi HandleResign: {ex.Message}");
             }
         }
 
@@ -516,6 +597,34 @@ namespace WinFormServer
                 if (room != null)
                 {
                     string roomId = room.RoomId;
+                    bool wasGameStarted = room.IsGameStarted;
+                    
+                    // ✅ Nếu game đã bắt đầu, lưu lịch sử (người rời thua, đối thủ thắng)
+                    if (wasGameStarted && room.Players.Count >= 2)
+                    {
+                        Socket opponentSocket = room.GetOpponent(clientSocket);
+                        User? leaver = GetAuthenticatedUser(clientSocket);
+                        User? opponent = GetAuthenticatedUser(opponentSocket);
+
+                        if (leaver != null && opponent != null)
+                        {
+                            userManager.UpdateGameStats(leaver.Id, false);
+                            userManager.UpdateGameStats(opponent.Id, true);
+                            
+                            // Xác định player1 và player2 dựa trên thứ tự vào phòng
+                            int player1Id = GetAuthenticatedUser(room.Players[0])?.Id ?? 0;
+                            int player2Id = GetAuthenticatedUser(room.Players[1])?.Id ?? 0;
+                            if (player1Id > 0 && player2Id > 0)
+                            {
+                                userManager.SaveMatchHistory(roomId, player1Id, player2Id, opponent.Id);
+                                logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {roomId} (người rời thua)");
+                                
+                                // ✅ Broadcast thông báo có match mới cho tất cả client
+                                Broadcast("NEW_MATCH_RECORDED", clients, logAction);
+                            }
+                        }
+                    }
+
                     roomManager.LeaveRoom(clientSocket);
 
                     // Thông báo cho đối thủ
@@ -851,6 +960,65 @@ namespace WinFormServer
                 return user.Username;
             }
             return clientSocket.RemoteEndPoint?.ToString() ?? "Unknown";
+        }
+
+        // ✅ Xử lý lấy tất cả lịch sử đấu
+        private void HandleGetAllHistory(Socket clientSocket, Action<string> logAction)
+        {
+            try
+            {
+                var history = userManager.GetAllMatchHistory(100);
+                string response = "HISTORY_ALL:";
+                
+                foreach (var match in history)
+                {
+                    string matchStr = $"{match.Id}|{match.RoomId}|{match.Player1Username}|{match.Player2Username}|" +
+                                    $"{match.WinnerUsername}|{match.StartedAt:yyyy-MM-dd HH:mm:ss}|" +
+                                    $"{(match.EndedAt.HasValue ? match.EndedAt.Value.ToString("yyyy-MM-dd HH:mm:ss") : "")}";
+                    response += matchStr + ";";
+                }
+                
+                SendToClient(clientSocket, response);
+                logAction?.Invoke($"📜 Gửi tất cả lịch sử đấu cho {GetUsername(clientSocket)}");
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi HandleGetAllHistory: {ex.Message}");
+                SendToClient(clientSocket, "HISTORY_ALL_ERROR:Lỗi khi lấy lịch sử");
+            }
+        }
+
+        // ✅ Xử lý lấy lịch sử của user
+        private void HandleGetMyHistory(Socket clientSocket, Action<string> logAction)
+        {
+            try
+            {
+                User? user = GetAuthenticatedUser(clientSocket);
+                if (user == null)
+                {
+                    SendToClient(clientSocket, "HISTORY_MY_ERROR:Chưa đăng nhập");
+                    return;
+                }
+
+                var history = userManager.GetUserMatchHistory(user.Id, 100);
+                string response = "HISTORY_MY:";
+                
+                foreach (var match in history)
+                {
+                    string matchStr = $"{match.Id}|{match.RoomId}|{match.Player1Username}|{match.Player2Username}|" +
+                                    $"{match.WinnerUsername}|{match.StartedAt:yyyy-MM-dd HH:mm:ss}|" +
+                                    $"{(match.EndedAt.HasValue ? match.EndedAt.Value.ToString("yyyy-MM-dd HH:mm:ss") : "")}";
+                    response += matchStr + ";";
+                }
+                
+                SendToClient(clientSocket, response);
+                logAction?.Invoke($"📜 Gửi lịch sử đấu của {user.Username}");
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi HandleGetMyHistory: {ex.Message}");
+                SendToClient(clientSocket, "HISTORY_MY_ERROR:Lỗi khi lấy lịch sử");
+            }
         }
     }
 }

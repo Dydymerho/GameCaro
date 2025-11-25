@@ -109,8 +109,16 @@ namespace CaroLAN
             // ✅ Lưu password để tự động đăng nhập lại khi reconnect
             currentPassword = password;
 
-            socket.Send($"LOGIN:{username}:{password}");
-            lblStatus.Text = "Đang đăng nhập...";
+            try
+            {
+                socket.Send($"LOGIN:{username}:{password}");
+                lblStatus.Text = "Đang đăng nhập...";
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Lỗi gửi dữ liệu";
+                MessageBox.Show($"Không thể gửi yêu cầu đăng nhập: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnRegister_Click(object sender, EventArgs e)
@@ -146,8 +154,16 @@ namespace CaroLAN
             // Bỏ email: gửi luôn REGISTER:{username}:{password}
             string registerMessage = $"REGISTER:{username}:{password}";
 
-            socket.Send(registerMessage);
-            lblStatus.Text = "Đang đăng ký...";
+            try
+            {
+                socket.Send(registerMessage);
+                lblStatus.Text = "Đang đăng ký...";
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Lỗi gửi dữ liệu";
+                MessageBox.Show($"Không thể gửi yêu cầu đăng ký: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void StartListening()
@@ -235,14 +251,34 @@ namespace CaroLAN
                             // Không làm gì trong màn hình đăng nhập
                         }
                     }
+                    catch (InvalidOperationException)
+                    {
+                        // Form đã bị đóng hoặc Invoke không thể thực thi
+                        if (!token.IsCancellationRequested)
+                        {
+                            try
+                            {
+                                Invoke(new Action(() =>
+                                {
+                                    lblStatus.Text = "Mất kết nối";
+                                }));
+                            }
+                            catch { }
+                        }
+                        break;
+                    }
                     catch (Exception ex)
                     {
                         if (!token.IsCancellationRequested)
                         {
-                            Invoke(new Action(() =>
+                            try
                             {
-                                lblStatus.Text = $"Lỗi: {ex.Message}";
-                            }));
+                                Invoke(new Action(() =>
+                                {
+                                    lblStatus.Text = $"Lỗi: {ex.Message}";
+                                }));
+                            }
+                            catch { }
                         }
                         break;
                     }
