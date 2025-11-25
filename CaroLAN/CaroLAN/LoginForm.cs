@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -199,23 +200,36 @@ namespace CaroLAN
 
                         if (data.StartsWith("LOGIN_SUCCESS:"))
                         {
-                            string[] parts = data.Split(':');
-                            if (parts.Length >= 6)
+                            try
                             {
-                                userId = int.Parse(parts[1]);
-                                currentUsername = parts[2];
-                                totalGames = int.Parse(parts[3]);
-                                wins = int.Parse(parts[4]);
-                                losses = int.Parse(parts[5]);
+                                // Chỉ lấy phần LOGIN_SUCCESS, bỏ qua phần thừa phía sau
+                                var match = Regex.Match(data, @"^LOGIN_SUCCESS:(\d+):([^:]+):(\d+):(\d+):(\d+)");
 
-                                Invoke(new Action(() =>
+                                if (match.Success)
                                 {
-                                    isLoggedIn = true;
-                                    lblStatus.Text = $"Đăng nhập thành công: {currentUsername}";
-                                    lblUserInfo.Text = $"Xin chào, {currentUsername}! | Thắng: {wins} | Thua: {losses} | Tổng: {totalGames}";
-                                    DialogResult = DialogResult.OK;
-                                    Close();
-                                }));
+                                    userId = int.Parse(match.Groups[1].Value);
+                                    currentUsername = match.Groups[2].Value;
+                                    totalGames = int.Parse(match.Groups[3].Value);
+                                    wins = int.Parse(match.Groups[4].Value);
+                                    losses = int.Parse(match.Groups[5].Value);
+
+                                    Invoke(new Action(() =>
+                                    {
+                                        isLoggedIn = true;
+                                        lblStatus.Text = $"Đăng nhập thành công: {currentUsername}";
+                                        lblUserInfo.Text = $"Xin chào, {currentUsername}! | Thắng: {wins} | Thua: {losses} | Tổng: {totalGames}";
+                                        DialogResult = DialogResult.OK;
+                                        Close();
+                                    }));
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"⚠️ LOGIN_SUCCESS không khớp pattern: {data}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"⚠️ Lỗi parse LOGIN_SUCCESS: {ex.Message}");
                             }
                         }
                         else if (data.StartsWith("LOGIN_FAILED:"))
@@ -273,6 +287,7 @@ namespace CaroLAN
                         {
                             try
                             {
+                                MessageBox.Show($"Lỗi khi nhận dữ liệu từ server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 Invoke(new Action(() =>
                                 {
                                     lblStatus.Text = $"Lỗi: {ex.Message}";
