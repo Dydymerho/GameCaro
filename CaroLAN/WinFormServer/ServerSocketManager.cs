@@ -342,33 +342,56 @@ namespace WinFormServer
             }
         }
 
-        public void DisconnectClient(string remoteEndPoint, Action<string> logAction)
+        public void DisconnectClient(string clientIdentifier, Action<string> logAction)
         {
             lock (clients)
             {
-                remoteEndPoint = remoteEndPoint.Replace("|BUSY", ""); // Loại bỏ suffix 
-                // Tìm client dựa trên RemoteEndPoint
-                var client = clients.FirstOrDefault(c => c.RemoteEndPoint?.ToString() == remoteEndPoint);
-                if (client != null)
+                // ✅ Loại bỏ suffix |BUSY nếu có
+                clientIdentifier = clientIdentifier.Replace("|BUSY", "").Replace("[BUSY] ", "").Trim();
+                
+                Socket clientToDisconnect = null;
+                
+                // ✅ Tìm client theo username trước
+                var userEntry = authenticatedUsers.FirstOrDefault(x => x.Value.Username == clientIdentifier);
+                if (userEntry.Key != null)
+                {
+                    clientToDisconnect = userEntry.Key;
+                }
+                
+                // ✅ Nếu không tìm thấy theo username, tìm theo RemoteEndPoint
+                if (clientToDisconnect == null)
+                {
+                    clientToDisconnect = clients.FirstOrDefault(c => c.RemoteEndPoint?.ToString() == clientIdentifier);
+                }
+                
+                if (clientToDisconnect != null)
                 {
                     try
                     {
-                        //gui tin hieu ngat ket noi
+                        string displayName = GetUsername(clientToDisconnect);
+                        
+                        // Gửi tín hiệu ngắt kết nối
                         byte[] disconnectMessage = Encoding.UTF8.GetBytes("SERVER_STOPPED");
-                        client.Send(disconnectMessage);
-                        //dong ket noi client
-                        client.Close();
-                        clients.Remove(client);
-                        logAction?.Invoke($"Client {remoteEndPoint} đã bị ngắt kết nối.");
+                        clientToDisconnect.Send(disconnectMessage);
+                        
+                        // Đóng kết nối client
+                        clientToDisconnect.Close();
+                        clients.Remove(clientToDisconnect);
+                        
+                        logAction?.Invoke($"Client {displayName} ({clientToDisconnect.RemoteEndPoint}) đã bị ngắt kết nối.");
+                        
+                        // ✅ Cập nhật danh sách client sau khi ngắt kết nối
+                        SendClientListToAll(logAction);
+                        globalUpdateClientListAction?.Invoke();
                     }
                     catch (Exception ex)
                     {
-                        logAction?.Invoke($"Lỗi khi ngắt kết nối client {remoteEndPoint}: {ex.Message}");
+                        logAction?.Invoke($"Lỗi khi ngắt kết nối client {clientIdentifier}: {ex.Message}");
                     }
                 }
                 else
                 {
-                    logAction?.Invoke($"Không tìm thấy client {remoteEndPoint} để ngắt kết nối.");
+                    logAction?.Invoke($"Không tìm thấy client '{clientIdentifier}' để ngắt kết nối.");
                 }
             }
         }
