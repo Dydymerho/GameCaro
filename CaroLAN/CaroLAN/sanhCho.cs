@@ -163,6 +163,8 @@ namespace CaroLAN
                                     username = loggedInUsername; // Cập nhật username
                                     Text = $"GameCaro - {username}";
                                     lblStatus.Text = $"Đã đăng nhập lại: {username}";
+                                    // Tải lại lịch sử sau khi đăng nhập
+                                    LoadHistory();
                                 }));
                             }
                             continue;
@@ -244,13 +246,22 @@ namespace CaroLAN
                             string[] parts = data.Split(':');
                             string invitationId = parts[1];
                             string roomId = parts[2];
+                            string position = parts.Length > 3 ? parts[3] : ""; // ✅ Lấy vị trí FIRST/SECOND
 
                             Invoke(new Action(() =>
                             {
                                 RemoveInvitationFromList(invitationId);
                                 currentRoomId = roomId;
                                 isInRoom = true;
-                                lblStatus.Text = $"Lời mời được chấp nhận. Vào phòng {roomId}";
+                                
+                                // ✅ XÁC ĐỊNH AI ĐI TRƯỚC DỰA VÀO VỊ TRÍ
+                                // FIRST = người gửi lời mời = đi trước (X)
+                                // SECOND = người nhận lời mời = đi sau (O)
+                                amFirst = (position == "FIRST");
+                                
+                                string positionText = amFirst ? "Bạn đi trước (X)" : "Bạn đi sau (O)";
+                                lblStatus.Text = $"Lời mời được chấp nhận. Vào phòng {roomId} - {positionText}";
+                                StartGame();
                             }));
                         }
 
@@ -359,6 +370,16 @@ namespace CaroLAN
                             Invoke(new Action(() =>
                             {
                                 UpdateClientList(clients);
+                            }));
+                        }
+
+                        // ✅ Xử lý lịch sử đấu (của tôi)
+                        if (data.StartsWith("HISTORY_MY:"))
+                        {
+                            string historyData = data.Substring("HISTORY_MY:".Length);
+                            Invoke(new Action(() =>
+                            {
+                                UpdateMyHistory(historyData);
                             }));
                         }
 
@@ -485,9 +506,9 @@ namespace CaroLAN
 
             for (int i = 0; i < lstRequests.Items.Count; i++)
             {
-                string item = lstRequests.Items[i].ToString();
+                string? item = lstRequests.Items[i].ToString();
 
-                if (item.EndsWith($"(ID: {invitationId})"))
+                if (!string.IsNullOrEmpty(item) && item.EndsWith($"(ID: {invitationId})"))
                 {
                     lstRequests.Items.RemoveAt(i);
                     break;
@@ -623,6 +644,16 @@ namespace CaroLAN
         private void StartGame()
         {
             cancellationTokenSource?.Cancel(); // Hủy token để vòng lặp lobbyListening kết thúc
+
+            // ✅ Đợi thread kết thúc trước khi tiếp tục
+            if (listenThread != null && listenThread.IsAlive)
+            {
+                if (!listenThread.Join(2000)) // Đợi tối đa 2 giây
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ Thread lobbyListening không dừng kịp thời");
+                }
+            }
+
             try
             {
                 // Mở form mới cho game
@@ -636,6 +667,31 @@ namespace CaroLAN
                     isInRoom = false;
                     currentRoomId = null;
                     lblStatus.Text = "Đã kết nối đến server";
+
+                    // ✅ Khởi động lại lobbyListening khi quay về
+                    lobbyListening();
+
+                    // ✅ Tự động cập nhật lịch sử sau khi game kết thúc (đợi 1 giây để đảm bảo server đã lưu)
+                    System.Threading.Timer? historyUpdateTimer = null;
+                    historyUpdateTimer = new System.Threading.Timer((state) =>
+                    {
+                        try
+                        {
+                            if (socket.IsConnected)
+                            {
+                                Invoke(new Action(() =>
+                                {
+                                    LoadHistory();
+                                    lblStatus.Text = "Đã cập nhật lịch sử đấu";
+                                }));
+                            }
+                        }
+                        catch { }
+                        finally
+                        {
+                            historyUpdateTimer?.Dispose();
+                        }
+                    }, null, 1000, System.Threading.Timeout.Infinite);
                 };
 
                 gameForm.Show();
@@ -863,7 +919,14 @@ namespace CaroLAN
 
             try
             {
-                string selectedClient = lstClients.SelectedItem.ToString();
+                string? selectedClient = lstClients.SelectedItem.ToString();
+                
+                // ✅ Kiểm tra null sau khi ToString()
+                if (string.IsNullOrEmpty(selectedClient))
+                {
+                    MessageBox.Show("Không thể lấy thông tin người chơi!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
                 
                 // ✅ Kiểm tra xem client có đang bận không
                 if (selectedClient.StartsWith("[BUSY]"))
@@ -894,7 +957,13 @@ namespace CaroLAN
                 return;
             }
 
-            string selected = lstRequests.SelectedItem.ToString();
+            string? selected = lstRequests.SelectedItem.ToString();
+            
+            if (string.IsNullOrEmpty(selected))
+            {
+                MessageBox.Show("Không thể lấy thông tin lời mời!");
+                return;
+            }
 
             int index = selected.IndexOf("(ID: ");
             if (index < 0) return;
@@ -911,8 +980,16 @@ namespace CaroLAN
             }
 
             // Gửi yêu cầu accept
-            socket.Send($"ACCEPT_INVITATION:{invitationId}");
-            lblStatus.Text = "Đang chấp nhận lời mời...";
+            try
+            {
+                socket.Send($"ACCEPT_INVITATION:{invitationId}");
+                lblStatus.Text = "Đang chấp nhận lời mời...";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi chấp nhận lời mời: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             // KHÔNG XÓA Ở ĐÂY — chờ server xác nhận
         }
@@ -921,6 +998,99 @@ namespace CaroLAN
         private void lstRequests_SelectedIndexChanged(object sender, EventArgs e)
         {
             // Có thể thêm xử lý khi chọn lời mời nếu cần
+        }
+
+        // ✅ Cập nhật lịch sử đấu (của tôi)
+        private void UpdateMyHistory(string historyData)
+        {
+            lstMyHistory.Items.Clear();
+            
+            if (string.IsNullOrEmpty(historyData))
+            {
+                lstMyHistory.Items.Add("Bạn chưa có lịch sử đấu nào.");
+                return;
+            }
+
+            string[] matches = historyData.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string match in matches)
+            {
+                string[] parts = match.Split('|');
+                if (parts.Length >= 7)
+                {
+                    string roomId = parts[1];
+                    string player1 = parts[2];
+                    string player2 = parts[3];
+                    string winner = parts[4];
+                    string startedAt = parts[5];
+                    string endedAt = parts[6];
+
+                    // Xác định kết quả của user hiện tại
+                    string result = "Hòa";
+                    if (winner == username)
+                    {
+                        result = "Thắng";
+                    }
+                    else if (winner != "Hòa" && (player1 == username || player2 == username))
+                    {
+                        result = "Thua";
+                    }
+
+                    string opponent = (player1 == username) ? player2 : player1;
+                    string displayText = $"[{roomId}] vs {opponent} | {result} | {endedAt}";
+                    lstMyHistory.Items.Add(displayText);
+                }
+            }
+
+            if (lstMyHistory.Items.Count == 0)
+            {
+                lstMyHistory.Items.Add("Bạn chưa có lịch sử đấu nào.");
+            }
+        }
+
+        // ✅ Làm mới lịch sử của tôi
+        private void btnRefreshMy_Click(object sender, EventArgs e)
+        {
+            if (!socket.IsConnected)
+            {
+                MessageBox.Show("Bạn chưa kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(username))
+            {
+                MessageBox.Show("Bạn cần đăng nhập để xem lịch sử của mình!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                socket.Send("GET_MY_HISTORY");
+                lblStatus.Text = "Đang tải lịch sử đấu của bạn...";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi yêu cầu lịch sử: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // ✅ Tải lịch sử khi kết nối
+        private void LoadHistory()
+        {
+            if (!socket.IsConnected) return;
+
+            try
+            {
+                // Chỉ tải lịch sử của user nếu đã đăng nhập
+                if (!string.IsNullOrEmpty(username))
+                {
+                    socket.Send("GET_MY_HISTORY");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Bỏ qua lỗi, không hiển thị message box vì đây là background operation
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi tải lịch sử: {ex.Message}");
+            }
         }
     }
 }

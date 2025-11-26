@@ -25,9 +25,15 @@ namespace CaroLAN
 
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                // time out 60s
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 60000);
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 60000);
+                // ✅ Cho phép tái sử dụng địa chỉ (quan trọng khi chạy nhiều client trên cùng máy)
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                
+                // ✅ Giảm timeout xuống 10 giây để tránh block quá lâu
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
+                
+                // ✅ Tắt Nagle algorithm để giảm latency
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
 
                 IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Parse(ip), PORT);
                 socket.Connect(serverEndpoint);
@@ -68,14 +74,27 @@ namespace CaroLAN
 
         public void Send(string message)
         {
-            if (socket != null && socket.Connected)
+            try
             {
-                byte[] data = Encoding.UTF8.GetBytes(message);
-                socket.Send(data);
+                if (socket != null && socket.Connected)
+                {
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+                    socket.Send(data);
+                }
+                else
+                {
+                    isConnected = false;
+                }
             }
-            else             
+            catch (SocketException)
             {
                 isConnected = false;
+                throw; // ✅ Throw lại để caller biết có lỗi
+            }
+            catch (ObjectDisposedException)
+            {
+                isConnected = false;
+                throw;
             }
         }
 
@@ -84,7 +103,28 @@ namespace CaroLAN
             try
             {
                 if (socket == null || !socket.Connected)
+                {
+                    isConnected = false;
                     return string.Empty;
+                }
+                
+                // ✅ Kiểm tra xem có dữ liệu sẵn sàng không trước khi receive
+                if (socket.Available == 0)
+                {
+                    // ✅ Poll với timeout ngắn để không block lâu
+                    if (!socket.Poll(100000, SelectMode.SelectRead)) // 100ms
+                    {
+                        return string.Empty;
+                    }
+                    
+                    // ✅ Kiểm tra lại sau khi poll
+                    if (socket.Available == 0)
+                    {
+                        // Socket có thể đã bị đóng
+                        isConnected = false;
+                        return string.Empty;
+                    }
+                }
                 
                 byte[] buffer = new byte[1024];
                 int recv = socket.Receive(buffer);
@@ -98,9 +138,19 @@ namespace CaroLAN
 
                 return Encoding.UTF8.GetString(buffer, 0, recv);
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
-                // Server hoặc network tạm thời mất kết nối
+                // ✅ Chỉ set isConnected = false nếu là lỗi nghiêm trọng
+                if (ex.SocketErrorCode != SocketError.WouldBlock && 
+                    ex.SocketErrorCode != SocketError.TimedOut)
+                {
+                    isConnected = false;
+                }
+                return string.Empty;
+            }
+            catch (ObjectDisposedException)
+            {
+                // Socket đã bị dispose
                 isConnected = false;
                 return string.Empty;
             }

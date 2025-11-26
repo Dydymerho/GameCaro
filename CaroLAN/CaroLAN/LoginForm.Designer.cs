@@ -17,274 +17,418 @@ namespace CaroLAN
 
         private void InitializeComponent()
         {
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPageLogin = new System.Windows.Forms.TabPage();
-            this.btnLogin = new System.Windows.Forms.Button();
-            this.txtLoginPassword = new System.Windows.Forms.TextBox();
-            this.lblLoginPassword = new System.Windows.Forms.Label();
-            this.txtLoginUsername = new System.Windows.Forms.TextBox();
-            this.lblLoginUsername = new System.Windows.Forms.Label();
-            this.tabPageRegister = new System.Windows.Forms.TabPage();
-            this.btnRegister = new System.Windows.Forms.Button();
-            this.txtRegisterEmail = new System.Windows.Forms.TextBox();
-            this.lblRegisterEmail = new System.Windows.Forms.Label();
-            this.txtRegisterConfirmPassword = new System.Windows.Forms.TextBox();
-            this.lblRegisterConfirmPassword = new System.Windows.Forms.Label();
-            this.txtRegisterPassword = new System.Windows.Forms.TextBox();
-            this.lblRegisterPassword = new System.Windows.Forms.Label();
-            this.txtRegisterUsername = new System.Windows.Forms.TextBox();
-            this.lblRegisterUsername = new System.Windows.Forms.Label();
-            this.lblServerIP = new System.Windows.Forms.Label();
-            this.txtServerIP = new System.Windows.Forms.TextBox();
-            this.btnConnect = new System.Windows.Forms.Button();
-            this.lblStatus = new System.Windows.Forms.Label();
-            this.lblUserInfo = new System.Windows.Forms.Label();
-            this.tabControl1.SuspendLayout();
-            this.tabPageLogin.SuspendLayout();
-            this.tabPageRegister.SuspendLayout();
-            this.SuspendLayout();
+            tabControl1 = new TabControl();
+            tabPageLogin = new TabPage();
+            lblLoginUsername = new Label();
+            txtLoginUsername = new TextBox();
+            lblLoginPassword = new Label();
+            txtLoginPassword = new TextBox();
+            btnLogin = new Button();
+            tabPageRegister = new TabPage();
+            lblRegisterUsername = new Label();
+            txtRegisterUsername = new TextBox();
+            lblRegisterPassword = new Label();
+            txtRegisterPassword = new TextBox();
+            lblRegisterConfirmPassword = new Label();
+            txtRegisterConfirmPassword = new TextBox();
+            lblRegisterEmail = new Label();
+            txtRegisterEmail = new TextBox();
+            btnRegister = new Button();
+            lblStatus = new Label();
+            lblUserInfo = new Label();
+            panelStatusBar = new Panel();
+            panelMain = new Panel();
+            panelConnection = new Panel();
+            lblConnectionTitle = new Label();
+            lblServerIP = new Label();
+            txtServerIP = new TextBox();
+            btnConnect = new Button();
+            panelHeader = new Panel();
+            lblTitle = new Label();
+            tabControl1.SuspendLayout();
+            tabPageLogin.SuspendLayout();
+            tabPageRegister.SuspendLayout();
+            panelStatusBar.SuspendLayout();
+            panelMain.SuspendLayout();
+            panelConnection.SuspendLayout();
+            panelHeader.SuspendLayout();
+            SuspendLayout();
             // 
             // tabControl1
             // 
-            this.tabControl1.Controls.Add(this.tabPageLogin);
-            this.tabControl1.Controls.Add(this.tabPageRegister);
-            this.tabControl1.Location = new System.Drawing.Point(12, 100);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(400, 320);
-            this.tabControl1.TabIndex = 0;
+            tabControl1.Controls.Add(tabPageLogin);
+            tabControl1.Controls.Add(tabPageRegister);
+            tabControl1.Dock = DockStyle.Fill;
+            tabControl1.Font = new Font("Segoe UI", 10F);
+            tabControl1.Location = new Point(30, 20);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(440, 280);
+            tabControl1.TabIndex = 0;
             // 
             // tabPageLogin
             // 
-            this.tabPageLogin.Controls.Add(this.btnLogin);
-            this.tabPageLogin.Controls.Add(this.txtLoginPassword);
-            this.tabPageLogin.Controls.Add(this.lblLoginPassword);
-            this.tabPageLogin.Controls.Add(this.txtLoginUsername);
-            this.tabPageLogin.Controls.Add(this.lblLoginUsername);
-            this.tabPageLogin.Location = new System.Drawing.Point(4, 29);
-            this.tabPageLogin.Name = "tabPageLogin";
-            this.tabPageLogin.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageLogin.Size = new System.Drawing.Size(392, 287);
-            this.tabPageLogin.TabIndex = 0;
-            this.tabPageLogin.Text = "Đăng nhập";
-            this.tabPageLogin.UseVisualStyleBackColor = true;
-            // 
-            // btnLogin
-            // 
-            this.btnLogin.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
-            this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLogin.ForeColor = System.Drawing.Color.White;
-            this.btnLogin.Location = new System.Drawing.Point(20, 170);
-            this.btnLogin.Name = "btnLogin";
-            this.btnLogin.Size = new System.Drawing.Size(350, 45);
-            this.btnLogin.TabIndex = 4;
-            this.btnLogin.Text = "Đăng nhập";
-            this.btnLogin.UseVisualStyleBackColor = false;
-            this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
-            // 
-            // txtLoginPassword
-            // 
-            this.txtLoginPassword.Location = new System.Drawing.Point(20, 120);
-            this.txtLoginPassword.Name = "txtLoginPassword";
-            this.txtLoginPassword.PasswordChar = '*';
-            this.txtLoginPassword.Size = new System.Drawing.Size(350, 27);
-            this.txtLoginPassword.TabIndex = 3;
-            // 
-            // lblLoginPassword
-            // 
-            this.lblLoginPassword.AutoSize = true;
-            this.lblLoginPassword.Location = new System.Drawing.Point(20, 95);
-            this.lblLoginPassword.Name = "lblLoginPassword";
-            this.lblLoginPassword.Size = new System.Drawing.Size(73, 20);
-            this.lblLoginPassword.TabIndex = 2;
-            this.lblLoginPassword.Text = "Password:";
-            // 
-            // txtLoginUsername
-            // 
-            this.txtLoginUsername.Location = new System.Drawing.Point(20, 55);
-            this.txtLoginUsername.Name = "txtLoginUsername";
-            this.txtLoginUsername.Size = new System.Drawing.Size(350, 27);
-            this.txtLoginUsername.TabIndex = 1;
+            tabPageLogin.BackColor = Color.White;
+            tabPageLogin.Controls.Add(lblLoginUsername);
+            tabPageLogin.Controls.Add(txtLoginUsername);
+            tabPageLogin.Controls.Add(lblLoginPassword);
+            tabPageLogin.Controls.Add(txtLoginPassword);
+            tabPageLogin.Controls.Add(btnLogin);
+            tabPageLogin.Location = new Point(4, 32);
+            tabPageLogin.Name = "tabPageLogin";
+            tabPageLogin.Padding = new Padding(20);
+            tabPageLogin.Size = new Size(432, 244);
+            tabPageLogin.TabIndex = 0;
+            tabPageLogin.Text = "🔐 Đăng nhập";
             // 
             // lblLoginUsername
             // 
-            this.lblLoginUsername.AutoSize = true;
-            this.lblLoginUsername.Location = new System.Drawing.Point(20, 30);
-            this.lblLoginUsername.Name = "lblLoginUsername";
-            this.lblLoginUsername.Size = new System.Drawing.Size(75, 20);
-            this.lblLoginUsername.TabIndex = 0;
-            this.lblLoginUsername.Text = "Username:";
+            lblLoginUsername.AutoSize = true;
+            lblLoginUsername.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblLoginUsername.ForeColor = Color.FromArgb(52, 73, 94);
+            lblLoginUsername.Location = new Point(20, 20);
+            lblLoginUsername.Name = "lblLoginUsername";
+            lblLoginUsername.Size = new Size(128, 23);
+            lblLoginUsername.TabIndex = 0;
+            lblLoginUsername.Text = "Tên đăng nhập";
+            // 
+            // txtLoginUsername
+            // 
+            txtLoginUsername.BackColor = Color.FromArgb(250, 251, 252);
+            txtLoginUsername.BorderStyle = BorderStyle.FixedSingle;
+            txtLoginUsername.Font = new Font("Segoe UI", 11F);
+            txtLoginUsername.Location = new Point(20, 45);
+            txtLoginUsername.Name = "txtLoginUsername";
+            txtLoginUsername.Size = new Size(392, 32);
+            txtLoginUsername.TabIndex = 1;
+            // 
+            // lblLoginPassword
+            // 
+            lblLoginPassword.AutoSize = true;
+            lblLoginPassword.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblLoginPassword.ForeColor = Color.FromArgb(52, 73, 94);
+            lblLoginPassword.Location = new Point(20, 90);
+            lblLoginPassword.Name = "lblLoginPassword";
+            lblLoginPassword.Size = new Size(86, 23);
+            lblLoginPassword.TabIndex = 2;
+            lblLoginPassword.Text = "Mật khẩu";
+            // 
+            // txtLoginPassword
+            // 
+            txtLoginPassword.BackColor = Color.FromArgb(250, 251, 252);
+            txtLoginPassword.BorderStyle = BorderStyle.FixedSingle;
+            txtLoginPassword.Font = new Font("Segoe UI", 11F);
+            txtLoginPassword.Location = new Point(20, 115);
+            txtLoginPassword.Name = "txtLoginPassword";
+            txtLoginPassword.PasswordChar = '●';
+            txtLoginPassword.Size = new Size(392, 32);
+            txtLoginPassword.TabIndex = 3;
+            // 
+            // btnLogin
+            // 
+            btnLogin.BackColor = Color.FromArgb(52, 152, 219);
+            btnLogin.FlatAppearance.BorderSize = 0;
+            btnLogin.FlatStyle = FlatStyle.Flat;
+            btnLogin.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnLogin.ForeColor = Color.White;
+            btnLogin.Location = new Point(20, 170);
+            btnLogin.Name = "btnLogin";
+            btnLogin.Size = new Size(392, 45);
+            btnLogin.TabIndex = 4;
+            btnLogin.Text = "🔓 ĐĂNG NHẬP";
+            btnLogin.UseVisualStyleBackColor = false;
+            btnLogin.Click += btnLogin_Click;
             // 
             // tabPageRegister
             // 
-            this.tabPageRegister.Controls.Add(this.btnRegister);
-            this.tabPageRegister.Controls.Add(this.txtRegisterEmail);
-            this.tabPageRegister.Controls.Add(this.lblRegisterEmail);
-            this.tabPageRegister.Controls.Add(this.txtRegisterConfirmPassword);
-            this.tabPageRegister.Controls.Add(this.lblRegisterConfirmPassword);
-            this.tabPageRegister.Controls.Add(this.txtRegisterPassword);
-            this.tabPageRegister.Controls.Add(this.lblRegisterPassword);
-            this.tabPageRegister.Controls.Add(this.txtRegisterUsername);
-            this.tabPageRegister.Controls.Add(this.lblRegisterUsername);
-            this.tabPageRegister.Location = new System.Drawing.Point(4, 29);
-            this.tabPageRegister.Name = "tabPageRegister";
-            this.tabPageRegister.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageRegister.Size = new System.Drawing.Size(392, 287);
-            this.tabPageRegister.TabIndex = 1;
-            this.tabPageRegister.Text = "Đăng ký";
-            this.tabPageRegister.UseVisualStyleBackColor = true;
-            // 
-            // btnRegister
-            // 
-            this.btnRegister.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
-            this.btnRegister.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRegister.ForeColor = System.Drawing.Color.White;
-            this.btnRegister.Location = new System.Drawing.Point(20, 240);
-            this.btnRegister.Name = "btnRegister";
-            this.btnRegister.Size = new System.Drawing.Size(350, 45);
-            this.btnRegister.TabIndex = 8;
-            this.btnRegister.Text = "Đăng ký";
-            this.btnRegister.UseVisualStyleBackColor = false;
-            this.btnRegister.Click += new System.EventHandler(this.btnRegister_Click);
-            // 
-            // txtRegisterEmail
-            // 
-            this.txtRegisterEmail.Location = new System.Drawing.Point(20, 200);
-            this.txtRegisterEmail.Name = "txtRegisterEmail";
-            this.txtRegisterEmail.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterEmail.TabIndex = 7;
-            // 
-            // lblRegisterEmail
-            // 
-            this.lblRegisterEmail.AutoSize = true;
-            this.lblRegisterEmail.Location = new System.Drawing.Point(20, 175);
-            this.lblRegisterEmail.Name = "lblRegisterEmail";
-            this.lblRegisterEmail.Size = new System.Drawing.Size(49, 20);
-            this.lblRegisterEmail.TabIndex = 6;
-            this.lblRegisterEmail.Text = "Email:";
-            // 
-            // txtRegisterConfirmPassword
-            // 
-            this.txtRegisterConfirmPassword.Location = new System.Drawing.Point(20, 145);
-            this.txtRegisterConfirmPassword.Name = "txtRegisterConfirmPassword";
-            this.txtRegisterConfirmPassword.PasswordChar = '*';
-            this.txtRegisterConfirmPassword.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterConfirmPassword.TabIndex = 5;
-            // 
-            // lblRegisterConfirmPassword
-            // 
-            this.lblRegisterConfirmPassword.AutoSize = true;
-            this.lblRegisterConfirmPassword.Location = new System.Drawing.Point(20, 120);
-            this.lblRegisterConfirmPassword.Name = "lblRegisterConfirmPassword";
-            this.lblRegisterConfirmPassword.Size = new System.Drawing.Size(140, 20);
-            this.lblRegisterConfirmPassword.TabIndex = 4;
-            this.lblRegisterConfirmPassword.Text = "Xác nhận Password:";
-            // 
-            // txtRegisterPassword
-            // 
-            this.txtRegisterPassword.Location = new System.Drawing.Point(20, 95);
-            this.txtRegisterPassword.Name = "txtRegisterPassword";
-            this.txtRegisterPassword.PasswordChar = '*';
-            this.txtRegisterPassword.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterPassword.TabIndex = 3;
-            // 
-            // lblRegisterPassword
-            // 
-            this.lblRegisterPassword.AutoSize = true;
-            this.lblRegisterPassword.Location = new System.Drawing.Point(20, 70);
-            this.lblRegisterPassword.Name = "lblRegisterPassword";
-            this.lblRegisterPassword.Size = new System.Drawing.Size(73, 20);
-            this.lblRegisterPassword.TabIndex = 2;
-            this.lblRegisterPassword.Text = "Password:";
-            // 
-            // txtRegisterUsername
-            // 
-            this.txtRegisterUsername.Location = new System.Drawing.Point(20, 45);
-            this.txtRegisterUsername.Name = "txtRegisterUsername";
-            this.txtRegisterUsername.Size = new System.Drawing.Size(350, 27);
-            this.txtRegisterUsername.TabIndex = 1;
+            tabPageRegister.BackColor = Color.White;
+            tabPageRegister.Controls.Add(lblRegisterUsername);
+            tabPageRegister.Controls.Add(txtRegisterUsername);
+            tabPageRegister.Controls.Add(lblRegisterPassword);
+            tabPageRegister.Controls.Add(txtRegisterPassword);
+            tabPageRegister.Controls.Add(lblRegisterConfirmPassword);
+            tabPageRegister.Controls.Add(txtRegisterConfirmPassword);
+            tabPageRegister.Controls.Add(lblRegisterEmail);
+            tabPageRegister.Controls.Add(txtRegisterEmail);
+            tabPageRegister.Controls.Add(btnRegister);
+            tabPageRegister.Location = new Point(4, 32);
+            tabPageRegister.Name = "tabPageRegister";
+            tabPageRegister.Padding = new Padding(20, 15, 20, 15);
+            tabPageRegister.Size = new Size(432, 244);
+            tabPageRegister.TabIndex = 1;
+            tabPageRegister.Text = "📝 Đăng ký";
             // 
             // lblRegisterUsername
             // 
-            this.lblRegisterUsername.AutoSize = true;
-            this.lblRegisterUsername.Location = new System.Drawing.Point(20, 20);
-            this.lblRegisterUsername.Name = "lblRegisterUsername";
-            this.lblRegisterUsername.Size = new System.Drawing.Size(75, 20);
-            this.lblRegisterUsername.TabIndex = 0;
-            this.lblRegisterUsername.Text = "Username:";
+            lblRegisterUsername.AutoSize = true;
+            lblRegisterUsername.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblRegisterUsername.ForeColor = Color.FromArgb(52, 73, 94);
+            lblRegisterUsername.Location = new Point(20, 15);
+            lblRegisterUsername.Name = "lblRegisterUsername";
+            lblRegisterUsername.Size = new Size(112, 20);
+            lblRegisterUsername.TabIndex = 0;
+            lblRegisterUsername.Text = "Tên đăng nhập";
             // 
-            // lblServerIP
+            // txtRegisterUsername
             // 
-            this.lblServerIP.AutoSize = true;
-            this.lblServerIP.Location = new System.Drawing.Point(12, 20);
-            this.lblServerIP.Name = "lblServerIP";
-            this.lblServerIP.Size = new System.Drawing.Size(70, 20);
-            this.lblServerIP.TabIndex = 1;
-            this.lblServerIP.Text = "Server IP:";
+            txtRegisterUsername.BackColor = Color.FromArgb(250, 251, 252);
+            txtRegisterUsername.BorderStyle = BorderStyle.FixedSingle;
+            txtRegisterUsername.Font = new Font("Segoe UI", 10F);
+            txtRegisterUsername.Location = new Point(20, 37);
+            txtRegisterUsername.Name = "txtRegisterUsername";
+            txtRegisterUsername.Size = new Size(190, 30);
+            txtRegisterUsername.TabIndex = 1;
             // 
-            // txtServerIP
+            // lblRegisterPassword
             // 
-            this.txtServerIP.Location = new System.Drawing.Point(88, 17);
-            this.txtServerIP.Name = "txtServerIP";
-            this.txtServerIP.Size = new System.Drawing.Size(160, 27);
-            this.txtServerIP.TabIndex = 2;
-            this.txtServerIP.Text = "127.0.0.1";
+            lblRegisterPassword.AutoSize = true;
+            lblRegisterPassword.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblRegisterPassword.ForeColor = Color.FromArgb(52, 73, 94);
+            lblRegisterPassword.Location = new Point(222, 15);
+            lblRegisterPassword.Name = "lblRegisterPassword";
+            lblRegisterPassword.Size = new Size(75, 20);
+            lblRegisterPassword.TabIndex = 2;
+            lblRegisterPassword.Text = "Mật khẩu";
             // 
-            // btnConnect
+            // txtRegisterPassword
             // 
-            this.btnConnect.Location = new System.Drawing.Point(254, 16);
-            this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(120, 30);
-            this.btnConnect.TabIndex = 3;
-            this.btnConnect.Text = "Kết nối";
-            this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+            txtRegisterPassword.BackColor = Color.FromArgb(250, 251, 252);
+            txtRegisterPassword.BorderStyle = BorderStyle.FixedSingle;
+            txtRegisterPassword.Font = new Font("Segoe UI", 10F);
+            txtRegisterPassword.Location = new Point(222, 37);
+            txtRegisterPassword.Name = "txtRegisterPassword";
+            txtRegisterPassword.PasswordChar = '●';
+            txtRegisterPassword.Size = new Size(190, 30);
+            txtRegisterPassword.TabIndex = 3;
+            // 
+            // lblRegisterConfirmPassword
+            // 
+            lblRegisterConfirmPassword.AutoSize = true;
+            lblRegisterConfirmPassword.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblRegisterConfirmPassword.ForeColor = Color.FromArgb(52, 73, 94);
+            lblRegisterConfirmPassword.Location = new Point(20, 75);
+            lblRegisterConfirmPassword.Name = "lblRegisterConfirmPassword";
+            lblRegisterConfirmPassword.Size = new Size(143, 20);
+            lblRegisterConfirmPassword.TabIndex = 4;
+            lblRegisterConfirmPassword.Text = "Xác nhận mật khẩu";
+            // 
+            // txtRegisterConfirmPassword
+            // 
+            txtRegisterConfirmPassword.BackColor = Color.FromArgb(250, 251, 252);
+            txtRegisterConfirmPassword.BorderStyle = BorderStyle.FixedSingle;
+            txtRegisterConfirmPassword.Font = new Font("Segoe UI", 10F);
+            txtRegisterConfirmPassword.Location = new Point(20, 97);
+            txtRegisterConfirmPassword.Name = "txtRegisterConfirmPassword";
+            txtRegisterConfirmPassword.PasswordChar = '●';
+            txtRegisterConfirmPassword.Size = new Size(392, 30);
+            txtRegisterConfirmPassword.TabIndex = 5;
+            // 
+            // lblRegisterEmail
+            // 
+            lblRegisterEmail.AutoSize = true;
+            lblRegisterEmail.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblRegisterEmail.ForeColor = Color.FromArgb(52, 73, 94);
+            lblRegisterEmail.Location = new Point(20, 135);
+            lblRegisterEmail.Name = "lblRegisterEmail";
+            lblRegisterEmail.Size = new Size(124, 20);
+            lblRegisterEmail.TabIndex = 6;
+            lblRegisterEmail.Text = "Email (tùy chọn)";
+            // 
+            // txtRegisterEmail
+            // 
+            txtRegisterEmail.BackColor = Color.FromArgb(250, 251, 252);
+            txtRegisterEmail.BorderStyle = BorderStyle.FixedSingle;
+            txtRegisterEmail.Font = new Font("Segoe UI", 10F);
+            txtRegisterEmail.Location = new Point(20, 157);
+            txtRegisterEmail.Name = "txtRegisterEmail";
+            txtRegisterEmail.Size = new Size(392, 30);
+            txtRegisterEmail.TabIndex = 7;
+            // 
+            // btnRegister
+            // 
+            btnRegister.BackColor = Color.FromArgb(46, 204, 113);
+            btnRegister.FlatAppearance.BorderSize = 0;
+            btnRegister.FlatStyle = FlatStyle.Flat;
+            btnRegister.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnRegister.ForeColor = Color.White;
+            btnRegister.Location = new Point(20, 195);
+            btnRegister.Name = "btnRegister";
+            btnRegister.Size = new Size(392, 40);
+            btnRegister.TabIndex = 8;
+            btnRegister.Text = "✅ ĐĂNG KÝ";
+            btnRegister.UseVisualStyleBackColor = false;
+            btnRegister.Click += btnRegister_Click;
             // 
             // lblStatus
             // 
-            this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new System.Drawing.Point(12, 60);
-            this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(79, 20);
-            this.lblStatus.TabIndex = 4;
-            this.lblStatus.Text = "Chưa kết nối";
+            lblStatus.AutoSize = true;
+            lblStatus.Dock = DockStyle.Left;
+            lblStatus.Font = new Font("Segoe UI", 9F);
+            lblStatus.ForeColor = Color.FromArgb(52, 73, 94);
+            lblStatus.Location = new Point(20, 8);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Padding = new Padding(0, 3, 0, 0);
+            lblStatus.Size = new Size(117, 23);
+            lblStatus.TabIndex = 0;
+            lblStatus.Text = "⚪ Chưa kết nối";
+            lblStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lblUserInfo
             // 
-            this.lblUserInfo.AutoSize = true;
-            this.lblUserInfo.Location = new System.Drawing.Point(12, 80);
-            this.lblUserInfo.Name = "lblUserInfo";
-            this.lblUserInfo.Size = new System.Drawing.Size(0, 20);
-            this.lblUserInfo.TabIndex = 5;
+            lblUserInfo.AutoSize = true;
+            lblUserInfo.Dock = DockStyle.Right;
+            lblUserInfo.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            lblUserInfo.ForeColor = Color.FromArgb(149, 165, 166);
+            lblUserInfo.Location = new Point(480, 8);
+            lblUserInfo.Name = "lblUserInfo";
+            lblUserInfo.Padding = new Padding(0, 3, 0, 0);
+            lblUserInfo.Size = new Size(0, 23);
+            lblUserInfo.TabIndex = 1;
+            lblUserInfo.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // panelStatusBar
+            // 
+            panelStatusBar.BackColor = Color.FromArgb(236, 240, 241);
+            panelStatusBar.Controls.Add(lblStatus);
+            panelStatusBar.Controls.Add(lblUserInfo);
+            panelStatusBar.Dock = DockStyle.Top;
+            panelStatusBar.Location = new Point(0, 90);
+            panelStatusBar.Name = "panelStatusBar";
+            panelStatusBar.Padding = new Padding(20, 8, 20, 8);
+            panelStatusBar.Size = new Size(500, 40);
+            panelStatusBar.TabIndex = 1;
+            // 
+            // panelMain
+            // 
+            panelMain.BackColor = Color.FromArgb(245, 247, 250);
+            panelMain.Controls.Add(tabControl1);
+            panelMain.Dock = DockStyle.Fill;
+            panelMain.Location = new Point(0, 130);
+            panelMain.Name = "panelMain";
+            panelMain.Padding = new Padding(30, 20, 30, 20);
+            panelMain.Size = new Size(500, 320);
+            panelMain.TabIndex = 2;
+            // 
+            // panelConnection
+            // 
+            panelConnection.BackColor = Color.FromArgb(52, 152, 219);
+            panelConnection.Controls.Add(lblConnectionTitle);
+            panelConnection.Controls.Add(lblServerIP);
+            panelConnection.Controls.Add(txtServerIP);
+            panelConnection.Controls.Add(btnConnect);
+            panelConnection.Dock = DockStyle.Right;
+            panelConnection.Location = new Point(240, 15);
+            panelConnection.Name = "panelConnection";
+            panelConnection.Padding = new Padding(10, 5, 10, 5);
+            panelConnection.Size = new Size(240, 60);
+            panelConnection.TabIndex = 1;
+            // 
+            // lblConnectionTitle
+            // 
+            lblConnectionTitle.AutoSize = true;
+            lblConnectionTitle.Font = new Font("Segoe UI", 7F, FontStyle.Bold);
+            lblConnectionTitle.ForeColor = Color.White;
+            lblConnectionTitle.Location = new Point(10, 5);
+            lblConnectionTitle.Name = "lblConnectionTitle";
+            lblConnectionTitle.Size = new Size(66, 15);
+            lblConnectionTitle.TabIndex = 0;
+            lblConnectionTitle.Text = "🔌 SERVER";
+            // 
+            // lblServerIP
+            // 
+            lblServerIP.AutoSize = true;
+            lblServerIP.Font = new Font("Segoe UI", 7F);
+            lblServerIP.ForeColor = Color.White;
+            lblServerIP.Location = new Point(10, 22);
+            lblServerIP.Name = "lblServerIP";
+            lblServerIP.Size = new Size(20, 15);
+            lblServerIP.TabIndex = 1;
+            lblServerIP.Text = "IP:";
+            // 
+            // txtServerIP
+            // 
+            txtServerIP.BackColor = Color.White;
+            txtServerIP.BorderStyle = BorderStyle.FixedSingle;
+            txtServerIP.Font = new Font("Segoe UI", 8F);
+            txtServerIP.Location = new Point(30, 20);
+            txtServerIP.Name = "txtServerIP";
+            txtServerIP.Size = new Size(90, 25);
+            txtServerIP.TabIndex = 2;
+            txtServerIP.Text = "127.0.0.1";
+            txtServerIP.TextAlign = HorizontalAlignment.Center;
+            txtServerIP.TextChanged += txtServerIP_TextChanged;
+            // 
+            // btnConnect
+            // 
+            btnConnect.BackColor = Color.FromArgb(46, 204, 113);
+            btnConnect.FlatAppearance.BorderSize = 0;
+            btnConnect.FlatStyle = FlatStyle.Flat;
+            btnConnect.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            btnConnect.ForeColor = Color.White;
+            btnConnect.Location = new Point(125, 20);
+            btnConnect.Name = "btnConnect";
+            btnConnect.Size = new Size(105, 25);
+            btnConnect.TabIndex = 3;
+            btnConnect.Text = "Kết nối";
+            btnConnect.UseVisualStyleBackColor = false;
+            btnConnect.Click += btnConnect_Click;
+            // 
+            // panelHeader
+            // 
+            panelHeader.BackColor = Color.FromArgb(41, 128, 185);
+            panelHeader.Controls.Add(lblTitle);
+            panelHeader.Controls.Add(panelConnection);
+            panelHeader.Dock = DockStyle.Top;
+            panelHeader.Location = new Point(0, 0);
+            panelHeader.Name = "panelHeader";
+            panelHeader.Padding = new Padding(20, 15, 20, 15);
+            panelHeader.Size = new Size(500, 90);
+            panelHeader.TabIndex = 0;
+            // 
+            // lblTitle
+            // 
+            lblTitle.AutoSize = true;
+            lblTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.White;
+            lblTitle.Location = new Point(20, 20);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(221, 46);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "GAME CARO";
             // 
             // LoginForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(424, 430);
-            this.Controls.Add(this.lblUserInfo);
-            this.Controls.Add(this.lblStatus);
-            this.Controls.Add(this.btnConnect);
-            this.Controls.Add(this.txtServerIP);
-            this.Controls.Add(this.lblServerIP);
-            this.Controls.Add(this.tabControl1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "LoginForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Đăng nhập - GameCaro";
-            this.tabControl1.ResumeLayout(false);
-            this.tabPageLogin.ResumeLayout(false);
-            this.tabPageLogin.PerformLayout();
-            this.tabPageRegister.ResumeLayout(false);
-            this.tabPageRegister.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(245, 247, 250);
+            ClientSize = new Size(500, 450);
+            Controls.Add(panelMain);
+            Controls.Add(panelStatusBar);
+            Controls.Add(panelHeader);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "LoginForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Game Caro - Đăng nhập";
+            tabControl1.ResumeLayout(false);
+            tabPageLogin.ResumeLayout(false);
+            tabPageLogin.PerformLayout();
+            tabPageRegister.ResumeLayout(false);
+            tabPageRegister.PerformLayout();
+            panelStatusBar.ResumeLayout(false);
+            panelStatusBar.PerformLayout();
+            panelMain.ResumeLayout(false);
+            panelConnection.ResumeLayout(false);
+            panelConnection.PerformLayout();
+            panelHeader.ResumeLayout(false);
+            panelHeader.PerformLayout();
+            ResumeLayout(false);
         }
 
         #endregion
-
+        private Panel panelStatusBar;
+        private Panel panelMain;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPageLogin;
         private System.Windows.Forms.Button btnLogin;
@@ -302,10 +446,14 @@ namespace CaroLAN
         private System.Windows.Forms.Label lblRegisterPassword;
         private System.Windows.Forms.TextBox txtRegisterUsername;
         private System.Windows.Forms.Label lblRegisterUsername;
-        private System.Windows.Forms.Label lblServerIP;
-        private System.Windows.Forms.TextBox txtServerIP;
-        private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.Label lblUserInfo;
+        private Panel panelConnection;
+        private Label lblConnectionTitle;
+        private Label lblServerIP;
+        private TextBox txtServerIP;
+        private Button btnConnect;
+        private Panel panelHeader;
+        private Label lblTitle;
     }
 }
