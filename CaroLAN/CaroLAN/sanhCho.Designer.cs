@@ -40,14 +40,10 @@
             btnAccept = new Button();
             label3 = new Label();
             tabHistory = new TabControl();
-            tabAllHistory = new TabPage();
-            lstAllHistory = new ListBox();
-            btnRefreshAll = new Button();
             tabMyHistory = new TabPage();
             lstMyHistory = new ListBox();
             btnRefreshMy = new Button();
             tabHistory.SuspendLayout();
-            tabAllHistory.SuspendLayout();
             tabMyHistory.SuspendLayout();
             SuspendLayout();
             // 
@@ -156,43 +152,12 @@
             // 
             // tabHistory
             // 
-            tabHistory.Controls.Add(tabAllHistory);
             tabHistory.Controls.Add(tabMyHistory);
             tabHistory.Location = new Point(33, 410);
             tabHistory.Name = "tabHistory";
             tabHistory.SelectedIndex = 0;
             tabHistory.Size = new Size(853, 130);
             tabHistory.TabIndex = 21;
-            // 
-            // tabAllHistory
-            // 
-            tabAllHistory.Controls.Add(lstAllHistory);
-            tabAllHistory.Controls.Add(btnRefreshAll);
-            tabAllHistory.Location = new Point(4, 29);
-            tabAllHistory.Name = "tabAllHistory";
-            tabAllHistory.Padding = new Padding(3);
-            tabAllHistory.Size = new Size(845, 97);
-            tabAllHistory.TabIndex = 0;
-            tabAllHistory.Text = "Tất cả lịch sử";
-            tabAllHistory.UseVisualStyleBackColor = true;
-            // 
-            // lstAllHistory
-            // 
-            lstAllHistory.FormattingEnabled = true;
-            lstAllHistory.Location = new Point(6, 6);
-            lstAllHistory.Name = "lstAllHistory";
-            lstAllHistory.Size = new Size(733, 91);
-            lstAllHistory.TabIndex = 0;
-            // 
-            // btnRefreshAll
-            // 
-            btnRefreshAll.Location = new Point(745, 6);
-            btnRefreshAll.Name = "btnRefreshAll";
-            btnRefreshAll.Size = new Size(94, 29);
-            btnRefreshAll.TabIndex = 1;
-            btnRefreshAll.Text = "Làm mới";
-            btnRefreshAll.UseVisualStyleBackColor = true;
-            btnRefreshAll.Click += btnRefreshAll_Click;
             // 
             // tabMyHistory
             // 
@@ -245,7 +210,6 @@
             Text = "sanhCho";
             Load += sanhCho_Load;
             tabHistory.ResumeLayout(false);
-            tabAllHistory.ResumeLayout(false);
             tabMyHistory.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
@@ -265,9 +229,6 @@
         private Button btnAccept;
         private Label label3;
         private TabControl tabHistory;
-        private TabPage tabAllHistory;
-        private ListBox lstAllHistory;
-        private Button btnRefreshAll;
         private TabPage tabMyHistory;
         private ListBox lstMyHistory;
         private Button btnRefreshMy;
