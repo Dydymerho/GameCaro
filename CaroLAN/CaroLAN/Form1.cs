@@ -10,12 +10,19 @@ namespace CaroLAN
         ChessBoardManager chessBoard;
         SocketManager socket;
         Thread listenThread;
-        private CancellationTokenSource cancellationTokenSource; // ✅ Thêm CancellationToken
+        private CancellationTokenSource cancellationTokenSource;
 
         private string roomId;
         private bool isMyTurn = false;
         private int timeLeft = 20;
         private System.Windows.Forms.Timer turnTimer;
+        private bool iAmPlayerX;
+
+        // Màu sắc chính
+        private readonly Color ColorX = Color.FromArgb(70, 130, 180); // Steel Blue
+        private readonly Color ColorO = Color.FromArgb(220, 20, 60);  // Crimson
+        private readonly Color ColorActive = Color.FromArgb(240, 248, 255); // Alice Blue - màu active
+        private readonly Color ColorInactive = Color.White; // Trắng - màu inactive
 
         public Form1(string roomId, SocketManager socket, bool startFirst)
         {
@@ -25,37 +32,125 @@ namespace CaroLAN
             this.roomId = roomId;
             this.socket = socket;
             this.isMyTurn = startFirst;
+            this.iAmPlayerX = startFirst;
 
-            // ✅ Khởi tạo CancellationTokenSource
             cancellationTokenSource = new CancellationTokenSource();
 
-            // ✅ Tạo bàn cờ với constructor mới - truyền thẳng startFirst
-            // startFirst = true  → Player.One → X (màu xanh) → đi trước
-            // startFirst = false → Player.Two → O (màu đỏ) → đi sau
             chessBoard = new ChessBoardManager(pnlChessBoard, startFirst);
             chessBoard.PlayerClicked += ChessBoard_PlayerClicked;
             chessBoard.GameEnded += ChessBoard_GameEnded;
 
-            lblRoom.Text = $"Phòng: {roomId}";
+            // Vẽ icon X và O trong PictureBox
+            DrawXIcon();
+            DrawOIcon();
+
+            // ✅ Cập nhật UI cho 2 người chơi
+            lblRoom.Text = $"🎯 Phòng: {roomId}";
             
-            // ✅ Hiển thị vai trò rõ ràng
-            if (startFirst)
+            if (iAmPlayerX)
             {
-                lblTurn.Text = "Lượt của bạn - Bạn là X (đi trước)";
+                // Tôi là X - đi trước
+                lblPlayerX.Text = "Bạn";
+                lblPlayerO.Text = "Đối thủ";
+                lblPlayerXStatus.Text = "⚡ Đang chơi";
+                lblPlayerOStatus.Text = "⏳ Chờ lượt";
+                pnlPlayerX.BackColor = ColorActive;
             }
             else
             {
-                lblTurn.Text = "Lượt của đối thủ - Bạn là O (đi sau)";
+                // Tôi là O - đi sau
+                lblPlayerX.Text = "Đối thủ";
+                lblPlayerO.Text = "Bạn";
+                lblPlayerXStatus.Text = "⚡ Đang chơi";
+                lblPlayerOStatus.Text = "⏳ Chờ lượt";
+                pnlPlayerX.BackColor = ColorActive; // X đi trước
             }
             
-            lblTimer.Text = "";
+            lblTimer.Text = "⏰ --";
 
             InitTimer();
-
             StartListening();
         }
 
-        // ✅ Bộ đếm thời gian 20s mỗi lượt
+        // Vẽ hình X trong PictureBox
+        private void DrawXIcon()
+        {
+            Bitmap bmp = new Bitmap(picPlayerX.Width, picPlayerX.Height);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.Clear(ColorX);
+                
+                using (Pen pen = new Pen(Color.White, 8))
+                {
+                    pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                    pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                    
+                    // Vẽ X
+                    g.DrawLine(pen, 15, 15, 55, 55);
+                    g.DrawLine(pen, 55, 15, 15, 55);
+                }
+            }
+            picPlayerX.Image = bmp;
+        }
+
+        // Vẽ hình O trong PictureBox
+        private void DrawOIcon()
+        {
+            Bitmap bmp = new Bitmap(picPlayerO.Width, picPlayerO.Height);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.Clear(ColorO);
+                
+                using (Pen pen = new Pen(Color.White, 8))
+                {
+                    // Vẽ O
+                    g.DrawEllipse(pen, 15, 15, 40, 40);
+                }
+            }
+            picPlayerO.Image = bmp;
+        }
+
+        // Cập nhật trạng thái người chơi
+        private void UpdatePlayerStatus(bool isXTurn)
+        {
+            if (isXTurn)
+            {
+                // Lượt của X
+                pnlPlayerX.BackColor = ColorActive;
+                pnlPlayerO.BackColor = ColorInactive;
+                
+                if (iAmPlayerX)
+                {
+                    lblPlayerXStatus.Text = "⚡ Đang chơi";
+                    lblPlayerOStatus.Text = "⏳ Chờ lượt";
+                }
+                else
+                {
+                    lblPlayerXStatus.Text = "⚡ Đang chơi";
+                    lblPlayerOStatus.Text = "⏳ Chờ lượt";
+                }
+            }
+            else
+            {
+                // Lượt của O
+                pnlPlayerX.BackColor = ColorInactive;
+                pnlPlayerO.BackColor = ColorActive;
+                
+                if (iAmPlayerX)
+                {
+                    lblPlayerXStatus.Text = "⏳ Chờ lượt";
+                    lblPlayerOStatus.Text = "⚡ Đang chơi";
+                }
+                else
+                {
+                    lblPlayerXStatus.Text = "⏳ Chờ lượt";
+                    lblPlayerOStatus.Text = "⚡ Đang chơi";
+                }
+            }
+        }
+
         private void InitTimer()
         {
             turnTimer = new System.Windows.Forms.Timer();
@@ -65,7 +160,17 @@ namespace CaroLAN
                 if (!chessBoard.isGameOver && isMyTurn)
                 {
                     timeLeft--;
-                    lblTimer.Text = $"Thời gian: {timeLeft}s";
+                    lblTimer.Text = $"⏰ {timeLeft}s";
+                    
+                    // Chỉ đổi màu chữ khi còn ít thời gian
+                    if (timeLeft <= 5)
+                    {
+                        lblTimer.ForeColor = ColorO; // Đỏ
+                    }
+                    else
+                    {
+                        lblTimer.ForeColor = ColorX; // Xanh
+                    }
 
                     if (timeLeft <= 0)
                     {
@@ -80,19 +185,22 @@ namespace CaroLAN
         private void StartTurnTimer()
         {
             timeLeft = 20;
-            lblTimer.Text = $"Thời gian: {timeLeft}s";
+            lblTimer.Text = $"⏰ {timeLeft}s";
+            lblTimer.ForeColor = ColorX;
             turnTimer.Start();
         }
 
         private void StopTurnTimer()
         {
             turnTimer.Stop();
+            lblTimer.Text = "⏰ --";
+            lblTimer.ForeColor = ColorX;
         }
 
         private void EndGameDueToTimeout()
         {
-            MessageBox.Show("Hết thời gian! Bạn đã thua lượt này.", "Thời gian hết", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            socket.Send("RESIGN"); // gửi tín hiệu đầu hàng do hết thời gian
+            MessageBox.Show("⏰ Hết thời gian! Bạn đã thua lượt này.", "Thời gian hết", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            socket.Send("RESIGN");
             EndGame("Thua do hết thời gian");
         }
 
@@ -112,7 +220,7 @@ namespace CaroLAN
                             {
                                 Invoke(new Action(() =>
                                 {
-                                    MessageBox.Show("Mất kết nối tới server!", "Lỗi mạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    MessageBox.Show("❌ Mất kết nối tới server!", "Lỗi mạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                     Close();
                                 }));
                             }
@@ -126,7 +234,6 @@ namespace CaroLAN
                             continue;
                         }
 
-                        // ✅ Nhận nước đi từ đối thủ
                         if (data.StartsWith("GAME_MOVE:"))
                         {
                             string[] parts = data.Substring(10).Split(',');
@@ -136,65 +243,62 @@ namespace CaroLAN
                                 {
                                     chessBoard.OtherPlayerMove(new Point(x, y));
                                     isMyTurn = true;
-                                    lblTurn.Text = "Lượt của bạn";
+                                    
+                                    // Cập nhật trạng thái: bây giờ là lượt của tôi
+                                    UpdatePlayerStatus(iAmPlayerX); // true nếu tôi là X
                                     StartTurnTimer();
                                 }));
                             }
                         }
 
-                        // ✅ Nhận tín hiệu đầu hàng
                         if (data == "RESIGN")
                         {
                             Invoke(new Action(() =>
                             {
-                                EndGame("Đối thủ đã đầu hàng!");
+                                EndGame("🏆 Đối thủ đã đầu hàng! Bạn thắng!");
                             }));
                         }
 
-                        // ✅ Khi đối thủ rời phòng
                         if (data == "OPPONENT_LEFT")
                         {
                             Invoke(new Action(() =>
                             {
-                                EndGame("Đối thủ đã thoát khỏi phòng.");
+                                EndGame("🚪 Đối thủ đã thoát khỏi phòng.");
                             }));
                         }
-                        // ✅ Nhận thông báo đối thủ thắng (mình thua)
+
                         if (data.StartsWith("OPPONENT_WON:"))
                         {
                             string moveData = data.Substring("OPPONENT_WON:".Length);
                             string[] parts = moveData.Split(',');
 
-                            // Vẫn phải hiển thị nước đi cuối của đối thủ (đó chính là nước đi thắng)
                             if (parts.Length == 2 && int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y))
                             {
                                 Invoke(new Action(() =>
                                 {
-                                    chessBoard.OtherPlayerMove(new Point(x, y)); // Hiển thị nước đi thắng
-                                    EndGame("Bạn đã thua trận đấu này!");
+                                    chessBoard.OtherPlayerMove(new Point(x, y));
+                                    EndGame("😢 Bạn đã thua trận đấu này!");
                                 }));
                             }
                         }
 
-                        // ✅ Nhận thông báo mình thắng
                         if (data == "YOU_WON")
                         {
                             Invoke(new Action(() =>
                             {
-                                EndGame("Chúc mừng, bạn đã thắng trận đấu!");
+                                EndGame("🎉 Chúc mừng, bạn đã thắng trận đấu!");
                             }));
                         }
                     }
                     catch (InvalidOperationException)
                     {
-                        // Form đã bị đóng hoặc Invoke không thể thực thi
                         if (!token.IsCancellationRequested)
                         {
                             try
                             {
                                 Invoke(new Action(() =>
                                 {
-                                    MessageBox.Show("Mất kết nối tới server!", "Lỗi mạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    MessageBox.Show("❌ Mất kết nối tới server!", "Lỗi mạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                     Close();
                                 }));
                             }
@@ -220,7 +324,7 @@ namespace CaroLAN
         {
             if (!isMyTurn || chessBoard.isGameOver)
             {
-                MessageBox.Show("Chưa đến lượt bạn!");
+                MessageBox.Show("⚠️ Chưa đến lượt bạn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             bool isWinner = chessBoard.CheckWin(e.X, e.Y);
@@ -232,14 +336,16 @@ namespace CaroLAN
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi gửi nước đi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"❌ Lỗi gửi nước đi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 EndGame("Mất kết nối với server");
                 return;
             }
 
             StopTurnTimer();
 
-            lblTurn.Text = "Lượt của đối thủ";
+            // Cập nhật trạng thái: bây giờ là lượt của đối thủ
+            isMyTurn = false;
+            UpdatePlayerStatus(!iAmPlayerX); // Lượt của người kia
         }
 
         private void ChessBoard_GameEnded(object sender, Player winner)
@@ -249,7 +355,7 @@ namespace CaroLAN
 
         private void btnResign_Click(object sender, EventArgs e)
         {
-            var confirm = MessageBox.Show("Bạn có chắc muốn đầu hàng?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            var confirm = MessageBox.Show("🏳️ Bạn có chắc muốn đầu hàng?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (confirm == DialogResult.Yes)
             {
                 try
@@ -260,7 +366,7 @@ namespace CaroLAN
                 {
                     System.Diagnostics.Debug.WriteLine($"Lỗi khi gửi RESIGN: {ex.Message}");
                 }
-                EndGame("Bạn đã đầu hàng!");
+                EndGame("🏳️ Bạn đã đầu hàng!");
             }
         }
 
@@ -268,7 +374,7 @@ namespace CaroLAN
         {
             StopTurnTimer();
             chessBoard.isGameOver = true;
-            MessageBox.Show(reason, "Kết thúc ván", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(reason, "🎮 Kết thúc ván", MessageBoxButtons.OK, MessageBoxIcon.Information);
             Close();
         }
 
@@ -278,24 +384,18 @@ namespace CaroLAN
             {
                 StopTurnTimer();
                 
-                // ✅ Gửi tín hiệu rời phòng cho server
                 if (socket != null && socket.IsConnected)
                 {
                     try
                     {
                         socket.Send("LEAVE_ROOM");
-                        Thread.Sleep(100); // Đợi message được gửi đi
+                        Thread.Sleep(100);
                     }
-                    catch
-                    {
-                        // Bỏ qua lỗi khi gửi
-                    }
+                    catch { }
                 }
 
-                // ✅ Hủy thread an toàn bằng CancellationToken
                 cancellationTokenSource?.Cancel();
 
-                // ✅ Đợi thread kết thúc (tối đa 1 giây)
                 if (listenThread != null && listenThread.IsAlive)
                 {
                     if (!listenThread.Join(1000))
@@ -304,14 +404,10 @@ namespace CaroLAN
                     }
                 }
 
-                // ✅ Dispose các tài nguyên
                 cancellationTokenSource?.Dispose();
                 turnTimer?.Dispose();
             }
-            catch
-            {
-                // Bỏ qua lỗi khi đóng form
-            }
+            catch { }
             
             base.OnFormClosing(e);
         }
