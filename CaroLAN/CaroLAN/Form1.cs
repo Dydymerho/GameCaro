@@ -46,7 +46,7 @@ namespace CaroLAN
 
             // ✅ Cập nhật UI cho 2 người chơi
             lblRoom.Text = $"🎯 Phòng: {roomId}";
-            
+
             if (iAmPlayerX)
             {
                 // Tôi là X - đi trước
@@ -65,7 +65,7 @@ namespace CaroLAN
                 lblPlayerOStatus.Text = "⏳ Chờ lượt";
                 pnlPlayerX.BackColor = ColorActive; // X đi trước
             }
-            
+
             lblTimer.Text = "⏰ --";
 
             InitTimer();
@@ -87,12 +87,12 @@ namespace CaroLAN
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 g.Clear(ColorX);
-                
+
                 using (Pen pen = new Pen(Color.White, 8))
                 {
                     pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
                     pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
-                    
+
                     // Vẽ X
                     g.DrawLine(pen, 15, 15, 55, 55);
                     g.DrawLine(pen, 55, 15, 15, 55);
@@ -109,7 +109,7 @@ namespace CaroLAN
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 g.Clear(ColorO);
-                
+
                 using (Pen pen = new Pen(Color.White, 8))
                 {
                     // Vẽ O
@@ -127,7 +127,7 @@ namespace CaroLAN
                 // Lượt của X
                 pnlPlayerX.BackColor = ColorActive;
                 pnlPlayerO.BackColor = ColorInactive;
-                
+
                 if (iAmPlayerX)
                 {
                     lblPlayerXStatus.Text = "⚡ Đang chơi";
@@ -144,7 +144,7 @@ namespace CaroLAN
                 // Lượt của O
                 pnlPlayerX.BackColor = ColorInactive;
                 pnlPlayerO.BackColor = ColorActive;
-                
+
                 if (iAmPlayerX)
                 {
                     lblPlayerXStatus.Text = "⏳ Chờ lượt";
@@ -168,7 +168,7 @@ namespace CaroLAN
                 {
                     timeLeft--;
                     lblTimer.Text = $"⏰ {timeLeft}s";
-                    
+
                     // Chỉ đổi màu chữ khi còn ít thời gian
                     if (timeLeft <= 5)
                     {
@@ -216,7 +216,7 @@ namespace CaroLAN
             listenThread = new Thread(() =>
             {
                 var token = cancellationTokenSource.Token;
-                
+
                 while (!token.IsCancellationRequested)
                 {
                     try
@@ -250,7 +250,7 @@ namespace CaroLAN
                                 {
                                     chessBoard.OtherPlayerMove(new Point(x, y));
                                     isMyTurn = true;
-                                    
+
                                     // Cập nhật trạng thái: bây giờ là lượt của tôi
                                     UpdatePlayerStatus(iAmPlayerX); // true nếu tôi là X
                                     StartTurnTimer();
@@ -353,7 +353,7 @@ namespace CaroLAN
             }
             bool isWinner = chessBoard.CheckWin(e.X, e.Y);
             string messageToSend = isWinner ? $"GAME_WIN:{e.X},{e.Y}" : $"GAME_MOVE:{e.X},{e.Y}";
-            
+
             try
             {
                 socket.Send(messageToSend);
@@ -407,7 +407,7 @@ namespace CaroLAN
             try
             {
                 StopTurnTimer();
-                
+
                 if (socket != null && socket.IsConnected)
                 {
                     try
@@ -432,7 +432,7 @@ namespace CaroLAN
                 turnTimer?.Dispose();
             }
             catch { }
-            
+
             base.OnFormClosing(e);
         }
 
@@ -474,6 +474,21 @@ namespace CaroLAN
                 btnSendChat_Click(this, EventArgs.Empty);
                 e.SuppressKeyPress = true;
             }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pnlBoardContainer_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void pnlHeader_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
