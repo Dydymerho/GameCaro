@@ -159,11 +159,6 @@ namespace WinFormServer
                         HandleLeaveRoom(clientSocket, logAction);
                         handled = true;
                     }
-                    else if (message == "GET_ALL_HISTORY") // ✅ LẤY TẤT CẢ LỊCH SỬ
-                    {
-                        HandleGetAllHistory(clientSocket, logAction);
-                        handled = true;
-                    }
                     else if (message == "GET_MY_HISTORY") // ✅ LẤY LỊCH SỬ CỦA USER
                     {
                         HandleGetMyHistory(clientSocket, logAction);
@@ -966,32 +961,6 @@ namespace WinFormServer
                 return user.Username;
             }
             return clientSocket.RemoteEndPoint?.ToString() ?? "Unknown";
-        }
-
-        // ✅ Xử lý lấy tất cả lịch sử đấu
-        private void HandleGetAllHistory(Socket clientSocket, Action<string> logAction)
-        {
-            try
-            {
-                var history = userManager.GetAllMatchHistory(100);
-                string response = "HISTORY_ALL:";
-                
-                foreach (var match in history)
-                {
-                    string matchStr = $"{match.Id}|{match.RoomId}|{match.Player1Username}|{match.Player2Username}|" +
-                                    $"{match.WinnerUsername}|{match.StartedAt:yyyy-MM-dd HH:mm:ss}|" +
-                                    $"{(match.EndedAt.HasValue ? match.EndedAt.Value.ToString("yyyy-MM-dd HH:mm:ss") : "")}";
-                    response += matchStr + ";";
-                }
-                
-                SendToClient(clientSocket, response);
-                logAction?.Invoke($"📜 Gửi tất cả lịch sử đấu cho {GetUsername(clientSocket)}");
-            }
-            catch (Exception ex)
-            {
-                logAction?.Invoke($"Lỗi HandleGetAllHistory: {ex.Message}");
-                SendToClient(clientSocket, "HISTORY_ALL_ERROR:Lỗi khi lấy lịch sử");
-            }
         }
 
         // ✅ Xử lý lấy lịch sử của user
