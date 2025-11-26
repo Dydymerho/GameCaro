@@ -144,6 +144,30 @@ namespace WinFormServer
                         HandleGameMove(clientSocket, message, logAction);
                         handled = true;
                     }
+                    else if (message.StartsWith("CHAT:"))
+                    {
+                        try
+                        {
+                            var room = roomManager.GetPlayerRoom(clientSocket);
+                            if (room != null && room.IsGameStarted)
+                            {
+                                string username = GetUsername(clientSocket);
+                                string body = message.Substring("CHAT:".Length);
+                                string outMsg = $"CHAT_FROM:{username}:{body}";
+                                roomManager.BroadcastToRoom(room.RoomId, outMsg, clientSocket);
+                                handled = true;
+                            }
+                            else
+                            {
+                                SendToClient(clientSocket, "CHAT_FAILED:Bạn chưa trong phòng");
+                                handled = true;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logAction?.Invoke($"Lỗi xử lý CHAT: {ex.Message}");
+                        }
+                    }
                     else if (message.StartsWith("GAME_WIN:")) // ✅ XỬ LÝ KHI CÓ NGƯỜI THẮNG
                     {
                         HandleGameWin(clientSocket, message, logAction);
