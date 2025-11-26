@@ -50,25 +50,27 @@
             lblTitle = new Label();
             panelConnection = new Panel();
             lblConnectionTitle = new Label();
+            panelStatusBar = new Panel();
             panelMain = new Panel();
-            panelQuickMatch = new Panel();
-            lblQuickMatchTitle = new Label();
+            panelHistory = new Panel();
+            lblHistoryTitle = new Label();
             panelPlayersAndInvites = new Panel();
             panelInvitations = new Panel();
             panelPlayers = new Panel();
-            panelHistory = new Panel();
-            lblHistoryTitle = new Label();
+            panelQuickMatch = new Panel();
+            lblQuickMatchTitle = new Label();
             tabHistory.SuspendLayout();
             tabAllHistory.SuspendLayout();
             tabMyHistory.SuspendLayout();
             panelHeader.SuspendLayout();
             panelConnection.SuspendLayout();
+            panelStatusBar.SuspendLayout();
             panelMain.SuspendLayout();
-            panelQuickMatch.SuspendLayout();
+            panelHistory.SuspendLayout();
             panelPlayersAndInvites.SuspendLayout();
             panelInvitations.SuspendLayout();
             panelPlayers.SuspendLayout();
-            panelHistory.SuspendLayout();
+            panelQuickMatch.SuspendLayout();
             SuspendLayout();
             // 
             // label1
@@ -105,7 +107,7 @@
             btnConnect.ForeColor = Color.White;
             btnConnect.Location = new Point(130, 27);
             btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(80, 27);
+            btnConnect.Size = new Size(120, 27);
             btnConnect.TabIndex = 2;
             btnConnect.Text = "Kết nối";
             btnConnect.UseVisualStyleBackColor = false;
@@ -126,13 +128,16 @@
             // 
             // lblStatus
             // 
-            lblStatus.Font = new Font("Segoe UI", 7F, FontStyle.Italic);
-            lblStatus.ForeColor = Color.White;
-            lblStatus.Location = new Point(215, 27);
+            lblStatus.AutoSize = true;
+            lblStatus.Dock = DockStyle.Left;
+            lblStatus.Font = new Font("Segoe UI", 10F);
+            lblStatus.ForeColor = Color.FromArgb(52, 73, 94);
+            lblStatus.Location = new Point(20, 8);
             lblStatus.Name = "lblStatus";
-            lblStatus.Size = new Size(80, 40);
-            lblStatus.TabIndex = 3;
-            lblStatus.Text = "Chưa kết nối";
+            lblStatus.Padding = new Padding(5, 0, 0, 0);
+            lblStatus.Size = new Size(226, 23);
+            lblStatus.TabIndex = 0;
+            lblStatus.Text = "⚪ Trạng thái: Chưa kết nối";
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // button3
@@ -225,7 +230,7 @@
             tabHistory.Location = new Point(20, 50);
             tabHistory.Name = "tabHistory";
             tabHistory.SelectedIndex = 0;
-            tabHistory.Size = new Size(1100, 105);
+            tabHistory.Size = new Size(1100, 70);
             tabHistory.TabIndex = 1;
             // 
             // tabAllHistory
@@ -236,7 +241,7 @@
             tabAllHistory.Location = new Point(4, 29);
             tabAllHistory.Name = "tabAllHistory";
             tabAllHistory.Padding = new Padding(3);
-            tabAllHistory.Size = new Size(1092, 72);
+            tabAllHistory.Size = new Size(1092, 37);
             tabAllHistory.TabIndex = 0;
             tabAllHistory.Text = "🌍 Tất cả";
             // 
@@ -249,7 +254,7 @@
             lstAllHistory.FormattingEnabled = true;
             lstAllHistory.Location = new Point(6, 6);
             lstAllHistory.Name = "lstAllHistory";
-            lstAllHistory.Size = new Size(980, 62);
+            lstAllHistory.Size = new Size(1000, 22);
             lstAllHistory.TabIndex = 0;
             // 
             // btnRefreshAll
@@ -257,13 +262,13 @@
             btnRefreshAll.BackColor = Color.FromArgb(52, 152, 219);
             btnRefreshAll.FlatAppearance.BorderSize = 0;
             btnRefreshAll.FlatStyle = FlatStyle.Flat;
-            btnRefreshAll.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnRefreshAll.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
             btnRefreshAll.ForeColor = Color.White;
-            btnRefreshAll.Location = new Point(992, 6);
+            btnRefreshAll.Location = new Point(1012, 6);
             btnRefreshAll.Name = "btnRefreshAll";
-            btnRefreshAll.Size = new Size(94, 62);
+            btnRefreshAll.Size = new Size(74, 25);
             btnRefreshAll.TabIndex = 1;
-            btnRefreshAll.Text = "🔄 Làm mới";
+            btnRefreshAll.Text = "🔄 Mới";
             btnRefreshAll.UseVisualStyleBackColor = false;
             btnRefreshAll.Click += btnRefreshAll_Click;
             // 
@@ -275,7 +280,7 @@
             tabMyHistory.Location = new Point(4, 29);
             tabMyHistory.Name = "tabMyHistory";
             tabMyHistory.Padding = new Padding(3);
-            tabMyHistory.Size = new Size(1092, 72);
+            tabMyHistory.Size = new Size(1092, 37);
             tabMyHistory.TabIndex = 1;
             tabMyHistory.Text = "⭐ Của tôi";
             // 
@@ -288,7 +293,7 @@
             lstMyHistory.FormattingEnabled = true;
             lstMyHistory.Location = new Point(6, 6);
             lstMyHistory.Name = "lstMyHistory";
-            lstMyHistory.Size = new Size(980, 62);
+            lstMyHistory.Size = new Size(1000, 22);
             lstMyHistory.TabIndex = 0;
             // 
             // btnRefreshMy
@@ -296,13 +301,13 @@
             btnRefreshMy.BackColor = Color.FromArgb(46, 204, 113);
             btnRefreshMy.FlatAppearance.BorderSize = 0;
             btnRefreshMy.FlatStyle = FlatStyle.Flat;
-            btnRefreshMy.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnRefreshMy.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
             btnRefreshMy.ForeColor = Color.White;
-            btnRefreshMy.Location = new Point(992, 6);
+            btnRefreshMy.Location = new Point(1012, 6);
             btnRefreshMy.Name = "btnRefreshMy";
-            btnRefreshMy.Size = new Size(94, 62);
+            btnRefreshMy.Size = new Size(74, 25);
             btnRefreshMy.TabIndex = 1;
-            btnRefreshMy.Text = "🔄 Làm mới";
+            btnRefreshMy.Text = "🔄 Mới";
             btnRefreshMy.UseVisualStyleBackColor = false;
             btnRefreshMy.Click += btnRefreshMy_Click;
             // 
@@ -337,12 +342,11 @@
             panelConnection.Controls.Add(lblConnectionTitle);
             panelConnection.Controls.Add(txtIP);
             panelConnection.Controls.Add(btnConnect);
-            panelConnection.Controls.Add(lblStatus);
             panelConnection.Dock = DockStyle.Right;
-            panelConnection.Location = new Point(880, 15);
+            panelConnection.Location = new Point(920, 15);
             panelConnection.Name = "panelConnection";
             panelConnection.Padding = new Padding(10, 5, 10, 5);
-            panelConnection.Size = new Size(300, 70);
+            panelConnection.Size = new Size(260, 70);
             panelConnection.TabIndex = 1;
             // 
             // lblConnectionTitle
@@ -356,42 +360,52 @@
             lblConnectionTitle.TabIndex = 0;
             lblConnectionTitle.Text = "🔌 KẾT NỐI";
             // 
+            // panelStatusBar
+            // 
+            panelStatusBar.BackColor = Color.FromArgb(236, 240, 241);
+            panelStatusBar.Controls.Add(lblStatus);
+            panelStatusBar.Dock = DockStyle.Top;
+            panelStatusBar.Location = new Point(0, 100);
+            panelStatusBar.Name = "panelStatusBar";
+            panelStatusBar.Padding = new Padding(20, 8, 20, 8);
+            panelStatusBar.Size = new Size(1200, 40);
+            panelStatusBar.TabIndex = 1;
+            // 
             // panelMain
             // 
             panelMain.BackColor = Color.FromArgb(245, 247, 250);
-            panelMain.Controls.Add(panelQuickMatch);
-            panelMain.Controls.Add(panelPlayersAndInvites);
             panelMain.Controls.Add(panelHistory);
+            panelMain.Controls.Add(panelPlayersAndInvites);
+            panelMain.Controls.Add(panelQuickMatch);
             panelMain.Dock = DockStyle.Fill;
-            panelMain.Location = new Point(0, 100);
+            panelMain.Location = new Point(0, 140);
             panelMain.Name = "panelMain";
             panelMain.Padding = new Padding(30, 20, 30, 20);
-            panelMain.Size = new Size(1200, 620);
-            panelMain.TabIndex = 1;
+            panelMain.Size = new Size(1200, 580);
+            panelMain.TabIndex = 2;
             // 
-            // panelQuickMatch
+            // panelHistory
             // 
-            panelQuickMatch.BackColor = Color.White;
-            panelQuickMatch.Controls.Add(lblQuickMatchTitle);
-            panelQuickMatch.Controls.Add(button3);
-            panelQuickMatch.Controls.Add(label2);
-            panelQuickMatch.Dock = DockStyle.Top;
-            panelQuickMatch.Location = new Point(30, 450);
-            panelQuickMatch.Name = "panelQuickMatch";
-            panelQuickMatch.Padding = new Padding(25, 20, 25, 20);
-            panelQuickMatch.Size = new Size(1140, 150);
-            panelQuickMatch.TabIndex = 0;
+            panelHistory.BackColor = Color.White;
+            panelHistory.Controls.Add(lblHistoryTitle);
+            panelHistory.Controls.Add(tabHistory);
+            panelHistory.Dock = DockStyle.Top;
+            panelHistory.Location = new Point(30, 430);
+            panelHistory.Name = "panelHistory";
+            panelHistory.Padding = new Padding(20, 15, 20, 15);
+            panelHistory.Size = new Size(1140, 130);
+            panelHistory.TabIndex = 2;
             // 
-            // lblQuickMatchTitle
+            // lblHistoryTitle
             // 
-            lblQuickMatchTitle.AutoSize = true;
-            lblQuickMatchTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
-            lblQuickMatchTitle.ForeColor = Color.FromArgb(52, 73, 94);
-            lblQuickMatchTitle.Location = new Point(25, 20);
-            lblQuickMatchTitle.Name = "lblQuickMatchTitle";
-            lblQuickMatchTitle.Size = new Size(240, 37);
-            lblQuickMatchTitle.TabIndex = 0;
-            lblQuickMatchTitle.Text = "⚡ CHƠI NHANH";
+            lblHistoryTitle.AutoSize = true;
+            lblHistoryTitle.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            lblHistoryTitle.ForeColor = Color.FromArgb(52, 73, 94);
+            lblHistoryTitle.Location = new Point(20, 15);
+            lblHistoryTitle.Name = "lblHistoryTitle";
+            lblHistoryTitle.Size = new Size(154, 28);
+            lblHistoryTitle.TabIndex = 0;
+            lblHistoryTitle.Text = "📊 Lịch sử đấu";
             // 
             // panelPlayersAndInvites
             // 
@@ -399,7 +413,7 @@
             panelPlayersAndInvites.Controls.Add(panelInvitations);
             panelPlayersAndInvites.Controls.Add(panelPlayers);
             panelPlayersAndInvites.Dock = DockStyle.Top;
-            panelPlayersAndInvites.Location = new Point(30, 190);
+            panelPlayersAndInvites.Location = new Point(30, 170);
             panelPlayersAndInvites.Name = "panelPlayersAndInvites";
             panelPlayersAndInvites.Padding = new Padding(0, 15, 0, 0);
             panelPlayersAndInvites.Size = new Size(1140, 260);
@@ -431,28 +445,29 @@
             panelPlayers.Size = new Size(560, 245);
             panelPlayers.TabIndex = 0;
             // 
-            // panelHistory
+            // panelQuickMatch
             // 
-            panelHistory.BackColor = Color.White;
-            panelHistory.Controls.Add(lblHistoryTitle);
-            panelHistory.Controls.Add(tabHistory);
-            panelHistory.Dock = DockStyle.Top;
-            panelHistory.Location = new Point(30, 20);
-            panelHistory.Name = "panelHistory";
-            panelHistory.Padding = new Padding(20, 15, 20, 15);
-            panelHistory.Size = new Size(1140, 170);
-            panelHistory.TabIndex = 2;
+            panelQuickMatch.BackColor = Color.White;
+            panelQuickMatch.Controls.Add(lblQuickMatchTitle);
+            panelQuickMatch.Controls.Add(button3);
+            panelQuickMatch.Controls.Add(label2);
+            panelQuickMatch.Dock = DockStyle.Top;
+            panelQuickMatch.Location = new Point(30, 20);
+            panelQuickMatch.Name = "panelQuickMatch";
+            panelQuickMatch.Padding = new Padding(25, 20, 25, 20);
+            panelQuickMatch.Size = new Size(1140, 150);
+            panelQuickMatch.TabIndex = 0;
             // 
-            // lblHistoryTitle
+            // lblQuickMatchTitle
             // 
-            lblHistoryTitle.AutoSize = true;
-            lblHistoryTitle.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            lblHistoryTitle.ForeColor = Color.FromArgb(52, 73, 94);
-            lblHistoryTitle.Location = new Point(20, 15);
-            lblHistoryTitle.Name = "lblHistoryTitle";
-            lblHistoryTitle.Size = new Size(154, 28);
-            lblHistoryTitle.TabIndex = 0;
-            lblHistoryTitle.Text = "📊 Lịch sử đấu";
+            lblQuickMatchTitle.AutoSize = true;
+            lblQuickMatchTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+            lblQuickMatchTitle.ForeColor = Color.FromArgb(52, 73, 94);
+            lblQuickMatchTitle.Location = new Point(25, 20);
+            lblQuickMatchTitle.Name = "lblQuickMatchTitle";
+            lblQuickMatchTitle.Size = new Size(240, 37);
+            lblQuickMatchTitle.TabIndex = 0;
+            lblQuickMatchTitle.Text = "⚡ CHƠI NHANH";
             // 
             // sanhCho
             // 
@@ -461,6 +476,7 @@
             BackColor = Color.FromArgb(245, 247, 250);
             ClientSize = new Size(1200, 720);
             Controls.Add(panelMain);
+            Controls.Add(panelStatusBar);
             Controls.Add(panelHeader);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
@@ -475,16 +491,18 @@
             panelHeader.PerformLayout();
             panelConnection.ResumeLayout(false);
             panelConnection.PerformLayout();
+            panelStatusBar.ResumeLayout(false);
+            panelStatusBar.PerformLayout();
             panelMain.ResumeLayout(false);
-            panelQuickMatch.ResumeLayout(false);
-            panelQuickMatch.PerformLayout();
+            panelHistory.ResumeLayout(false);
+            panelHistory.PerformLayout();
             panelPlayersAndInvites.ResumeLayout(false);
             panelInvitations.ResumeLayout(false);
             panelInvitations.PerformLayout();
             panelPlayers.ResumeLayout(false);
             panelPlayers.PerformLayout();
-            panelHistory.ResumeLayout(false);
-            panelHistory.PerformLayout();
+            panelQuickMatch.ResumeLayout(false);
+            panelQuickMatch.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -494,6 +512,7 @@
         private Label lblTitle;
         private Panel panelConnection;
         private Label lblConnectionTitle;
+        private Panel panelStatusBar;
         private Panel panelMain;
         private Panel panelQuickMatch;
         private Label lblQuickMatchTitle;
