@@ -72,8 +72,8 @@
             lblPlayerOStatus = new Label();
             lblTimer = new Label();
             btnResign = new Button();
-            pnlHeader.SuspendLayout();
             pnlBoardContainer.SuspendLayout();
+            pnlChat.SuspendLayout();
             pnlSidebar.SuspendLayout();
             pnlPlayerX.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picPlayerX).BeginInit();
@@ -83,47 +83,35 @@
             // 
             // pnlHeader
             // 
-            pnlHeader.BackColor = Color.FromArgb(41, 128, 185);
-            pnlHeader.Controls.Add(lblGameTitle);
-            pnlHeader.Controls.Add(lblRoom);
-            pnlHeader.Dock = DockStyle.Top;
-            pnlHeader.Location = new Point(0, 0);
+            pnlHeader.Location = new Point(11, 11);
             pnlHeader.Name = "pnlHeader";
-            pnlHeader.Size = new Size(900, 80);
-            pnlHeader.TabIndex = 0;
+            pnlHeader.Size = new Size(176, 54);
+            pnlHeader.TabIndex = 4;
+            pnlHeader.Paint += pnlHeader_Paint;
             // 
             // lblGameTitle
             // 
-            lblGameTitle.AutoSize = true;
-            lblGameTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
-            lblGameTitle.ForeColor = Color.White;
-            lblGameTitle.Location = new Point(20, 15);
+            lblGameTitle.Location = new Point(0, 0);
             lblGameTitle.Name = "lblGameTitle";
-            lblGameTitle.Size = new Size(278, 46);
+            lblGameTitle.Size = new Size(100, 23);
             lblGameTitle.TabIndex = 0;
-            lblGameTitle.Text = "🎮 GAME CARO";
             // 
             // lblRoom
             // 
-            lblRoom.AutoSize = true;
-            lblRoom.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            lblRoom.ForeColor = Color.White;
-            lblRoom.Location = new Point(700, 28);
+            lblRoom.Location = new Point(0, 0);
             lblRoom.Name = "lblRoom";
-            lblRoom.Size = new Size(107, 28);
-            lblRoom.TabIndex = 1;
-            lblRoom.Text = "Phòng: ---";
+            lblRoom.Size = new Size(100, 23);
+            lblRoom.TabIndex = 0;
             // 
             // pnlBoardContainer
             // 
-            pnlBoardContainer.BackColor = Color.White;
-            pnlBoardContainer.Controls.Add(pnlChat);
             pnlBoardContainer.Controls.Add(pnlChessBoard);
-            pnlBoardContainer.Location = new Point(30, 110);
+            pnlBoardContainer.Location = new Point(287, 12);
             pnlBoardContainer.Name = "pnlBoardContainer";
             pnlBoardContainer.Padding = new Padding(15);
-            pnlBoardContainer.Size = new Size(530, 530);
+            pnlBoardContainer.Size = new Size(494, 490);
             pnlBoardContainer.TabIndex = 1;
+            pnlBoardContainer.Paint += pnlBoardContainer_Paint;
             // 
             // pnlChessBoard
             // 
@@ -132,50 +120,50 @@
             pnlChessBoard.Dock = DockStyle.Fill;
             pnlChessBoard.Location = new Point(15, 15);
             pnlChessBoard.Name = "pnlChessBoard";
-            pnlChessBoard.Size = new Size(500, 500);
+            pnlChessBoard.Size = new Size(464, 460);
             pnlChessBoard.TabIndex = 0;
             // 
             // pnlChat
             // 
             pnlChat.BackColor = Color.FromArgb(245, 245, 245);
             pnlChat.BorderStyle = BorderStyle.FixedSingle;
-            pnlChat.Dock = DockStyle.Right;
-            pnlChat.Location = new Point(515, 15);
+            pnlChat.Controls.Add(pnlHeader);
+            pnlChat.Controls.Add(rtbChat);
+            pnlChat.Controls.Add(txtChatInput);
+            pnlChat.Controls.Add(btnSendChat);
+            pnlChat.Location = new Point(787, 12);
             pnlChat.Name = "pnlChat";
-            pnlChat.Size = new Size(200, 500);
-            pnlChat.TabIndex = 1;
             pnlChat.Padding = new Padding(8);
+            pnlChat.Size = new Size(200, 490);
+            pnlChat.TabIndex = 3;
             // 
             // rtbChat
             // 
-            rtbChat.Dock = DockStyle.Top;
-            rtbChat.Height = 380;
-            rtbChat.ReadOnly = true;
             rtbChat.BackColor = Color.White;
             rtbChat.BorderStyle = BorderStyle.FixedSingle;
+            rtbChat.Location = new Point(11, 85);
             rtbChat.Name = "rtbChat";
+            rtbChat.ReadOnly = true;
+            rtbChat.Size = new Size(176, 354);
             rtbChat.TabIndex = 0;
+            rtbChat.Text = "";
             // 
             // txtChatInput
             // 
-            txtChatInput.Location = new Point(12, 400);
+            txtChatInput.Location = new Point(17, 448);
             txtChatInput.Name = "txtChatInput";
-            txtChatInput.Size = new Size(140, 24);
+            txtChatInput.Size = new Size(124, 27);
             txtChatInput.TabIndex = 1;
             // 
             // btnSendChat
             // 
-            btnSendChat.Location = new Point(158, 398);
+            btnSendChat.Location = new Point(147, 446);
             btnSendChat.Name = "btnSendChat";
-            btnSendChat.Size = new Size(28, 28);
+            btnSendChat.Size = new Size(40, 28);
             btnSendChat.TabIndex = 2;
             btnSendChat.Text = "→";
             btnSendChat.UseVisualStyleBackColor = true;
             btnSendChat.Click += btnSendChat_Click;
-            
-            pnlChat.Controls.Add(rtbChat);
-            pnlChat.Controls.Add(txtChatInput);
-            pnlChat.Controls.Add(btnSendChat);
             // 
             // pnlSidebar
             // 
@@ -185,16 +173,16 @@
             pnlSidebar.Controls.Add(pnlPlayerO);
             pnlSidebar.Controls.Add(lblTimer);
             pnlSidebar.Controls.Add(btnResign);
-            pnlSidebar.Location = new Point(580, 110);
+            pnlSidebar.Location = new Point(12, 12);
             pnlSidebar.Name = "pnlSidebar";
-            pnlSidebar.Size = new Size(290, 530);
+            pnlSidebar.Size = new Size(269, 490);
             pnlSidebar.TabIndex = 2;
             // 
             // lblStatus
             // 
             lblStatus.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             lblStatus.ForeColor = Color.FromArgb(70, 130, 180);
-            lblStatus.Location = new Point(20, 20);
+            lblStatus.Location = new Point(9, 19);
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new Size(250, 30);
             lblStatus.TabIndex = 0;
@@ -208,7 +196,7 @@
             pnlPlayerX.Controls.Add(picPlayerX);
             pnlPlayerX.Controls.Add(lblPlayerX);
             pnlPlayerX.Controls.Add(lblPlayerXStatus);
-            pnlPlayerX.Location = new Point(20, 60);
+            pnlPlayerX.Location = new Point(9, 59);
             pnlPlayerX.Name = "pnlPlayerX";
             pnlPlayerX.Size = new Size(250, 100);
             pnlPlayerX.TabIndex = 1;
@@ -250,7 +238,7 @@
             pnlPlayerO.Controls.Add(picPlayerO);
             pnlPlayerO.Controls.Add(lblPlayerO);
             pnlPlayerO.Controls.Add(lblPlayerOStatus);
-            pnlPlayerO.Location = new Point(20, 180);
+            pnlPlayerO.Location = new Point(9, 181);
             pnlPlayerO.Name = "pnlPlayerO";
             pnlPlayerO.Size = new Size(250, 100);
             pnlPlayerO.TabIndex = 2;
@@ -291,9 +279,9 @@
             lblTimer.BorderStyle = BorderStyle.FixedSingle;
             lblTimer.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
             lblTimer.ForeColor = Color.FromArgb(70, 130, 180);
-            lblTimer.Location = new Point(20, 300);
+            lblTimer.Location = new Point(58, 296);
             lblTimer.Name = "lblTimer";
-            lblTimer.Size = new Size(250, 80);
+            lblTimer.Size = new Size(160, 80);
             lblTimer.TabIndex = 3;
             lblTimer.Text = "⏰ --";
             lblTimer.TextAlign = ContentAlignment.MiddleCenter;
@@ -308,9 +296,9 @@
             btnResign.FlatStyle = FlatStyle.Flat;
             btnResign.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             btnResign.ForeColor = Color.White;
-            btnResign.Location = new Point(20, 420);
+            btnResign.Location = new Point(32, 405);
             btnResign.Name = "btnResign";
-            btnResign.Size = new Size(250, 60);
+            btnResign.Size = new Size(209, 60);
             btnResign.TabIndex = 4;
             btnResign.Text = "🏳️ ĐẦU HÀNG";
             btnResign.UseVisualStyleBackColor = false;
@@ -321,18 +309,19 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.WhiteSmoke;
-            ClientSize = new Size(900, 670);
+            ClientSize = new Size(991, 517);
             Controls.Add(pnlSidebar);
             Controls.Add(pnlBoardContainer);
-            Controls.Add(pnlHeader);
+            Controls.Add(pnlChat);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "🎮 Caro Battle - Gaming Arena";
-            pnlHeader.ResumeLayout(false);
-            pnlHeader.PerformLayout();
+            Load += Form1_Load;
             pnlBoardContainer.ResumeLayout(false);
+            pnlChat.ResumeLayout(false);
+            pnlChat.PerformLayout();
             pnlSidebar.ResumeLayout(false);
             pnlPlayerX.ResumeLayout(false);
             pnlPlayerX.PerformLayout();
