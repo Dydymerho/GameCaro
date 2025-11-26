@@ -32,9 +32,6 @@ namespace CaroLAN
         // ✅ Lưu địa chỉ endpoint của chính client này
         private string myEndPoint;
 
-        // ✅ Timer để tự động cập nhật lịch sử
-        private System.Windows.Forms.Timer historyRefreshTimer;
-
         public sanhCho() : this(string.Empty, string.Empty, null)
         {
         }
@@ -52,12 +49,6 @@ namespace CaroLAN
             receivedInvitations = new Dictionary<string, string>();
             invitationTimestamps = new Dictionary<string, DateTime>();
             cancellationTokenSource = new CancellationTokenSource();
-
-            // ✅ Khởi tạo timer tự động cập nhật lịch sử (mỗi 5 giây)
-            historyRefreshTimer = new System.Windows.Forms.Timer();
-            historyRefreshTimer.Interval = 5000; // 5 giây
-            historyRefreshTimer.Tick += HistoryRefreshTimer_Tick;
-            historyRefreshTimer.Start();
 
             FormClosing += sanhCho_FormClosing;
 
@@ -382,16 +373,6 @@ namespace CaroLAN
                             }));
                         }
 
-                        // ✅ Xử lý lịch sử đấu (tất cả)
-                        if (data.StartsWith("HISTORY_ALL:"))
-                        {
-                            string historyData = data.Substring("HISTORY_ALL:".Length);
-                            Invoke(new Action(() =>
-                            {
-                                UpdateAllHistory(historyData);
-                            }));
-                        }
-
                         // ✅ Xử lý lịch sử đấu (của tôi)
                         if (data.StartsWith("HISTORY_MY:"))
                         {
@@ -399,19 +380,6 @@ namespace CaroLAN
                             Invoke(new Action(() =>
                             {
                                 UpdateMyHistory(historyData);
-                            }));
-                        }
-
-                        // ✅ Xử lý thông báo có match mới được ghi nhận
-                        if (data == "NEW_MATCH_RECORDED")
-                        {
-                            Invoke(new Action(() =>
-                            {
-                                // Tự động tải lại lịch sử khi có match mới
-                                if (!isInRoom) // Chỉ tải nếu không đang trong phòng
-                                {
-                                    LoadHistory();
-                                }
                             }));
                         }
 
@@ -763,10 +731,6 @@ namespace CaroLAN
                 // Hủy thread an toàn
                 cancellationTokenSource?.Cancel();
 
-                // ✅ Dừng timer cập nhật lịch sử
-                historyRefreshTimer?.Stop();
-                historyRefreshTimer?.Dispose();
-
                 if (listenThread != null && listenThread.IsAlive)
                 {
                     listenThread.Join(1000); // Đợi tối đa 1 giây
@@ -844,15 +808,6 @@ namespace CaroLAN
 
                     // Bắt đầu lắng nghe
                     lobbyListening();
-
-                    // ✅ Tự động tải lịch sử khi kết nối
-                    LoadHistory();
-
-                    // ✅ Khởi động lại timer cập nhật lịch sử
-                    if (historyRefreshTimer != null)
-                    {
-                        historyRefreshTimer.Start();
-                    }
                 }
                 else
                 {
@@ -926,9 +881,6 @@ namespace CaroLAN
 
                 // Ngắt kết nối socket hoàn toàn
                 socket.Disconnect();
-
-                // ✅ Dừng timer cập nhật lịch sử
-                historyRefreshTimer?.Stop();
 
                 // Cập nhật giao diện
                 lblStatus.Text = "Đã ngắt kết nối khỏi server";
@@ -1048,41 +1000,6 @@ namespace CaroLAN
             // Có thể thêm xử lý khi chọn lời mời nếu cần
         }
 
-        // ✅ Cập nhật lịch sử đấu (tất cả)
-        private void UpdateAllHistory(string historyData)
-        {
-            lstAllHistory.Items.Clear();
-            
-            if (string.IsNullOrEmpty(historyData))
-            {
-                lstAllHistory.Items.Add("Chưa có lịch sử đấu nào.");
-                return;
-            }
-
-            string[] matches = historyData.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            foreach (string match in matches)
-            {
-                string[] parts = match.Split('|');
-                if (parts.Length >= 7)
-                {
-                    string roomId = parts[1];
-                    string player1 = parts[2];
-                    string player2 = parts[3];
-                    string winner = parts[4];
-                    string startedAt = parts[5];
-                    string endedAt = parts[6];
-
-                    string displayText = $"[{roomId}] {player1} vs {player2} | Thắng: {winner} | {endedAt}";
-                    lstAllHistory.Items.Add(displayText);
-                }
-            }
-
-            if (lstAllHistory.Items.Count == 0)
-            {
-                lstAllHistory.Items.Add("Chưa có lịch sử đấu nào.");
-            }
-        }
-
         // ✅ Cập nhật lịch sử đấu (của tôi)
         private void UpdateMyHistory(string historyData)
         {
@@ -1130,26 +1047,6 @@ namespace CaroLAN
             }
         }
 
-        // ✅ Làm mới lịch sử tất cả
-        private void btnRefreshAll_Click(object sender, EventArgs e)
-        {
-            if (!socket.IsConnected)
-            {
-                MessageBox.Show("Bạn chưa kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            try
-            {
-                socket.Send("GET_ALL_HISTORY");
-                lblStatus.Text = "Đang tải lịch sử đấu...";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi yêu cầu lịch sử: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
         // ✅ Làm mới lịch sử của tôi
         private void btnRefreshMy_Click(object sender, EventArgs e)
         {
@@ -1183,10 +1080,7 @@ namespace CaroLAN
 
             try
             {
-                // Tải tất cả lịch sử
-                socket.Send("GET_ALL_HISTORY");
-                
-                // Tải lịch sử của user nếu đã đăng nhập
+                // Chỉ tải lịch sử của user nếu đã đăng nhập
                 if (!string.IsNullOrEmpty(username))
                 {
                     socket.Send("GET_MY_HISTORY");
@@ -1196,15 +1090,6 @@ namespace CaroLAN
             {
                 // Bỏ qua lỗi, không hiển thị message box vì đây là background operation
                 System.Diagnostics.Debug.WriteLine($"Lỗi khi tải lịch sử: {ex.Message}");
-            }
-        }
-
-        // ✅ Timer tự động cập nhật lịch sử
-        private void HistoryRefreshTimer_Tick(object sender, EventArgs e)
-        {
-            if (socket.IsConnected && !isInRoom)
-            {
-                LoadHistory();
             }
         }
     }

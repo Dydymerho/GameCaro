@@ -516,8 +516,9 @@ namespace WinFormServer
                         userManager.SaveMatchHistory(room.RoomId, player1Id, player2Id, winner.Id);
                         logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {room.RoomId}");
                         
-                        // ✅ Broadcast thông báo có match mới cho tất cả client
-                        Broadcast("NEW_MATCH_RECORDED", clients, logAction);
+                        // ✅ Gửi lịch sử cập nhật cho winner và loser
+                        SendHistoryToUser(winnerSocket, logAction);
+                        SendHistoryToUser(loserSocket, logAction);
                     }
                 }
 
@@ -570,8 +571,9 @@ namespace WinFormServer
                         userManager.SaveMatchHistory(room.RoomId, player1Id, player2Id, opponent.Id);
                         logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {room.RoomId}");
                         
-                        // ✅ Broadcast thông báo có match mới cho tất cả client
-                        Broadcast("NEW_MATCH_RECORDED", clients, logAction);
+                        // ✅ Gửi lịch sử cập nhật cho resigner và opponent
+                        SendHistoryToUser(resignerSocket, logAction);
+                        SendHistoryToUser(opponentSocket, logAction);
                     }
                 }
             }
@@ -619,8 +621,9 @@ namespace WinFormServer
                                 userManager.SaveMatchHistory(roomId, player1Id, player2Id, opponent.Id);
                                 logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {roomId} (người rời thua)");
                                 
-                                // ✅ Broadcast thông báo có match mới cho tất cả client
-                                Broadcast("NEW_MATCH_RECORDED", clients, logAction);
+                                // ✅ Gửi lịch sử cập nhật cho leaver và opponent
+                                SendHistoryToUser(clientSocket, logAction);
+                                SendHistoryToUser(opponentSocket, logAction);
                             }
                         }
                     }
@@ -930,6 +933,9 @@ namespace WinFormServer
                     
                     logAction?.Invoke($"✅ User đăng nhập: {user.Username} (ID: {user.Id})");
                     
+                    // ✅ Tự động gửi lịch sử đấu ngay sau khi đăng nhập
+                    SendHistoryToUser(clientSocket, logAction);
+                    
                     // Cập nhật danh sách client
                     SendClientListToAll(logAction);
                     globalUpdateClientListAction?.Invoke();
@@ -1018,6 +1024,35 @@ namespace WinFormServer
             {
                 logAction?.Invoke($"Lỗi HandleGetMyHistory: {ex.Message}");
                 SendToClient(clientSocket, "HISTORY_MY_ERROR:Lỗi khi lấy lịch sử");
+            }
+        }
+
+        // ✅ Tự động gửi lịch sử cập nhật cho một user cụ thể
+        private void SendHistoryToUser(Socket clientSocket, Action<string> logAction)
+        {
+            try
+            {
+                if (clientSocket == null || !clientSocket.Connected) return;
+
+                User? user = GetAuthenticatedUser(clientSocket);
+                if (user == null) return;
+
+                var history = userManager.GetUserMatchHistory(user.Id, 100);
+                string response = "HISTORY_MY:";
+                
+                foreach (var match in history)
+                {
+                    string matchStr = $"{match.Id}|{match.RoomId}|{match.Player1Username}|{match.Player2Username}|" +
+                                    $"{match.WinnerUsername}|{match.StartedAt:yyyy-MM-dd HH:mm:ss}|" +
+                                    $"{(match.EndedAt.HasValue ? match.EndedAt.Value.ToString("yyyy-MM-dd HH:mm:ss") : "")}";
+                    response += matchStr + ";";
+                }
+                
+                SendToClient(clientSocket, response);
+            }
+            catch (Exception ex)
+            {
+                logAction?.Invoke($"Lỗi SendHistoryToUser: {ex.Message}");
             }
         }
     }

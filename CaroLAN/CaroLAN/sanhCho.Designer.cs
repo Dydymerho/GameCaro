@@ -40,9 +40,6 @@
             btnAccept = new Button();
             label3 = new Label();
             tabHistory = new TabControl();
-            tabAllHistory = new TabPage();
-            lstAllHistory = new ListBox();
-            btnRefreshAll = new Button();
             tabMyHistory = new TabPage();
             lstMyHistory = new ListBox();
             btnRefreshMy = new Button();
@@ -60,7 +57,6 @@
             panelQuickMatch = new Panel();
             lblQuickMatchTitle = new Label();
             tabHistory.SuspendLayout();
-            tabAllHistory.SuspendLayout();
             tabMyHistory.SuspendLayout();
             panelHeader.SuspendLayout();
             panelConnection.SuspendLayout();
@@ -224,7 +220,6 @@
             // 
             // tabHistory
             // 
-            tabHistory.Controls.Add(tabAllHistory);
             tabHistory.Controls.Add(tabMyHistory);
             tabHistory.Font = new Font("Segoe UI", 9F);
             tabHistory.Location = new Point(20, 50);
@@ -485,7 +480,6 @@
             Text = "Game Caro - Sảnh Chờ";
             Load += sanhCho_Load;
             tabHistory.ResumeLayout(false);
-            tabAllHistory.ResumeLayout(false);
             tabMyHistory.ResumeLayout(false);
             panelHeader.ResumeLayout(false);
             panelHeader.PerformLayout();
@@ -533,9 +527,6 @@
         private Button btnAccept;
         private Label label3;
         private TabControl tabHistory;
-        private TabPage tabAllHistory;
-        private ListBox lstAllHistory;
-        private Button btnRefreshAll;
         private TabPage tabMyHistory;
         private ListBox lstMyHistory;
         private Button btnRefreshMy;
