@@ -228,45 +228,6 @@
             tabHistory.Size = new Size(1100, 70);
             tabHistory.TabIndex = 1;
             // 
-            // tabAllHistory
-            // 
-            tabAllHistory.BackColor = Color.FromArgb(250, 251, 252);
-            tabAllHistory.Controls.Add(lstAllHistory);
-            tabAllHistory.Controls.Add(btnRefreshAll);
-            tabAllHistory.Location = new Point(4, 29);
-            tabAllHistory.Name = "tabAllHistory";
-            tabAllHistory.Padding = new Padding(3);
-            tabAllHistory.Size = new Size(1092, 37);
-            tabAllHistory.TabIndex = 0;
-            tabAllHistory.Text = "🌍 Tất cả";
-            // 
-            // lstAllHistory
-            // 
-            lstAllHistory.BackColor = Color.White;
-            lstAllHistory.BorderStyle = BorderStyle.FixedSingle;
-            lstAllHistory.Font = new Font("Segoe UI", 9F);
-            lstAllHistory.ForeColor = Color.FromArgb(44, 62, 80);
-            lstAllHistory.FormattingEnabled = true;
-            lstAllHistory.Location = new Point(6, 6);
-            lstAllHistory.Name = "lstAllHistory";
-            lstAllHistory.Size = new Size(1000, 22);
-            lstAllHistory.TabIndex = 0;
-            // 
-            // btnRefreshAll
-            // 
-            btnRefreshAll.BackColor = Color.FromArgb(52, 152, 219);
-            btnRefreshAll.FlatAppearance.BorderSize = 0;
-            btnRefreshAll.FlatStyle = FlatStyle.Flat;
-            btnRefreshAll.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            btnRefreshAll.ForeColor = Color.White;
-            btnRefreshAll.Location = new Point(1012, 6);
-            btnRefreshAll.Name = "btnRefreshAll";
-            btnRefreshAll.Size = new Size(74, 25);
-            btnRefreshAll.TabIndex = 1;
-            btnRefreshAll.Text = "🔄 Mới";
-            btnRefreshAll.UseVisualStyleBackColor = false;
-            btnRefreshAll.Click += btnRefreshAll_Click;
-            // 
             // tabMyHistory
             // 
             tabMyHistory.BackColor = Color.FromArgb(250, 251, 252);
