@@ -70,6 +70,13 @@ namespace CaroLAN
 
             InitTimer();
             StartListening();
+
+            // Chat input enter handler
+            try
+            {
+                txtChatInput.KeyDown += TxtChatInput_KeyDown;
+            }
+            catch { }
         }
 
         // Vẽ hình X trong PictureBox
@@ -289,6 +296,23 @@ namespace CaroLAN
                                 EndGame("🎉 Chúc mừng, bạn đã thắng trận đấu!");
                             }));
                         }
+
+                        // Chat messages from opponent (broadcasted by server)
+                        if (data.StartsWith("CHAT_FROM:"))
+                        {
+                            // Format: CHAT_FROM:username:message
+                            string payload = data.Substring("CHAT_FROM:".Length);
+                            int idx = payload.IndexOf(':');
+                            if (idx > 0)
+                            {
+                                string from = payload.Substring(0, idx);
+                                string body = payload.Substring(idx + 1);
+                                Invoke(new Action(() =>
+                                {
+                                    AppendChatMessage(from, body, true);
+                                }));
+                            }
+                        }
                     }
                     catch (InvalidOperationException)
                     {
@@ -410,6 +434,46 @@ namespace CaroLAN
             catch { }
             
             base.OnFormClosing(e);
+        }
+
+        // Append a chat message to the chat box
+        private void AppendChatMessage(string sender, string message, bool incoming)
+        {
+            try
+            {
+                string time = DateTime.Now.ToString("HH:mm");
+                string prefix = incoming ? sender : "Bạn";
+                rtbChat.AppendText($"[{time}] {prefix}: {message}{Environment.NewLine}");
+                rtbChat.SelectionStart = rtbChat.Text.Length;
+                rtbChat.ScrollToCaret();
+            }
+            catch { }
+        }
+
+        private void btnSendChat_Click(object sender, EventArgs e)
+        {
+            string text = txtChatInput.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(text)) return;
+
+            try
+            {
+                socket.Send("CHAT:" + text);
+                AppendChatMessage("Bạn", text, false);
+                txtChatInput.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Lỗi gửi tin nhắn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void TxtChatInput_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnSendChat_Click(this, EventArgs.Empty);
+                e.SuppressKeyPress = true;
+            }
         }
     }
 }

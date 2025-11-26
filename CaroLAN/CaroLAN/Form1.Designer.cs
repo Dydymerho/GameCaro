@@ -26,6 +26,10 @@
         private System.Windows.Forms.Label lblPlayerOStatus;
         private System.Windows.Forms.PictureBox picPlayerX;
         private System.Windows.Forms.PictureBox picPlayerO;
+        private System.Windows.Forms.Panel pnlChat;
+        private System.Windows.Forms.RichTextBox rtbChat;
+        private System.Windows.Forms.TextBox txtChatInput;
+        private System.Windows.Forms.Button btnSendChat;
 
         /// <summary>
         ///  Dọn tài nguyên.
@@ -52,6 +56,10 @@
             lblRoom = new Label();
             pnlBoardContainer = new Panel();
             pnlChessBoard = new Panel();
+            pnlChat = new Panel();
+            rtbChat = new RichTextBox();
+            txtChatInput = new TextBox();
+            btnSendChat = new Button();
             pnlSidebar = new Panel();
             lblStatus = new Label();
             pnlPlayerX = new Panel();
@@ -109,6 +117,7 @@
             // pnlBoardContainer
             // 
             pnlBoardContainer.BackColor = Color.White;
+            pnlBoardContainer.Controls.Add(pnlChat);
             pnlBoardContainer.Controls.Add(pnlChessBoard);
             pnlBoardContainer.Location = new Point(30, 110);
             pnlBoardContainer.Name = "pnlBoardContainer";
@@ -125,6 +134,48 @@
             pnlChessBoard.Name = "pnlChessBoard";
             pnlChessBoard.Size = new Size(500, 500);
             pnlChessBoard.TabIndex = 0;
+            // 
+            // pnlChat
+            // 
+            pnlChat.BackColor = Color.FromArgb(245, 245, 245);
+            pnlChat.BorderStyle = BorderStyle.FixedSingle;
+            pnlChat.Dock = DockStyle.Right;
+            pnlChat.Location = new Point(515, 15);
+            pnlChat.Name = "pnlChat";
+            pnlChat.Size = new Size(200, 500);
+            pnlChat.TabIndex = 1;
+            pnlChat.Padding = new Padding(8);
+            // 
+            // rtbChat
+            // 
+            rtbChat.Dock = DockStyle.Top;
+            rtbChat.Height = 380;
+            rtbChat.ReadOnly = true;
+            rtbChat.BackColor = Color.White;
+            rtbChat.BorderStyle = BorderStyle.FixedSingle;
+            rtbChat.Name = "rtbChat";
+            rtbChat.TabIndex = 0;
+            // 
+            // txtChatInput
+            // 
+            txtChatInput.Location = new Point(12, 400);
+            txtChatInput.Name = "txtChatInput";
+            txtChatInput.Size = new Size(140, 24);
+            txtChatInput.TabIndex = 1;
+            // 
+            // btnSendChat
+            // 
+            btnSendChat.Location = new Point(158, 398);
+            btnSendChat.Name = "btnSendChat";
+            btnSendChat.Size = new Size(28, 28);
+            btnSendChat.TabIndex = 2;
+            btnSendChat.Text = "→";
+            btnSendChat.UseVisualStyleBackColor = true;
+            btnSendChat.Click += btnSendChat_Click;
+            
+            pnlChat.Controls.Add(rtbChat);
+            pnlChat.Controls.Add(txtChatInput);
+            pnlChat.Controls.Add(btnSendChat);
             // 
             // pnlSidebar
             // 
