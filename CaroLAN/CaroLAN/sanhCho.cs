@@ -170,6 +170,7 @@ namespace CaroLAN
                                 lblStatus.Text = "Mất kết nối! Đang thử kết nối lại...";
                                 lstClients.Items.Clear();
                                 lstRequests.Items.Clear();
+                                UpdateConnectionState(false); // ✅ Disable các button
                                 
                                 // ✅ Thử reconnect tự động
                                 bool reconnected = TryReconnect();
@@ -275,6 +276,7 @@ namespace CaroLAN
                                 btnConnect.Text = "Kết nối";
                                 btnConnect.Enabled = true;
                                 txtIP.Enabled = true;
+                                UpdateConnectionState(false); // ✅ Disable các button
                                 MessageBox.Show("Server đã dừng hoạt động!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }));
                             break;
@@ -470,6 +472,7 @@ namespace CaroLAN
                                 btnConnect.Text = "Kết nối";
                                 btnConnect.Enabled = true;
                                 txtIP.Enabled = true;
+                                UpdateConnectionState(false); // ✅ Disable các button
                             }));
                         }
                         break;
@@ -489,6 +492,7 @@ namespace CaroLAN
                                 btnConnect.Text = "Kết nối";
                                 btnConnect.Enabled = true;
                                 txtIP.Enabled = true;
+                                UpdateConnectionState(false); // ✅ Disable các button
                             }));
                         }
                         break;
@@ -1037,6 +1041,9 @@ namespace CaroLAN
 
         private void sanhCho_Load(object sender, EventArgs e)
         {
+            // ✅ Khởi tạo trạng thái ban đầu dựa trên kết nối
+            UpdateConnectionState(socket.IsConnected);
+            
             if (socket.IsConnected)
             {
                 lblStatus.Text = string.IsNullOrEmpty(username)
@@ -1050,6 +1057,27 @@ namespace CaroLAN
                 lblStatus.Text = "Chưa kết nối";
                 btnConnect.Text = "Kết nối";
                 txtIP.Enabled = true;
+            }
+        }
+
+        // ✅ Method cập nhật trạng thái enable/disable các button dựa trên kết nối
+        private void UpdateConnectionState(bool isConnected)
+        {
+            // Khi chưa kết nối: chỉ enable nút kết nối và tìm server
+            // Khi đã kết nối: enable các button chức năng
+            button3.Enabled = isConnected;        // Nút BẮT ĐẦU
+            btnRequest.Enabled = isConnected;     // Nút MỜI CHƠI
+            btnAccept.Enabled = isConnected;      // Nút CHẤP NHẬN
+            btnRefreshMy.Enabled = isConnected;   // Nút làm mới lịch sử
+            lstClients.Enabled = isConnected;     // Danh sách người chơi
+            lstRequests.Enabled = isConnected;    // Danh sách lời mời
+            tabHistory.Enabled = isConnected;     // Tab lịch sử
+            
+            if (!isConnected)
+            {
+                lblStatus.Text = "⚪ Chưa kết nối - Vui lòng kết nối server";
+                lstClients.Items.Clear();
+                lstRequests.Items.Clear();
             }
         }
 
@@ -1079,6 +1107,7 @@ namespace CaroLAN
                     btnConnect.Text = "Ngắt kết nối";
                     btnConnect.Enabled = true;
                     txtIP.Enabled = false; // Vô hiệu hóa textbox IP
+                    UpdateConnectionState(true); // ✅ Enable các button chức năng
 
                     // Lưu địa chỉ endpoint của chính mình
                     myEndPoint = socket.GetLocalEndPoint();
@@ -1105,6 +1134,7 @@ namespace CaroLAN
                     // Kết nối thất bại
                     lblStatus.Text = "Không kết nối được server!";
                     btnConnect.Enabled = true;
+                    UpdateConnectionState(false); // ✅ Disable các button chức năng
                     MessageBox.Show(
                         "Không thể kết nối đến server.\n\n",
                         "Lỗi kết nối",
@@ -1117,6 +1147,7 @@ namespace CaroLAN
             {
                 lblStatus.Text = "Lỗi kết nối!";
                 btnConnect.Enabled = true;
+                UpdateConnectionState(false); // ✅ Disable các button chức năng
                 MessageBox.Show($"Lỗi khi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -1176,9 +1207,11 @@ namespace CaroLAN
                 // Cập nhật giao diện
                 lblStatus.Text = "Đã ngắt kết nối khỏi server";
                 lstClients.Items.Clear();
+                lstRequests.Items.Clear();
                 btnConnect.Text = "Kết nối";
                 btnConnect.Enabled = true;
                 txtIP.Enabled = true; // Bật lại textbox IP
+                UpdateConnectionState(false); // ✅ Disable các button chức năng
             }
             catch (Exception ex)
             {
@@ -1481,6 +1514,7 @@ namespace CaroLAN
                 if (socket.ConnectToServer(serverIP))
                 {
                     lblStatus.Text = "Đã kết nối lại! Đang đăng nhập...";
+                    UpdateConnectionState(true); // ✅ Enable các button
                     
                     // Tự động đăng nhập lại
                     if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
@@ -1498,11 +1532,13 @@ namespace CaroLAN
                     return true;
                 }
                 
+                UpdateConnectionState(false); // ✅ Disable các button nếu reconnect thất bại
                 return false;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Lỗi reconnect: {ex.Message}");
+                UpdateConnectionState(false); // ✅ Disable các button
                 return false;
             }
         }

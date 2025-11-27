@@ -23,6 +23,9 @@ namespace CaroLAN
 
         private void LoginForm_Load(object? sender, EventArgs? e)
         {
+            // ✅ Khởi tạo trạng thái ban đầu
+            UpdateConnectionState(false);
+            
             //  Tự động tìm server
             AutoFindAndConnectServer();
         }
@@ -37,6 +40,21 @@ namespace CaroLAN
             lblStatus.Text = "Chưa kết nối";
 
             this.Load += LoginForm_Load; // auto connect to localhost
+        }
+
+        // ✅ Method cập nhật trạng thái enable/disable các button dựa trên kết nối
+        private void UpdateConnectionState(bool isConnected)
+        {
+            // Khi chưa kết nối: chỉ enable nút kết nối và tìm server
+            // Khi đã kết nối: enable các tab đăng nhập/đăng ký
+            btnLogin.Enabled = isConnected;
+            btnRegister.Enabled = isConnected;
+            tabControl1.Enabled = isConnected;
+            
+            if (!isConnected)
+            {
+                lblStatus.Text = "⚪ Chưa kết nối - Vui lòng kết nối server";
+            }
         }
 
         /// ✅ Xử lý nút tìm server
@@ -193,6 +211,7 @@ namespace CaroLAN
                 btnConnect.Text = "Kết nối";
                 btnConnect.Enabled = true;
                 txtServerIP.Enabled = true;
+                UpdateConnectionState(false); // ✅ Disable các button
                 return;
             }
 
@@ -204,17 +223,17 @@ namespace CaroLAN
 
                 if (socket.ConnectToServer(serverIP))
                 {
-                    lblStatus.Text = "Đã kết nối đến server";
-                    btnConnect.Text = "Đã kết nối";
-                    btnConnect.Enabled = false;
+                    lblStatus.Text = "✅ Đã kết nối đến server";
+                    btnConnect.Text = "Ngắt kết nối";
+                    btnConnect.Enabled = true;
                     txtServerIP.Enabled = false;
-                    // ✅ Không StartListening ở đây nữa, để sanhCho xử lý
-                    // StartListening();
+                    UpdateConnectionState(true); // ✅ Enable các button
                 }
                 else
                 {
-                    lblStatus.Text = "Không kết nối được server";
+                    lblStatus.Text = "❌ Không kết nối được server";
                     btnConnect.Enabled = true;
+                    UpdateConnectionState(false); // ✅ Disable các button
                     MessageBox.Show("Không thể kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -222,6 +241,7 @@ namespace CaroLAN
             {
                 lblStatus.Text = "Lỗi kết nối";
                 btnConnect.Enabled = true;
+                UpdateConnectionState(false); // ✅ Disable các button
                 MessageBox.Show($"Lỗi khi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -253,6 +273,7 @@ namespace CaroLAN
                             {
                                 lblStatus.Text = "⚠️ Không tìm thấy server. Vui lòng nhập IP thủ công.";
                                 txtServerIP.Focus();
+                                UpdateConnectionState(false); // ✅ Disable các button
                             }
                             else if (servers.Count == 1)
                             {
@@ -276,6 +297,7 @@ namespace CaroLAN
                 lblStatus.Text = "Lỗi khi tìm server";
                 btnConnect.Enabled = true;
                 btnFindServers.Enabled = true;
+                UpdateConnectionState(false); // ✅ Disable các button
                 MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -288,6 +310,7 @@ namespace CaroLAN
             if (string.IsNullOrWhiteSpace(serverIP))
             {
                 lblStatus.Text = "Chưa có địa chỉ server";
+                UpdateConnectionState(false); // ✅ Disable các button
                 return;
             }
 
@@ -303,13 +326,13 @@ namespace CaroLAN
                     btnConnect.Text = "Ngắt kết nối";
                     btnConnect.Enabled = true;
                     txtServerIP.Enabled = false;
-                    // ✅ Không StartListening ở đây nữa
-                    // StartListening();
+                    UpdateConnectionState(true); // ✅ Enable các button
                 }
                 else
                 {
                     lblStatus.Text = "❌ Không kết nối được server";
                     btnConnect.Enabled = true;
+                    UpdateConnectionState(false); // ✅ Disable các button
                     MessageBox.Show("Không thể kết nối đến server!\nVui lòng kiểm tra:\n- Server đã bật\n- Địa chỉ IP đúng\n- Firewall không chặn", 
                         "Lỗi kết nối", 
                         MessageBoxButtons.OK, 
@@ -320,6 +343,7 @@ namespace CaroLAN
             {
                 lblStatus.Text = "❌ Lỗi kết nối";
                 btnConnect.Enabled = true;
+                UpdateConnectionState(false); // ✅ Disable các button
                 MessageBox.Show($"Lỗi khi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
