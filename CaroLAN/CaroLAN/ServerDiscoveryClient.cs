@@ -70,7 +70,10 @@ namespace CaroLAN
                     discoveredServers.Clear();
                 }
                 
-                udpClient = new UdpClient(BROADCAST_PORT);
+                // Bind vào IPAddress.Any và port BROADCAST_PORT
+                udpClient = new UdpClient();
+                udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, BROADCAST_PORT));
                 udpClient.EnableBroadcast = true;
                 isDiscovering = true;
                 
@@ -127,14 +130,14 @@ namespace CaroLAN
                         break;
                     }
                     
-                    // Kiểm tra có dữ liệu không (với timeout ngắn)
-                    if (udpClient == null || !udpClient.Available.Equals(0) == false)
+                    // Kiểm tra có dữ liệu không
+                    if (udpClient == null || udpClient.Available == 0)
                     {
                         Thread.Sleep(100);
                         continue;
                     }
                     
-                    // Nhận broadcast
+                    // Nhận broadcast từ bất kỳ địa chỉ nào
                     IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
                     byte[] data = udpClient.Receive(ref remoteEndPoint);
                     string message = Encoding.UTF8.GetString(data);
