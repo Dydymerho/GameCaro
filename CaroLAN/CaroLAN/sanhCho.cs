@@ -20,7 +20,7 @@ namespace CaroLAN
         private CancellationTokenSource cancellationTokenSource;
         private ServerDiscoveryClient? serverDiscovery; // ✅ Server discovery client
 
-        private string currentRoomId;
+        private string? currentRoomId; // ✅ Cho phép null
         private bool isInRoom = false;
         private bool amFirst = false;
         private string username = string.Empty;
@@ -32,16 +32,23 @@ namespace CaroLAN
         
         // ✅ Lưu địa chỉ endpoint của chính client này
         private string myEndPoint;
+        
+        // ✅ Queue chứa message từ LoginForm
+        private Queue<string> pendingMessages;
 
-        public sanhCho() : this(string.Empty, string.Empty, null)
+        public sanhCho() : this(string.Empty, string.Empty, null, null)
         {
         }
 
-        public sanhCho(string username, SocketManager? existingSocket) : this(username, string.Empty, existingSocket)
+        public sanhCho(string username, SocketManager? existingSocket) : this(username, string.Empty, existingSocket, null)
         {
         }
 
-        public sanhCho(string username, string password, SocketManager? existingSocket)
+        public sanhCho(string username, string password, SocketManager? existingSocket) : this(username, password, existingSocket, null)
+        {
+        }
+
+        public sanhCho(string username, string password, SocketManager? existingSocket, Queue<string>? pendingMsgs)
         {
             InitializeComponent();
             this.username = username;
@@ -51,6 +58,7 @@ namespace CaroLAN
             invitationTimestamps = new Dictionary<string, DateTime>();
             cancellationTokenSource = new CancellationTokenSource();
             serverDiscovery = new ServerDiscoveryClient(); // Khởi tạo server discovery
+            pendingMessages = pendingMsgs ?? new Queue<string>(); // ✅ Nhận pending messages từ LoginForm
 
             FormClosing += sanhCho_FormClosing;
 
@@ -83,15 +91,20 @@ namespace CaroLAN
                 }
 
                 myEndPoint = socket.GetLocalEndPoint();
+                
+                // ✅ Khởi động listening trước khi làm gì khác
                 lobbyListening();
                 
-                // Đợi thread listening khởi động rồi mới yêu cầu danh sách
-                Task.Delay(100).ContinueWith(_ => 
+                // ✅ Đợi thread listening khởi động ổn định rồi mới yêu cầu danh sách
+                Task.Delay(300).ContinueWith(_ => 
                 {
                     try
                     {
-                        socket.Send("GET_CLIENT_LIST");
-                        System.Diagnostics.Debug.WriteLine("🔄 Đã gửi GET_CLIENT_LIST");
+                        if (socket.IsConnected)
+                        {
+                            socket.Send("GET_CLIENT_LIST");
+                            System.Diagnostics.Debug.WriteLine("🔄 Đã gửi GET_CLIENT_LIST");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -134,6 +147,8 @@ namespace CaroLAN
                 System.Diagnostics.Debug.WriteLine("🎧 Lobby listening thread started");
                 int loopCount = 0;
                 
+                Thread.Sleep(100);
+                
                 while (!token.IsCancellationRequested)
                 {
                     try
@@ -152,21 +167,41 @@ namespace CaroLAN
                             System.Diagnostics.Debug.WriteLine("❌ Socket disconnected detected!");
                             Invoke(new Action(() =>
                             {
-                                lblStatus.Text = "Kết nối đến server đã bị mất!";
+                                lblStatus.Text = "Mất kết nối! Đang thử kết nối lại...";
                                 lstClients.Items.Clear();
                                 lstRequests.Items.Clear();
-                                btnConnect.Text = "Kết nối";
-                                btnConnect.Enabled = true;
-                                txtIP.Enabled = true;
-                                isInRoom = false;
-                                currentRoomId = null;
-                                MessageBox.Show("Mất kết nối đến server!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                
+                                // ✅ Thử reconnect tự động
+                                bool reconnected = TryReconnect();
+                                if (!reconnected)
+                                {
+                                    btnConnect.Text = "Kết nối";
+                                    btnConnect.Enabled = true;
+                                    txtIP.Enabled = true;
+                                    isInRoom = false;
+                                    currentRoomId = null;
+                                    MessageBox.Show("Mất kết nối đến server! Vui lòng kết nối lại.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                }
                             }));
                             break;
                         }
 
-                        // Nhận dữ liệu từ server
-                        string data = socket.Receive();
+                        // ✅ Nhận dữ liệu: ưu tiên pending messages trước
+                        string data;
+                        lock (pendingMessages)
+                        {
+                            if (pendingMessages.Count > 0)
+                            {
+                                data = pendingMessages.Dequeue();
+                                System.Diagnostics.Debug.WriteLine($"📦 Xử lý pending message: {data.Substring(0, Math.Min(100, data.Length))}...");
+                            }
+                            else
+                            {
+                                // Nhận dữ liệu từ server
+                                data = socket.Receive();
+                            }
+                        }
+                        
                         if (string.IsNullOrEmpty(data))
                         {
                             Thread.Sleep(10);
@@ -724,6 +759,13 @@ namespace CaroLAN
 
             try
             {
+                // ✅ Kiểm tra currentRoomId trước khi tạo form
+                if (string.IsNullOrEmpty(currentRoomId))
+                {
+                    MessageBox.Show("Lỗi: Không có thông tin phòng!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                
                 // Mở form mới cho game
                 Form1 gameForm = new Form1(currentRoomId, socket, amFirst);
                 gameForm.FormClosed += (s, args) =>
@@ -1339,6 +1381,53 @@ namespace CaroLAN
             {
                 // Bỏ qua lỗi, không hiển thị message box vì đây là background operation
                 System.Diagnostics.Debug.WriteLine($"Lỗi khi tải lịch sử: {ex.Message}");
+            }
+        }
+
+        // ✅ Thử reconnect tự động
+        private bool TryReconnect()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 Đang thử reconnect...");
+                
+                string serverIP = txtIP.Text.Trim();
+                if (string.IsNullOrEmpty(serverIP))
+                {
+                    return false;
+                }
+                
+                // Disconnect socket cũ
+                socket.Disconnect();
+                Thread.Sleep(500);
+                
+                // Thử kết nối lại
+                if (socket.ConnectToServer(serverIP))
+                {
+                    lblStatus.Text = "Đã kết nối lại! Đang đăng nhập...";
+                    
+                    // Tự động đăng nhập lại
+                    if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                    {
+                        Thread.Sleep(200);
+                        socket.Send($"LOGIN:{username}:{password}");
+                        Thread.Sleep(300);
+                    }
+                    
+                    // Khởi động lại listening
+                    lobbyListening();
+                    
+                    lblStatus.Text = "Đã kết nối lại thành công!";
+                    System.Diagnostics.Debug.WriteLine("✅ Reconnect thành công");
+                    return true;
+                }
+                
+                return false;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Lỗi reconnect: {ex.Message}");
+                return false;
             }
         }
     }

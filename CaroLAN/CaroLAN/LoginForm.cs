@@ -11,6 +11,7 @@ namespace CaroLAN
         private Thread? listenThread;
         private CancellationTokenSource cancellationTokenSource;
         private ServerDiscoveryClient? serverDiscovery; // ✅ Server discovery client
+        private Queue<string> pendingMessages = new Queue<string>(); // ✅ Lưu message chưa xử lý
 
         private bool isLoggedIn;
         private string currentUsername = string.Empty;
@@ -406,10 +407,22 @@ namespace CaroLAN
                     }
                     
                     string data = socket.Receive();
-                    if (!string.IsNullOrEmpty(data) && data.StartsWith(prefix))
+                    if (!string.IsNullOrEmpty(data))
                     {
-                        System.Diagnostics.Debug.WriteLine($"📥 WaitForResponse nhận: {data}");
-                        return data;
+                        if (data.StartsWith(prefix))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"📥 WaitForResponse nhận đúng: {data.Substring(0, Math.Min(50, data.Length))}...");
+                            return data;
+                        }
+                        else
+                        {
+                            // ✅ Lưu message không match để sanhCho xử lý sau
+                            System.Diagnostics.Debug.WriteLine($"📦 WaitForResponse lưu message khác: {data.Substring(0, Math.Min(50, data.Length))}...");
+                            lock (pendingMessages)
+                            {
+                                pendingMessages.Enqueue(data);
+                            }
+                        }
                     }
                     
                     Thread.Sleep(10);
@@ -421,6 +434,19 @@ namespace CaroLAN
             }
             
             return null;
+        }
+
+        /// <summary>
+        /// ✅ Lấy các message đang pending để sanhCho xử lý
+        /// </summary>
+        public Queue<string> GetPendingMessages()
+        {
+            lock (pendingMessages)
+            {
+                var messages = new Queue<string>(pendingMessages);
+                pendingMessages.Clear();
+                return messages;
+            }
         }
 
         private void btnRegister_Click(object sender, EventArgs e)

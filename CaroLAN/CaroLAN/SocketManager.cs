@@ -28,11 +28,20 @@ namespace CaroLAN
                 // ✅ Cho phép tái sử dụng địa chỉ (quan trọng khi chạy nhiều client trên cùng máy)
                 socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 
-                // ✅ Giảm timeout xuống 10 giây để tránh block quá lâu
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000);
+                // ✅ BẬT TCP KEEPALIVE để duy trì kết nối
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 
-                // ✅ Tắt Nagle algorithm để giảm latency
+                // ✅ Cấu hình keepalive: bắt đầu sau 60s, gửi mỗi 30s
+                byte[] keepAliveValues = new byte[12];
+                BitConverter.GetBytes((uint)1).CopyTo(keepAliveValues, 0);  // enable
+                BitConverter.GetBytes((uint)60000).CopyTo(keepAliveValues, 4);  // keepalivetime (ms)
+                BitConverter.GetBytes((uint)30000).CopyTo(keepAliveValues, 8);  // keepaliveinterval (ms)
+                socket.IOControl(IOControlCode.KeepAliveValues, keepAliveValues, null);
+                
+                
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 10000);
+                // socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 10000); // ❌ Bỏ
+                
                 socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
 
                 IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Parse(ip), PORT);
@@ -145,7 +154,6 @@ namespace CaroLAN
             catch (SocketException ex)
             {
                 System.Diagnostics.Debug.WriteLine($"⚠️ SocketException in Receive: {ex.SocketErrorCode} - {ex.Message}");
-                // ✅ Chỉ set isConnected = false nếu là lỗi nghiêm trọng
                 if (ex.SocketErrorCode != SocketError.WouldBlock && 
                     ex.SocketErrorCode != SocketError.TimedOut)
                 {
@@ -182,26 +190,44 @@ namespace CaroLAN
 
                 try
                 {
+                  
+                    if (!socket.Connected)
+                    {
+                        isConnected = false;
+                        return false;
+                    }
                     
-                    bool isDisconnected = socket.Poll(1000, SelectMode.SelectRead) && socket.Available == 0;
-
-                    bool socketConnected = socket.Connected;
-
-                    isConnected = socketConnected && !isDisconnected;
-                    return isConnected;
+                    if (!isConnected)
+                    {
+                        return false;
+                    }
+                    
+                    bool hasReadEvent = socket.Poll(1, SelectMode.SelectRead);
+                    
+                    if (hasReadEvent && socket.Available == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("⚠️ IsConnected: Poll detected closed connection");
+                        isConnected = false;
+                        return false;
+                    }
+                    
+                    return true;
                 }
-                catch (SocketException)
+                catch (SocketException ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ SocketException in IsConnected: {ex.SocketErrorCode}");
                     isConnected = false;
                     return false;
                 }
                 catch (ObjectDisposedException)
                 {
+                    System.Diagnostics.Debug.WriteLine("⚠️ ObjectDisposedException in IsConnected");
                     isConnected = false;
                     return false;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Exception in IsConnected: {ex.Message}");
                     isConnected = false;
                     return false;
                 }

@@ -19,9 +19,10 @@ namespace CaroLAN
                 SocketManager socket = loginForm.GetSocket();
                 string username = loginForm.GetUsername();
                 string password = loginForm.GetPassword(); // ✅ Lấy password để tự động đăng nhập lại
+                Queue<string> pendingMessages = loginForm.GetPendingMessages(); // ✅ Lấy message chưa xử lý
 
                 // Mở sảnh chờ với thông tin đăng nhập và socket hiện tại
-                Application.Run(new sanhCho(username, password, socket));
+                Application.Run(new sanhCho(username, password, socket, pendingMessages));
             }
         }
     }

@@ -78,9 +78,9 @@ namespace WinFormServer
                             clients.Add(client);
                         }
                         
-                        // Cập nhật danh sách khi có client mới kết nối
-                        SendClientListToAll(logAction);
-                        updateClientList?.Invoke();
+                        // ✅ KHÔNG gửi CLIENT_LIST ngay khi kết nối, đợi client login xong
+                        // SendClientListToAll(logAction);
+                        // updateClientList?.Invoke();
 
                         Thread clientThread = new Thread(() => HandleClient(client, logAction));
                         logAction?.Invoke($"Client {client.RemoteEndPoint} đã kết nối.");
@@ -972,8 +972,14 @@ namespace WinFormServer
                     
                     logAction?.Invoke($"✅ User đăng nhập: {user.Username} (ID: {user.Id})");
                     
+                    // ✅ Đợi một chút để client kịp khởi động listening thread
+                    Thread.Sleep(200);
+                    
                     // ✅ Tự động gửi lịch sử đấu ngay sau khi đăng nhập
                     SendHistoryToUser(clientSocket, logAction);
+                    
+                    // ✅ Đợi thêm một chút trước khi gửi CLIENT_LIST
+                    Thread.Sleep(100);
                     
                     // Cập nhật danh sách client
                     SendClientListToAll(logAction);
