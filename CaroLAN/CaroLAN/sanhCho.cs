@@ -45,12 +45,12 @@ namespace CaroLAN
         {
             InitializeComponent();
             this.username = username;
-            this.password = password; // ✅ Lưu password để tự động đăng nhập lại
+            this.password = password; // Lưu password để tự động đăng nhập lại
             socket = existingSocket ?? new SocketManager();
             receivedInvitations = new Dictionary<string, string>();
             invitationTimestamps = new Dictionary<string, DateTime>();
             cancellationTokenSource = new CancellationTokenSource();
-            serverDiscovery = new ServerDiscoveryClient(); // ✅ Khởi tạo server discovery
+            serverDiscovery = new ServerDiscoveryClient(); // Khởi tạo server discovery
 
             FormClosing += sanhCho_FormClosing;
 
@@ -84,6 +84,20 @@ namespace CaroLAN
 
                 myEndPoint = socket.GetLocalEndPoint();
                 lobbyListening();
+                
+                // Đợi thread listening khởi động rồi mới yêu cầu danh sách
+                Task.Delay(100).ContinueWith(_ => 
+                {
+                    try
+                    {
+                        socket.Send("GET_CLIENT_LIST");
+                        System.Diagnostics.Debug.WriteLine("🔄 Đã gửi GET_CLIENT_LIST");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Lỗi gửi GET_CLIENT_LIST: {ex.Message}");
+                    }
+                });
             }
             else
             {
@@ -117,13 +131,25 @@ namespace CaroLAN
 
             listenThread = new Thread(() =>
             {
+                System.Diagnostics.Debug.WriteLine("🎧 Lobby listening thread started");
+                int loopCount = 0;
+                
                 while (!token.IsCancellationRequested)
                 {
                     try
                     {
+                        loopCount++;
+                        
+                        // Kiểm tra kết nối định kỳ
+                        if (loopCount % 100 == 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"🔄 Loop {loopCount}, IsConnected: {socket.IsConnected}");
+                        }
+                        
                         // Kiểm tra kết nối
                         if (!socket.IsConnected)
                         {
+                            System.Diagnostics.Debug.WriteLine("❌ Socket disconnected detected!");
                             Invoke(new Action(() =>
                             {
                                 lblStatus.Text = "Kết nối đến server đã bị mất!";
@@ -146,6 +172,8 @@ namespace CaroLAN
                             Thread.Sleep(10);
                             continue;
                         }
+                        
+                        System.Diagnostics.Debug.WriteLine($"📥 Sảnh chờ nhận: {data.Substring(0, Math.Min(100, data.Length))}...");
 
                         // ✅ Bỏ qua message phản hồi chung từ server
                         if (data.StartsWith("Server đã nhận:"))
@@ -368,6 +396,7 @@ namespace CaroLAN
                         // Xử lý danh sách client (chỉ khi không trong phòng)
                         if (data.StartsWith("CLIENT_LIST:") && !isInRoom)
                         {
+                            System.Diagnostics.Debug.WriteLine($"📥 Nhận CLIENT_LIST: {data}");
                             string[] clients = data.Substring("CLIENT_LIST:".Length).Split(',');
                             Invoke(new Action(() =>
                             {
@@ -415,6 +444,9 @@ namespace CaroLAN
                         // Chỉ hiển thị lỗi nếu không phải do cancellation
                         if (!token.IsCancellationRequested)
                         {
+                            System.Diagnostics.Debug.WriteLine($"❌ Exception trong lobby listening: {ex.GetType().Name} - {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Stack: {ex.StackTrace}");
+                            
                             Invoke(new Action(() =>
                             {
                                 lblStatus.Text = "Lỗi kết nối!";
@@ -428,6 +460,8 @@ namespace CaroLAN
                     }
                 }
 
+                System.Diagnostics.Debug.WriteLine("🛑 Lobby listening thread stopped");
+                
                 // Dọn dẹp sau khi thread kết thúc
                 try
                 {
@@ -522,97 +556,129 @@ namespace CaroLAN
         // ✅ Cập nhật danh sách client với trạng thái
         private void UpdateClientList(string[] clients)
         {
-            lstClients.Items.Clear();
-
-            if (clients.Length == 0 || string.IsNullOrEmpty(clients[0]))
-                return;
-
-            // ✅ Lấy endpoint hiện tại từ socket (cập nhật mỗi lần để đảm bảo đúng sau khi reconnect)
-            string currentEndPoint = string.Empty;
-            if (socket.IsConnected)
+            try
             {
-                currentEndPoint = socket.GetLocalEndPoint();
-                if (!string.IsNullOrEmpty(currentEndPoint) && currentEndPoint != "Not connected" && currentEndPoint != "Error")
+                System.Diagnostics.Debug.WriteLine($"🔄 UpdateClientList được gọi với {clients.Length} client(s)");
+                
+                if (lstClients.InvokeRequired)
                 {
-                    myEndPoint = currentEndPoint; // Cập nhật myEndPoint với giá trị hiện tại
-                }
-            }
-
-            List<string> availableClients = new List<string>();
-            List<string> busyClients = new List<string>();
-
-            foreach (string client in clients)
-            {
-                if (string.IsNullOrWhiteSpace(client))
-                    continue;
-
-                string cleanClient = client.Replace("|BUSY", "").Trim();
-
-                // ✅ So sánh để xác định đây có phải là chính mình không
-                bool isMe = false;
-
-                // 1. So sánh với username nếu có (ưu tiên cao nhất)
-                if (!string.IsNullOrEmpty(username))
-                {
-                    isMe = cleanClient.Equals(username.Trim(), StringComparison.OrdinalIgnoreCase);
+                    System.Diagnostics.Debug.WriteLine("⚠️ UpdateClientList gọi từ thread khác, invoke lại");
+                    lstClients.Invoke(new Action(() => UpdateClientList(clients)));
+                    return;
                 }
                 
-                // 2. Nếu chưa khớp với username, so sánh với endpoint hiện tại
-                if (!isMe && !string.IsNullOrEmpty(currentEndPoint) && currentEndPoint != "Not connected" && currentEndPoint != "Error")
+                lstClients.Items.Clear();
+
+                if (clients.Length == 0 || string.IsNullOrEmpty(clients[0]))
                 {
-                    isMe = cleanClient.Equals(currentEndPoint.Trim(), StringComparison.OrdinalIgnoreCase);
+                    System.Diagnostics.Debug.WriteLine("ℹ️ Không có client nào để hiển thị");
+                    return;
                 }
 
-                // 3. Nếu vẫn chưa khớp và có myEndPoint cũ, so sánh với nó (phòng trường hợp reconnect nhưng chưa cập nhật)
-                if (!isMe && !string.IsNullOrEmpty(myEndPoint) && myEndPoint != "Not connected" && myEndPoint != "Error")
+                // ✅ Lấy endpoint hiện tại từ socket (cập nhật mỗi lần để đảm bảo đúng sau khi reconnect)
+                string currentEndPoint = string.Empty;
+                if (socket.IsConnected)
                 {
-                    isMe = cleanClient.Equals(myEndPoint.Trim(), StringComparison.OrdinalIgnoreCase);
-                }
-
-                // 4. So sánh theo IP nếu endpoint có format IP:Port (phòng trường hợp port thay đổi nhưng IP giống)
-                if (!isMe && !string.IsNullOrEmpty(currentEndPoint) && currentEndPoint.Contains(':'))
-                {
-                    try
+                    currentEndPoint = socket.GetLocalEndPoint();
+                    if (!string.IsNullOrEmpty(currentEndPoint) && currentEndPoint != "Not connected" && currentEndPoint != "Error")
                     {
-                        string myIP = currentEndPoint.Split(':')[0];
-                        if (cleanClient.Contains(':'))
+                        myEndPoint = currentEndPoint; // Cập nhật myEndPoint với giá trị hiện tại
+                    }
+                }
+
+                List<string> availableClients = new List<string>();
+                List<string> busyClients = new List<string>();
+
+                foreach (string client in clients)
+                {
+                    if (string.IsNullOrWhiteSpace(client))
+                        continue;
+
+                    string cleanClient = client.Replace("|BUSY", "").Trim();
+
+                    // ✅ So sánh để xác định đây có phải là chính mình không
+                    bool isMe = false;
+
+                    // 1. So sánh với username nếu có (ưu tiên cao nhất)
+                    if (!string.IsNullOrEmpty(username))
+                    {
+                        isMe = cleanClient.Equals(username.Trim(), StringComparison.OrdinalIgnoreCase);
+                    }
+                    
+                    // 2. Nếu chưa khớp với username, so sánh với endpoint hiện tại
+                    if (!isMe && !string.IsNullOrEmpty(currentEndPoint) && currentEndPoint != "Not connected" && currentEndPoint != "Error")
+                    {
+                        isMe = cleanClient.Equals(currentEndPoint.Trim(), StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    // 3. Nếu vẫn chưa khớp và có myEndPoint cũ, so sánh với nó (phòng trường hợp reconnect nhưng chưa cập nhật)
+                    if (!isMe && !string.IsNullOrEmpty(myEndPoint) && myEndPoint != "Not connected" && myEndPoint != "Error")
+                    {
+                        isMe = cleanClient.Equals(myEndPoint.Trim(), StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    // 4. So sánh theo IP nếu endpoint có format IP:Port (phòng trường hợp port thay đổi nhưng IP giống)
+                    if (!isMe && !string.IsNullOrEmpty(currentEndPoint) && currentEndPoint.Contains(':'))
+                    {
+                        try
                         {
-                            string clientIP = cleanClient.Split(':')[0];
-                            // Chỉ so sánh IP nếu cả hai đều là localhost hoặc cùng IP
-                            if (myIP == clientIP && (myIP == "127.0.0.1" || myIP == "localhost" || myIP.StartsWith("192.168.") || myIP.StartsWith("10.")))
+                            string myIP = currentEndPoint.Split(':')[0];
+                            if (cleanClient.Contains(':'))
                             {
-                                // Nếu IP giống và đều là localhost/local network, có thể là cùng một client
-                                // Nhưng để an toàn, chỉ bỏ qua nếu format endpoint hoàn toàn giống nhau
-                                // (tránh bỏ qua nhầm người khác có cùng IP)
+                                string clientIP = cleanClient.Split(':')[0];
+                                // Chỉ so sánh IP nếu cả hai đều là localhost hoặc cùng IP
+                                if (myIP == clientIP && (myIP == "127.0.0.1" || myIP == "localhost" || myIP.StartsWith("192.168.") || myIP.StartsWith("10.")))
+                                {
+                                    // Nếu IP giống và đều là localhost/local network, có thể là cùng một client
+                                    // Nhưng để an toàn, chỉ bỏ qua nếu format endpoint hoàn toàn giống nhau
+                                    // (tránh bỏ qua nhầm người khác có cùng IP)
+                                }
                             }
                         }
+                        catch
+                        {
+                            // Bỏ qua lỗi khi parse
+                        }
                     }
-                    catch
+
+                    if (isMe)
                     {
-                        // Bỏ qua lỗi khi parse
+                        System.Diagnostics.Debug.WriteLine($"⏭️ Bỏ qua chính mình: {cleanClient}");
+                        continue; // Bỏ qua chính mình
+                    }
+
+                    if (client.Contains("|BUSY"))
+                    {
+                        busyClients.Add($"[BUSY] {cleanClient}");
+                    }
+                    else
+                    {
+                        availableClients.Add(cleanClient);
                     }
                 }
 
-                if (isMe)
-                    continue; // Bỏ qua chính mình
+                // Thêm client available trước
+                foreach (string client in availableClients)
+                {
+                    lstClients.Items.Add(client);
+                    System.Diagnostics.Debug.WriteLine($"➕ Thêm client available: {client}");
+                }
 
-                if (client.Contains("|BUSY"))
+                // Thêm client busy xuống cuối
+                foreach (string client in busyClients)
                 {
-                    busyClients.Add($"[BUSY] {cleanClient}");
+                    lstClients.Items.Add(client);
+                    System.Diagnostics.Debug.WriteLine($"➕ Thêm client busy: {client}");
                 }
-                else
-                {
-                    availableClients.Add(cleanClient);
-                }
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Hoàn thành UpdateClientList: {lstClients.Items.Count} item(s)");
             }
-
-            // Thêm client available trước
-            foreach (string client in availableClients)
-                lstClients.Items.Add(client);
-
-            // Thêm client busy xuống cuối
-            foreach (string client in busyClients)
-                lstClients.Items.Add(client);
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Lỗi UpdateClientList: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                MessageBox.Show($"Lỗi cập nhật danh sách: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
 

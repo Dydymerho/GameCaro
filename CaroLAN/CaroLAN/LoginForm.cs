@@ -22,11 +22,8 @@ namespace CaroLAN
 
         private void LoginForm_Load(object? sender, EventArgs? e)
         {
-            // Nếu đã nhập sẵn IP thì tự động connect
-            if (!string.IsNullOrWhiteSpace(txtServerIP.Text))
-            {
-                btnConnect_Click(this, EventArgs.Empty);  // Tự động kết nối khi form chạy
-            }
+            //  Tự động tìm server
+            AutoFindAndConnectServer();
         }
 
 
@@ -41,9 +38,7 @@ namespace CaroLAN
             this.Load += LoginForm_Load; // auto connect to localhost
         }
 
-        /// <summary>
         /// ✅ Xử lý nút tìm server
-        /// </summary>
         private void btnFindServers_Click(object sender, EventArgs e)
         {
             try
@@ -77,13 +72,12 @@ namespace CaroLAN
                             }
                             else if (servers.Count == 1)
                             {
-                                // Chỉ có 1 server, tự động điền IP
+                                // Chỉ có 1 server, tự động điền IP và kết nối
                                 txtServerIP.Text = servers[0].IPAddress;
                                 lblStatus.Text = $"✅ Tìm thấy: {servers[0].ServerName}";
-                                MessageBox.Show($"Đã tìm thấy server:\n{servers[0].ServerName}\n{servers[0].IPAddress}:{servers[0].Port}",
-                                    "Tìm thấy server",
-                                    MessageBoxButtons.OK,
-                                    MessageBoxIcon.Information);
+                                
+                                // ✅ Tự động kết nối
+                                ConnectToSelectedServer();
                             }
                             else
                             {
@@ -102,9 +96,7 @@ namespace CaroLAN
             }
         }
 
-        /// <summary>
         /// ✅ Hiển thị dialog để chọn server khi tìm thấy nhiều server
-        /// </summary>
         private void ShowServerSelectionDialog(List<DiscoveredServer> servers)
         {
             Form selectionForm = new Form
@@ -171,6 +163,9 @@ namespace CaroLAN
                 DiscoveredServer selected = (DiscoveredServer)lstServers.SelectedItem;
                 txtServerIP.Text = selected.IPAddress;
                 lblStatus.Text = $"✅ Đã chọn: {selected.ServerName}";
+                
+                // ✅ Tự động kết nối sau khi chọn
+                ConnectToSelectedServer();
             }
             else
             {
@@ -212,7 +207,8 @@ namespace CaroLAN
                     btnConnect.Text = "Đã kết nối";
                     btnConnect.Enabled = false;
                     txtServerIP.Enabled = false;
-                    StartListening();
+                    // ✅ Không StartListening ở đây nữa, để sanhCho xử lý
+                    // StartListening();
                 }
                 else
                 {
@@ -224,6 +220,104 @@ namespace CaroLAN
             catch (Exception ex)
             {
                 lblStatus.Text = "Lỗi kết nối";
+                btnConnect.Enabled = true;
+                MessageBox.Show($"Lỗi khi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// ✅ Tự động tìm server và kết nối khi form load
+        private void AutoFindAndConnectServer()
+        {
+            try
+            {
+                lblStatus.Text = "🔍 Đang tìm server trong mạng LAN...";
+                btnConnect.Enabled = false;
+                btnFindServers.Enabled = false;
+                Application.DoEvents();
+
+                serverDiscovery?.StartDiscovery(
+                    onServerFound: (server) =>
+                    {
+                        // Không cần xử lý gì khi tìm thấy từng server
+                    },
+                    onDiscoveryComplete: (servers) =>
+                    {
+                        // Callback khi quét xong
+                        Invoke(new Action(() =>
+                        {
+                            btnConnect.Enabled = true;
+                            btnFindServers.Enabled = true;
+
+                            if (servers.Count == 0)
+                            {
+                                lblStatus.Text = "⚠️ Không tìm thấy server. Vui lòng nhập IP thủ công.";
+                                txtServerIP.Focus();
+                            }
+                            else if (servers.Count == 1)
+                            {
+                                // Chỉ có 1 server, tự động kết nối
+                                txtServerIP.Text = servers[0].IPAddress;
+                                lblStatus.Text = $"✅ Tìm thấy: {servers[0].ServerName}";
+                                ConnectToSelectedServer();
+                            }
+                            else
+                            {
+                                // Nhiều server, cho phép chọn
+                                lblStatus.Text = $"Tìm thấy {servers.Count} server. Vui lòng chọn.";
+                                ShowServerSelectionDialog(servers);
+                            }
+                        }));
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Lỗi khi tìm server";
+                btnConnect.Enabled = true;
+                btnFindServers.Enabled = true;
+                MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        ///  Kết nối đến server đã chọn
+        private void ConnectToSelectedServer()
+        {
+            string serverIP = txtServerIP.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(serverIP))
+            {
+                lblStatus.Text = "Chưa có địa chỉ server";
+                return;
+            }
+
+            try
+            {
+                lblStatus.Text = "Đang kết nối...";
+                btnConnect.Enabled = false;
+                Application.DoEvents();
+
+                if (socket.ConnectToServer(serverIP))
+                {
+                    lblStatus.Text = "✅ Đã kết nối đến server";
+                    btnConnect.Text = "Ngắt kết nối";
+                    btnConnect.Enabled = true;
+                    txtServerIP.Enabled = false;
+                    // ✅ Không StartListening ở đây nữa
+                    // StartListening();
+                }
+                else
+                {
+                    lblStatus.Text = "❌ Không kết nối được server";
+                    btnConnect.Enabled = true;
+                    MessageBox.Show("Không thể kết nối đến server!\nVui lòng kiểm tra:\n- Server đã bật\n- Địa chỉ IP đúng\n- Firewall không chặn", 
+                        "Lỗi kết nối", 
+                        MessageBoxButtons.OK, 
+                        MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "❌ Lỗi kết nối";
                 btnConnect.Enabled = true;
                 MessageBox.Show($"Lỗi khi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -251,14 +345,82 @@ namespace CaroLAN
 
             try
             {
+                System.Diagnostics.Debug.WriteLine($"📤 LoginForm gửi: LOGIN:{username}:***");
                 socket.Send($"LOGIN:{username}:{password}");
                 lblStatus.Text = "Đang đăng nhập...";
+                
+                // ✅ Đợi response từ server (tối đa 5 giây)
+                string? response = WaitForResponse("LOGIN_", 5000);
+                
+                if (response != null && response.StartsWith("LOGIN_SUCCESS:"))
+                {
+                    var match = Regex.Match(response, @"^LOGIN_SUCCESS:(\d+):([^:]+):(\d+):(\d+):(\d+)");
+                    if (match.Success)
+                    {
+                        userId = int.Parse(match.Groups[1].Value);
+                        currentUsername = match.Groups[2].Value;
+                        totalGames = int.Parse(match.Groups[3].Value);
+                        wins = int.Parse(match.Groups[4].Value);
+                        losses = int.Parse(match.Groups[5].Value);
+                        
+                        isLoggedIn = true;
+                        lblStatus.Text = $"Đăng nhập thành công: {currentUsername}";
+                        lblUserInfo.Text = $"Xin chào, {currentUsername}! | Thắng: {wins} | Thua: {losses} | Tổng: {totalGames}";
+                        DialogResult = DialogResult.OK;
+                        Close();
+                    }
+                }
+                else if (response != null && response.StartsWith("LOGIN_FAILED:"))
+                {
+                    string error = response.Substring("LOGIN_FAILED:".Length);
+                    lblStatus.Text = "Đăng nhập thất bại";
+                    MessageBox.Show(error, "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    lblStatus.Text = "Không nhận được phản hồi từ server";
+                    MessageBox.Show("Không nhận được phản hồi từ server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             catch (Exception ex)
             {
                 lblStatus.Text = "Lỗi gửi dữ liệu";
                 MessageBox.Show($"Không thể gửi yêu cầu đăng nhập: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        /// <summary>
+        /// ✅ Đợi response từ server (blocking)
+        /// </summary>
+        private string? WaitForResponse(string prefix, int timeoutMs)
+        {
+            DateTime startTime = DateTime.Now;
+            
+            while ((DateTime.Now - startTime).TotalMilliseconds < timeoutMs)
+            {
+                try
+                {
+                    if (!socket.IsConnected)
+                    {
+                        return null;
+                    }
+                    
+                    string data = socket.Receive();
+                    if (!string.IsNullOrEmpty(data) && data.StartsWith(prefix))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"📥 WaitForResponse nhận: {data}");
+                        return data;
+                    }
+                    
+                    Thread.Sleep(10);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+            
+            return null;
         }
 
         private void btnRegister_Click(object sender, EventArgs e)
@@ -296,8 +458,31 @@ namespace CaroLAN
 
             try
             {
+                System.Diagnostics.Debug.WriteLine($"📤 LoginForm gửi: REGISTER:{username}:***");
                 socket.Send(registerMessage);
                 lblStatus.Text = "Đang đăng ký...";
+                
+                // ✅ Đợi response từ server
+                string? response = WaitForResponse("REGISTER_", 5000);
+                
+                if (response != null && response.StartsWith("REGISTER_SUCCESS:"))
+                {
+                    lblStatus.Text = "Đăng ký thành công! Vui lòng đăng nhập.";
+                    MessageBox.Show("Đăng ký thành công! Vui lòng đăng nhập.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    tabControl1.SelectedTab = tabPageLogin;
+                    txtLoginUsername.Text = username;
+                }
+                else if (response != null && response.StartsWith("REGISTER_FAILED:"))
+                {
+                    string error = response.Substring("REGISTER_FAILED:".Length);
+                    lblStatus.Text = "Đăng ký thất bại";
+                    MessageBox.Show(error, "Đăng ký thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    lblStatus.Text = "Không nhận được phản hồi từ server";
+                    MessageBox.Show("Không nhận được phản hồi từ server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             catch (Exception ex)
             {
@@ -308,18 +493,23 @@ namespace CaroLAN
 
         private void StartListening()
         {
+            System.Diagnostics.Debug.WriteLine("🎧 StartListening() được gọi");
+            
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
 
             listenThread = new Thread(() =>
             {
+                System.Diagnostics.Debug.WriteLine("🎧 Listen thread đã bắt đầu");
+                
                 while (!token.IsCancellationRequested)
                 {
                     try
                     {
                         if (!socket.IsConnected)
                         {
+                            System.Diagnostics.Debug.WriteLine("⚠️ Socket disconnected trong listen thread");
                             Invoke(new Action(() =>
                             {
                                 lblStatus.Text = "Mất kết nối đến server";
@@ -336,6 +526,8 @@ namespace CaroLAN
                             Thread.Sleep(10);
                             continue;
                         }
+                        
+                        System.Diagnostics.Debug.WriteLine($"📥 LoginForm nhận: {data}");
 
                         if (data.StartsWith("LOGIN_SUCCESS:"))
                         {
@@ -453,12 +645,6 @@ namespace CaroLAN
         {
             try
             {
-                cancellationTokenSource?.Cancel();
-                if (listenThread != null && listenThread.IsAlive)
-                {
-                    listenThread.Join(1000);
-                }
-                
                 // ✅ Dừng server discovery nếu đang chạy
                 serverDiscovery?.StopDiscovery();
             }
@@ -480,7 +666,6 @@ namespace CaroLAN
                 socket.Disconnect();
             }
 
-            cancellationTokenSource?.Dispose();
             base.OnFormClosing(e);
         }
 

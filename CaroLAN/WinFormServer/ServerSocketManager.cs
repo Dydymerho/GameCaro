@@ -129,6 +129,11 @@ namespace WinFormServer
                         HandleLogin(clientSocket, message, logAction);
                         handled = true;
                     }
+                    else if (message == "GET_CLIENT_LIST") // ✅ Cho phép lấy danh sách TRƯỚC KHI kiểm tra đăng nhập
+                    {
+                        SendClientListToClient(clientSocket, logAction);
+                        handled = true;
+                    }
                     else if (!IsAuthenticated(clientSocket))
                     {
                         SendToClient(clientSocket, "AUTH_REQUIRED:Vui lòng đăng nhập trước");
@@ -201,6 +206,11 @@ namespace WinFormServer
                     else if (message.StartsWith("REJECT_INVITATION:"))
                     {
                         HandleRejectInvitation(clientSocket, message, logAction);
+                        handled = true;
+                    }
+                    else if (message == "GET_CLIENT_LIST") // XỬ LÝ YÊU CẦU DANH SÁCH CLIENT
+                    {
+                        SendClientListToClient(clientSocket, logAction);
                         handled = true;
                     }
                     else if (message == "DISCONNECT")
@@ -337,6 +347,16 @@ namespace WinFormServer
             List<string> connectedClients = GetConnectedClients();
             string clientListMessage = "CLIENT_LIST:" + string.Join(",", connectedClients);
             Broadcast(clientListMessage, clients, logAction);
+        }
+
+        // Gửi danh sách client đến client 
+        private void SendClientListToClient(Socket clientSocket, Action<string> logAction)
+        {
+            List<string> connectedClients = GetConnectedClients();
+            string clientListMessage = "CLIENT_LIST:" + string.Join(",", connectedClients);
+            SendToClient(clientSocket, clientListMessage);
+            logAction?.Invoke($"📋 Gửi danh sách ({connectedClients.Count} client) đến {GetUsername(clientSocket)} ({clientSocket.RemoteEndPoint})");
+            System.Diagnostics.Debug.WriteLine($"📋 CLIENT_LIST gửi: {clientListMessage}");
         }
 
         public List<string> GetConnectedClients()

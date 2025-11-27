@@ -111,16 +111,18 @@ namespace CaroLAN
                 // ✅ Kiểm tra xem có dữ liệu sẵn sàng không trước khi receive
                 if (socket.Available == 0)
                 {
-                    // ✅ Poll với timeout ngắn để không block lâu
-                    if (!socket.Poll(100000, SelectMode.SelectRead)) // 100ms
+                    bool hasData = socket.Poll(100000, SelectMode.SelectRead); // 100ms
+                    
+                    if (!hasData)
                     {
                         return string.Empty;
                     }
                     
-                    // ✅ Kiểm tra lại sau khi poll
+                    // ✅ Sau khi poll trả về true, kiểm tra lại Available
+                    // Nếu Poll = true nhưng Available = 0 → Socket đã bị đóng
                     if (socket.Available == 0)
                     {
-                        // Socket có thể đã bị đóng
+                        System.Diagnostics.Debug.WriteLine("⚠️ Poll returned true but Available = 0, socket likely closed");
                         isConnected = false;
                         return string.Empty;
                     }
@@ -132,14 +134,17 @@ namespace CaroLAN
                 if (recv == 0)
                 {
                     // Server đã đóng kết nối
+                    System.Diagnostics.Debug.WriteLine("⚠️ Receive returned 0, connection closed");
                     isConnected = false;
                     return string.Empty;
                 }
 
-                return Encoding.UTF8.GetString(buffer, 0, recv);
+                string data = Encoding.UTF8.GetString(buffer, 0, recv);
+                return data;
             }
             catch (SocketException ex)
             {
+                System.Diagnostics.Debug.WriteLine($"⚠️ SocketException in Receive: {ex.SocketErrorCode} - {ex.Message}");
                 // ✅ Chỉ set isConnected = false nếu là lỗi nghiêm trọng
                 if (ex.SocketErrorCode != SocketError.WouldBlock && 
                     ex.SocketErrorCode != SocketError.TimedOut)
@@ -151,12 +156,14 @@ namespace CaroLAN
             catch (ObjectDisposedException)
             {
                 // Socket đã bị dispose
+                System.Diagnostics.Debug.WriteLine("⚠️ ObjectDisposedException in Receive");
                 isConnected = false;
                 return string.Empty;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Các lỗi khác
+                System.Diagnostics.Debug.WriteLine($"⚠️ Exception in Receive: {ex.Message}");
                 isConnected = false;
                 return string.Empty;
             }

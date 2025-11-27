@@ -6,8 +6,9 @@ namespace WinFormServer
 {
     public partial class ServerForm : Form
     {
-        ServerSocketManager socket;
-        UserManager userManager;
+        ServerSocketManager? socket;
+        UserManager? userManager;
+        BroadcastDiscovery? broadcastDiscovery; // Broadcast discovery
 
         // database config localhost
         private const string DB_SERVER = "localhost";
@@ -40,6 +41,10 @@ namespace WinFormServer
                 // Khởi tạo UserManager
                 userManager = new UserManager(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD);
                 socket = new ServerSocketManager(userManager);
+                
+                // ✅ Khởi tạo broadcast discovery
+                broadcastDiscovery = new BroadcastDiscovery("GameCaro Server", ServerSocketManager.PORT);
+                
                 LogToTextBox("Server đã sẵn sàng. Nhấn 'Bat server' để bắt đầu server.");
             }
             else
@@ -63,7 +68,12 @@ namespace WinFormServer
         {
             try
             {
-                socket.CreateServer(LogToTextBox, UpdateClientList);
+                socket?.CreateServer(LogToTextBox, UpdateClientList);
+                
+                // ✅ Bắt đầu broadcast khi server chạy
+                broadcastDiscovery?.Start();
+                LogToTextBox("Broadcast discovery đã được bật - Client có thể tự động tìm server!");
+                
                 lblStatus.Text = "Đang chờ kết nối...";
                 btnStart.Enabled = false;
                 btnStop.Enabled = true;
@@ -82,7 +92,11 @@ namespace WinFormServer
         {
             try
             {
-                socket.stopServer(LogToTextBox);
+                // ✅ Dừng broadcast trước
+                broadcastDiscovery?.Stop();
+                LogToTextBox("Broadcast discovery đã được tắt.");
+                
+                socket?.stopServer(LogToTextBox);
 
                 lblStatus.Text = "Server đã dừng.";
                 btnStart.Enabled = true;
@@ -120,7 +134,7 @@ namespace WinFormServer
             {
                 UpdateClientList();
                 LogToTextBox("Cập nhật danh sách client...");
-                List<string> connectedClients = socket.GetConnectedClients();
+                List<string> connectedClients = socket?.GetConnectedClients() ?? new List<string>();
                 LogToTextBox($"Số client đang kết nối: {connectedClients.Count}");
             }
             catch (Exception ex)
@@ -139,7 +153,7 @@ namespace WinFormServer
             }
                 
             //LogToTextBox("Cập nhật danh sách client...");
-            List<string> connectedClients = socket.GetConnectedClients();
+            List<string> connectedClients = socket?.GetConnectedClients() ?? new List<string>();
             //LogToTextBox($"Number of connected clients: {connectedClients.Count}");
 
             // Cập nhật lstClients trên giao diện
@@ -159,8 +173,11 @@ namespace WinFormServer
             {
                 try
                 {
-                    string selectedClient = lstClients.SelectedItem.ToString();
-                    socket.DisconnectClient(selectedClient, LogToTextBox);
+                    string? selectedClient = lstClients.SelectedItem?.ToString();
+                    if (selectedClient != null)
+                    {
+                        socket?.DisconnectClient(selectedClient, LogToTextBox);
+                    }
                     UpdateClientList();
                 }
                 catch (Exception ex)
