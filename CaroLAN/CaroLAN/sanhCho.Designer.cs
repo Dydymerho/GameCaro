@@ -293,7 +293,7 @@
             // colRoomId
             // 
             colRoomId.FillWeight = 20F;
-            colRoomId.HeaderText = "🎮 Phòng";
+            colRoomId.HeaderText = "Phòng";
             colRoomId.MinimumWidth = 6;
             colRoomId.Name = "colRoomId";
             colRoomId.ReadOnly = true;
@@ -301,7 +301,7 @@
             // colOpponent
             // 
             colOpponent.FillWeight = 30F;
-            colOpponent.HeaderText = "👤 Đối thủ";
+            colOpponent.HeaderText = "Đối thủ";
             colOpponent.MinimumWidth = 6;
             colOpponent.Name = "colOpponent";
             colOpponent.ReadOnly = true;
@@ -309,7 +309,7 @@
             // colResult
             // 
             colResult.FillWeight = 20F;
-            colResult.HeaderText = "🏆 Kết quả";
+            colResult.HeaderText = "Kết quả";
             colResult.MinimumWidth = 6;
             colResult.Name = "colResult";
             colResult.ReadOnly = true;
@@ -317,7 +317,7 @@
             // colDate
             // 
             colDate.FillWeight = 30F;
-            colDate.HeaderText = "📅 Thời gian";
+            colDate.HeaderText = "Thời gian";
             colDate.MinimumWidth = 6;
             colDate.Name = "colDate";
             colDate.ReadOnly = true;
@@ -343,9 +343,9 @@
             lblHistoryStats.Location = new Point(5, 5);
             lblHistoryStats.Name = "lblHistoryStats";
             lblHistoryStats.Padding = new Padding(5, 8, 0, 0);
-            lblHistoryStats.Size = new Size(304, 31);
+            lblHistoryStats.Size = new Size(275, 31);
             lblHistoryStats.TabIndex = 0;
-            lblHistoryStats.Text = "📊 Tổng: 0 trận | Thắng: 0 | Thua: 0";
+            lblHistoryStats.Text = "Tổng: 0 trận | Thắng: 0 | Thua: 0";
             // 
             // btnRefreshMy
             // 
@@ -360,7 +360,7 @@
             btnRefreshMy.Name = "btnRefreshMy";
             btnRefreshMy.Size = new Size(100, 35);
             btnRefreshMy.TabIndex = 1;
-            btnRefreshMy.Text = "🔄 Làm mới";
+            btnRefreshMy.Text = "🔄";
             btnRefreshMy.UseVisualStyleBackColor = false;
             btnRefreshMy.Click += btnRefreshMy_Click;
             // 

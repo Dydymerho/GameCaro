@@ -1299,7 +1299,8 @@ namespace CaroLAN
             if (string.IsNullOrEmpty(historyData))
             {
                 // Cập nhật stats
-                lblHistoryStats.Text = "📊 Tổng: 0 trận | Thắng: 0 | Thua: 0 | Hòa: 0";
+                lblHistoryStats.Text = "Tổng: 0 trận | Thắng: 0 | Thua: 0 | Hòa: 0";
+                lblStatus.Text = "Đã cập nhật lịch sử game";
                 return;
             }
 
@@ -1329,19 +1330,19 @@ namespace CaroLAN
                     Color resultColor;
                     if (winner == username)
                     {
-                        result = "🏆 THẮNG";
+                        result = "THẮNG";
                         resultColor = Color.FromArgb(46, 204, 113); // Xanh lá
                         wins++;
                     }
                     else if (winner == "Hòa")
                     {
-                        result = "🤝 HÒA";
+                        result = "HÒA";
                         resultColor = Color.FromArgb(149, 165, 166); // Xám
                         draws++;
                     }
                     else
                     {
-                        result = "💀 THUA";
+                        result = "THUA";
                         resultColor = Color.FromArgb(231, 76, 60); // Đỏ
                         losses++;
                     }
@@ -1360,7 +1361,7 @@ namespace CaroLAN
                         // Giữ nguyên format gốc nếu không parse được
                     }
 
-                    // Thêm row vào DataGridView (không có cột Duration nữa)
+                    // Thêm row vào DataGridView (không có emoji)
                     int rowIndex = dgvMyHistory.Rows.Add(roomId, opponent, result, displayTime);
                     
                     // Tô màu cho cột kết quả
@@ -1372,10 +1373,13 @@ namespace CaroLAN
             }
 
             // Cập nhật thống kê
-            lblHistoryStats.Text = $"📊 Tổng: {totalMatches} trận | Thắng: {wins} | Thua: {losses} | Hòa: {draws}";
+            lblHistoryStats.Text = $"Tổng: {totalMatches} trận | Thắng: {wins} | Thua: {losses} | Hòa: {draws}";
             
             // Style cho DataGridView
             StyleDataGridView();
+            
+            // ✅ Cập nhật status sau khi load xong
+            lblStatus.Text = "Đã cập nhật lịch sử game";
         }
 
         // ✅ Áp dụng style đẹp cho DataGridView
@@ -1432,6 +1436,7 @@ namespace CaroLAN
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi khi yêu cầu lịch sử: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = "Lỗi tải lịch sử";
             }
         }
 
