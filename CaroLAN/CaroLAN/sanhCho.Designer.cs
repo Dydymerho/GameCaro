@@ -42,7 +42,13 @@
             label3 = new Label();
             tabHistory = new TabControl();
             tabMyHistory = new TabPage();
-            lstMyHistory = new ListBox();
+            dgvMyHistory = new DataGridView();
+            colRoomId = new DataGridViewTextBoxColumn();
+            colOpponent = new DataGridViewTextBoxColumn();
+            colResult = new DataGridViewTextBoxColumn();
+            colDate = new DataGridViewTextBoxColumn();
+            panelHistoryControls = new Panel();
+            lblHistoryStats = new Label();
             btnRefreshMy = new Button();
             panelHeader = new Panel();
             lblTitle = new Label();
@@ -59,6 +65,8 @@
             lblQuickMatchTitle = new Label();
             tabHistory.SuspendLayout();
             tabMyHistory.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvMyHistory).BeginInit();
+            panelHistoryControls.SuspendLayout();
             panelHeader.SuspendLayout();
             panelConnection.SuspendLayout();
             panelStatusBar.SuspendLayout();
@@ -240,45 +248,119 @@
             tabHistory.Location = new Point(20, 50);
             tabHistory.Name = "tabHistory";
             tabHistory.SelectedIndex = 0;
-            tabHistory.Size = new Size(1100, 70);
+            tabHistory.Size = new Size(1100, 230);
             tabHistory.TabIndex = 1;
             // 
             // tabMyHistory
             // 
             tabMyHistory.BackColor = Color.FromArgb(250, 251, 252);
-            tabMyHistory.Controls.Add(lstMyHistory);
-            tabMyHistory.Controls.Add(btnRefreshMy);
+            tabMyHistory.Controls.Add(dgvMyHistory);
+            tabMyHistory.Controls.Add(panelHistoryControls);
             tabMyHistory.Location = new Point(4, 29);
             tabMyHistory.Name = "tabMyHistory";
-            tabMyHistory.Padding = new Padding(3);
-            tabMyHistory.Size = new Size(1092, 37);
+            tabMyHistory.Padding = new Padding(10);
+            tabMyHistory.Size = new Size(1092, 197);
             tabMyHistory.TabIndex = 1;
-            tabMyHistory.Text = "⭐ Của tôi";
+            tabMyHistory.Text = "⭐ Lịch sử của tôi";
             // 
-            // lstMyHistory
+            // dgvMyHistory
             // 
-            lstMyHistory.BackColor = Color.White;
-            lstMyHistory.BorderStyle = BorderStyle.FixedSingle;
-            lstMyHistory.Font = new Font("Segoe UI", 9F);
-            lstMyHistory.ForeColor = Color.FromArgb(44, 62, 80);
-            lstMyHistory.FormattingEnabled = true;
-            lstMyHistory.Location = new Point(6, 6);
-            lstMyHistory.Name = "lstMyHistory";
-            lstMyHistory.Size = new Size(1000, 22);
-            lstMyHistory.TabIndex = 0;
+            dgvMyHistory.AllowUserToAddRows = false;
+            dgvMyHistory.AllowUserToDeleteRows = false;
+            dgvMyHistory.AllowUserToResizeRows = false;
+            dgvMyHistory.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvMyHistory.BackgroundColor = Color.White;
+            dgvMyHistory.BorderStyle = BorderStyle.None;
+            dgvMyHistory.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvMyHistory.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dgvMyHistory.ColumnHeadersHeight = 35;
+            dgvMyHistory.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgvMyHistory.Columns.AddRange(new DataGridViewColumn[] { colRoomId, colOpponent, colResult, colDate });
+            dgvMyHistory.Dock = DockStyle.Fill;
+            dgvMyHistory.EnableHeadersVisualStyles = false;
+            dgvMyHistory.GridColor = Color.FromArgb(230, 230, 230);
+            dgvMyHistory.Location = new Point(10, 55);
+            dgvMyHistory.MultiSelect = false;
+            dgvMyHistory.Name = "dgvMyHistory";
+            dgvMyHistory.ReadOnly = true;
+            dgvMyHistory.RowHeadersVisible = false;
+            dgvMyHistory.RowHeadersWidth = 51;
+            dgvMyHistory.RowTemplate.Height = 30;
+            dgvMyHistory.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvMyHistory.Size = new Size(1072, 132);
+            dgvMyHistory.TabIndex = 1;
+            // 
+            // colRoomId
+            // 
+            colRoomId.FillWeight = 20F;
+            colRoomId.HeaderText = "🎮 Phòng";
+            colRoomId.MinimumWidth = 6;
+            colRoomId.Name = "colRoomId";
+            colRoomId.ReadOnly = true;
+            // 
+            // colOpponent
+            // 
+            colOpponent.FillWeight = 30F;
+            colOpponent.HeaderText = "👤 Đối thủ";
+            colOpponent.MinimumWidth = 6;
+            colOpponent.Name = "colOpponent";
+            colOpponent.ReadOnly = true;
+            // 
+            // colResult
+            // 
+            colResult.FillWeight = 20F;
+            colResult.HeaderText = "🏆 Kết quả";
+            colResult.MinimumWidth = 6;
+            colResult.Name = "colResult";
+            colResult.ReadOnly = true;
+            // 
+            // colDate
+            // 
+            colDate.FillWeight = 30F;
+            colDate.HeaderText = "📅 Thời gian";
+            colDate.MinimumWidth = 6;
+            colDate.Name = "colDate";
+            colDate.ReadOnly = true;
+            // 
+            // panelHistoryControls
+            // 
+            panelHistoryControls.BackColor = Color.White;
+            panelHistoryControls.Controls.Add(lblHistoryStats);
+            panelHistoryControls.Controls.Add(btnRefreshMy);
+            panelHistoryControls.Dock = DockStyle.Top;
+            panelHistoryControls.Location = new Point(10, 10);
+            panelHistoryControls.Name = "panelHistoryControls";
+            panelHistoryControls.Padding = new Padding(5);
+            panelHistoryControls.Size = new Size(1072, 45);
+            panelHistoryControls.TabIndex = 0;
+            // 
+            // lblHistoryStats
+            // 
+            lblHistoryStats.AutoSize = true;
+            lblHistoryStats.Dock = DockStyle.Left;
+            lblHistoryStats.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblHistoryStats.ForeColor = Color.FromArgb(52, 73, 94);
+            lblHistoryStats.Location = new Point(5, 5);
+            lblHistoryStats.Name = "lblHistoryStats";
+            lblHistoryStats.Padding = new Padding(5, 8, 0, 0);
+            lblHistoryStats.Size = new Size(304, 31);
+            lblHistoryStats.TabIndex = 0;
+            lblHistoryStats.Text = "📊 Tổng: 0 trận | Thắng: 0 | Thua: 0";
             // 
             // btnRefreshMy
             // 
             btnRefreshMy.BackColor = Color.FromArgb(46, 204, 113);
+            btnRefreshMy.Dock = DockStyle.Right;
             btnRefreshMy.FlatAppearance.BorderSize = 0;
             btnRefreshMy.FlatStyle = FlatStyle.Flat;
-            btnRefreshMy.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            btnRefreshMy.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             btnRefreshMy.ForeColor = Color.White;
-            btnRefreshMy.Location = new Point(1012, 6);
+            btnRefreshMy.Location = new Point(967, 5);
+            btnRefreshMy.Margin = new Padding(5);
             btnRefreshMy.Name = "btnRefreshMy";
-            btnRefreshMy.Size = new Size(74, 25);
+            btnRefreshMy.Size = new Size(100, 35);
             btnRefreshMy.TabIndex = 1;
-            btnRefreshMy.Text = "🔄 Mới";
+            btnRefreshMy.Text = "🔄 Làm mới";
             btnRefreshMy.UseVisualStyleBackColor = false;
             btnRefreshMy.Click += btnRefreshMy_Click;
             // 
@@ -353,7 +435,7 @@
             panelMain.Location = new Point(0, 140);
             panelMain.Name = "panelMain";
             panelMain.Padding = new Padding(30, 20, 30, 20);
-            panelMain.Size = new Size(1200, 580);
+            panelMain.Size = new Size(1200, 734);
             panelMain.TabIndex = 2;
             // 
             // panelHistory
@@ -365,7 +447,7 @@
             panelHistory.Location = new Point(30, 430);
             panelHistory.Name = "panelHistory";
             panelHistory.Padding = new Padding(20, 15, 20, 15);
-            panelHistory.Size = new Size(1140, 130);
+            panelHistory.Size = new Size(1140, 295);
             panelHistory.TabIndex = 2;
             // 
             // lblHistoryTitle
@@ -446,7 +528,7 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(1200, 720);
+            ClientSize = new Size(1200, 874);
             Controls.Add(panelMain);
             Controls.Add(panelStatusBar);
             Controls.Add(panelHeader);
@@ -458,6 +540,9 @@
             Load += sanhCho_Load;
             tabHistory.ResumeLayout(false);
             tabMyHistory.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgvMyHistory).EndInit();
+            panelHistoryControls.ResumeLayout(false);
+            panelHistoryControls.PerformLayout();
             panelHeader.ResumeLayout(false);
             panelHeader.PerformLayout();
             panelConnection.ResumeLayout(false);
@@ -506,7 +591,13 @@
         private Label label3;
         private TabControl tabHistory;
         private TabPage tabMyHistory;
-        private ListBox lstMyHistory;
+        private DataGridView dgvMyHistory;
+        private DataGridViewTextBoxColumn colRoomId;
+        private DataGridViewTextBoxColumn colOpponent;
+        private DataGridViewTextBoxColumn colResult;
+        private DataGridViewTextBoxColumn colDate;
+        private Panel panelHistoryControls;
+        private Label lblHistoryStats;
         private Button btnRefreshMy;
     }
 }

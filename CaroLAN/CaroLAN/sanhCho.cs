@@ -1294,15 +1294,21 @@ namespace CaroLAN
         // ✅ Cập nhật lịch sử đấu (của tôi)
         private void UpdateMyHistory(string historyData)
         {
-            lstMyHistory.Items.Clear();
+            dgvMyHistory.Rows.Clear();
             
             if (string.IsNullOrEmpty(historyData))
             {
-                lstMyHistory.Items.Add("Bạn chưa có lịch sử đấu nào.");
+                // Cập nhật stats
+                lblHistoryStats.Text = "📊 Tổng: 0 trận | Thắng: 0 | Thua: 0 | Hòa: 0";
                 return;
             }
 
             string[] matches = historyData.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            int totalMatches = 0;
+            int wins = 0;
+            int losses = 0;
+            int draws = 0;
+            
             foreach (string match in matches)
             {
                 string[] parts = match.Split('|');
@@ -1315,26 +1321,91 @@ namespace CaroLAN
                     string startedAt = parts[5];
                     string endedAt = parts[6];
 
+                    // Xác định đối thủ
+                    string opponent = (player1 == username) ? player2 : player1;
+                    
                     // Xác định kết quả của user hiện tại
-                    string result = "Hòa";
+                    string result;
+                    Color resultColor;
                     if (winner == username)
                     {
-                        result = "Thắng";
+                        result = "🏆 THẮNG";
+                        resultColor = Color.FromArgb(46, 204, 113); // Xanh lá
+                        wins++;
                     }
-                    else if (winner != "Hòa" && (player1 == username || player2 == username))
+                    else if (winner == "Hòa")
                     {
-                        result = "Thua";
+                        result = "🤝 HÒA";
+                        resultColor = Color.FromArgb(149, 165, 166); // Xám
+                        draws++;
+                    }
+                    else
+                    {
+                        result = "💀 THUA";
+                        resultColor = Color.FromArgb(231, 76, 60); // Đỏ
+                        losses++;
                     }
 
-                    string opponent = (player1 == username) ? player2 : player1;
-                    string displayText = $"[{roomId}] vs {opponent} | {result} | {endedAt}";
-                    lstMyHistory.Items.Add(displayText);
+                    // Format thời gian hiển thị
+                    string displayTime = endedAt;
+                    try
+                    {
+                        if (DateTime.TryParse(endedAt, out DateTime dt))
+                        {
+                            displayTime = dt.ToString("dd/MM/yyyy HH:mm");
+                        }
+                    }
+                    catch
+                    {
+                        // Giữ nguyên format gốc nếu không parse được
+                    }
+
+                    // Thêm row vào DataGridView (không có cột Duration nữa)
+                    int rowIndex = dgvMyHistory.Rows.Add(roomId, opponent, result, displayTime);
+                    
+                    // Tô màu cho cột kết quả
+                    dgvMyHistory.Rows[rowIndex].Cells[2].Style.ForeColor = resultColor;
+                    dgvMyHistory.Rows[rowIndex].Cells[2].Style.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                    
+                    totalMatches++;
                 }
             }
 
-            if (lstMyHistory.Items.Count == 0)
+            // Cập nhật thống kê
+            lblHistoryStats.Text = $"📊 Tổng: {totalMatches} trận | Thắng: {wins} | Thua: {losses} | Hòa: {draws}";
+            
+            // Style cho DataGridView
+            StyleDataGridView();
+        }
+
+        // ✅ Áp dụng style đẹp cho DataGridView
+        private void StyleDataGridView()
+        {
+            // Header style
+            dgvMyHistory.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(52, 73, 94);
+            dgvMyHistory.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvMyHistory.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            dgvMyHistory.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvMyHistory.ColumnHeadersDefaultCellStyle.Padding = new Padding(5);
+            
+            // Alternating row colors
+            dgvMyHistory.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(250, 251, 252);
+            dgvMyHistory.RowsDefaultCellStyle.BackColor = Color.White;
+            
+            // Selection style
+            dgvMyHistory.RowsDefaultCellStyle.SelectionBackColor = Color.FromArgb(52, 152, 219);
+            dgvMyHistory.RowsDefaultCellStyle.SelectionForeColor = Color.White;
+            
+            // General cell style
+            dgvMyHistory.DefaultCellStyle.Font = new Font("Segoe UI", 9F);
+            dgvMyHistory.DefaultCellStyle.ForeColor = Color.FromArgb(44, 62, 80);
+            dgvMyHistory.DefaultCellStyle.Padding = new Padding(5);
+            dgvMyHistory.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            
+            // Center align result column
+            if (dgvMyHistory.Columns.Count > 2)
             {
-                lstMyHistory.Items.Add("Bạn chưa có lịch sử đấu nào.");
+                dgvMyHistory.Columns[2].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter; // Result
             }
         }
 
