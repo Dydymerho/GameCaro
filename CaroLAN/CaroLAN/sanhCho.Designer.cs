@@ -95,17 +95,20 @@
             lstClients.Size = new Size(520, 140);
             lstClients.TabIndex = 1;
             // 
-            // txtIP
+            // btnConnect
             // 
-            txtIP.BackColor = Color.White;
-            txtIP.BorderStyle = BorderStyle.FixedSingle;
-            txtIP.Font = new Font("Segoe UI", 9F);
-            txtIP.Location = new Point(10, 27);
-            txtIP.Name = "txtIP";
-            txtIP.Size = new Size(95, 27);
-            txtIP.TabIndex = 1;
-            txtIP.Text = "127.0.0.1";
-            txtIP.TextAlign = HorizontalAlignment.Center;
+            btnConnect.BackColor = Color.FromArgb(46, 204, 113);
+            btnConnect.FlatAppearance.BorderSize = 0;
+            btnConnect.FlatStyle = FlatStyle.Flat;
+            btnConnect.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnConnect.ForeColor = Color.White;
+            btnConnect.Location = new Point(135, 27);
+            btnConnect.Name = "btnConnect";
+            btnConnect.Size = new Size(115, 27);
+            btnConnect.TabIndex = 2;
+            btnConnect.Text = "Kết nối";
+            btnConnect.UseVisualStyleBackColor = false;
+            btnConnect.Click += btnConnect_Click_1;
             // 
             // btnFindServers
             // 
@@ -122,20 +125,17 @@
             btnFindServers.UseVisualStyleBackColor = false;
             btnFindServers.Click += btnFindServers_Click;
             // 
-            // btnConnect
+            // txtIP
             // 
-            btnConnect.BackColor = Color.FromArgb(46, 204, 113);
-            btnConnect.FlatAppearance.BorderSize = 0;
-            btnConnect.FlatStyle = FlatStyle.Flat;
-            btnConnect.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnConnect.ForeColor = Color.White;
-            btnConnect.Location = new Point(135, 27);
-            btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(115, 27);
-            btnConnect.TabIndex = 2;
-            btnConnect.Text = "Kết nối";
-            btnConnect.UseVisualStyleBackColor = false;
-            btnConnect.Click += btnConnect_Click_1;
+            txtIP.BackColor = Color.White;
+            txtIP.BorderStyle = BorderStyle.FixedSingle;
+            txtIP.Font = new Font("Segoe UI", 9F);
+            txtIP.Location = new Point(10, 27);
+            txtIP.Name = "txtIP";
+            txtIP.Size = new Size(95, 27);
+            txtIP.TabIndex = 1;
+            txtIP.Text = "127.0.0.1";
+            txtIP.TextAlign = HorizontalAlignment.Center;
             // 
             // lblStatus
             // 

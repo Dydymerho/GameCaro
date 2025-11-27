@@ -31,8 +31,6 @@ namespace CaroLAN
             txtRegisterPassword = new TextBox();
             lblRegisterConfirmPassword = new Label();
             txtRegisterConfirmPassword = new TextBox();
-            lblRegisterEmail = new Label();
-            txtRegisterEmail = new TextBox();
             btnRegister = new Button();
             lblStatus = new Label();
             lblUserInfo = new Label();
@@ -42,8 +40,8 @@ namespace CaroLAN
             lblConnectionTitle = new Label();
             lblServerIP = new Label();
             txtServerIP = new TextBox();
-            btnFindServers = new Button();
             btnConnect = new Button();
+            btnFindServers = new Button();
             panelHeader = new Panel();
             lblTitle = new Label();
             tabControl1.SuspendLayout();
@@ -136,7 +134,7 @@ namespace CaroLAN
             btnLogin.Name = "btnLogin";
             btnLogin.Size = new Size(392, 45);
             btnLogin.TabIndex = 4;
-            btnLogin.Text = "🔓 ĐĂNG NHẬP";
+            btnLogin.Text = "ĐĂNG NHẬP";
             btnLogin.UseVisualStyleBackColor = false;
             btnLogin.Click += btnLogin_Click;
             // 
@@ -149,8 +147,6 @@ namespace CaroLAN
             tabPageRegister.Controls.Add(txtRegisterPassword);
             tabPageRegister.Controls.Add(lblRegisterConfirmPassword);
             tabPageRegister.Controls.Add(txtRegisterConfirmPassword);
-            tabPageRegister.Controls.Add(lblRegisterEmail);
-            tabPageRegister.Controls.Add(txtRegisterEmail);
             tabPageRegister.Controls.Add(btnRegister);
             tabPageRegister.Location = new Point(4, 32);
             tabPageRegister.Name = "tabPageRegister";
@@ -177,7 +173,7 @@ namespace CaroLAN
             txtRegisterUsername.Font = new Font("Segoe UI", 10F);
             txtRegisterUsername.Location = new Point(20, 37);
             txtRegisterUsername.Name = "txtRegisterUsername";
-            txtRegisterUsername.Size = new Size(190, 30);
+            txtRegisterUsername.Size = new Size(392, 30);
             txtRegisterUsername.TabIndex = 1;
             // 
             // lblRegisterPassword
@@ -185,7 +181,7 @@ namespace CaroLAN
             lblRegisterPassword.AutoSize = true;
             lblRegisterPassword.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblRegisterPassword.ForeColor = Color.FromArgb(52, 73, 94);
-            lblRegisterPassword.Location = new Point(222, 15);
+            lblRegisterPassword.Location = new Point(20, 69);
             lblRegisterPassword.Name = "lblRegisterPassword";
             lblRegisterPassword.Size = new Size(75, 20);
             lblRegisterPassword.TabIndex = 2;
@@ -196,10 +192,10 @@ namespace CaroLAN
             txtRegisterPassword.BackColor = Color.FromArgb(250, 251, 252);
             txtRegisterPassword.BorderStyle = BorderStyle.FixedSingle;
             txtRegisterPassword.Font = new Font("Segoe UI", 10F);
-            txtRegisterPassword.Location = new Point(222, 37);
+            txtRegisterPassword.Location = new Point(20, 91);
             txtRegisterPassword.Name = "txtRegisterPassword";
             txtRegisterPassword.PasswordChar = '●';
-            txtRegisterPassword.Size = new Size(190, 30);
+            txtRegisterPassword.Size = new Size(392, 30);
             txtRegisterPassword.TabIndex = 3;
             // 
             // lblRegisterConfirmPassword
@@ -207,7 +203,7 @@ namespace CaroLAN
             lblRegisterConfirmPassword.AutoSize = true;
             lblRegisterConfirmPassword.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblRegisterConfirmPassword.ForeColor = Color.FromArgb(52, 73, 94);
-            lblRegisterConfirmPassword.Location = new Point(20, 75);
+            lblRegisterConfirmPassword.Location = new Point(20, 124);
             lblRegisterConfirmPassword.Name = "lblRegisterConfirmPassword";
             lblRegisterConfirmPassword.Size = new Size(143, 20);
             lblRegisterConfirmPassword.TabIndex = 4;
@@ -218,32 +214,11 @@ namespace CaroLAN
             txtRegisterConfirmPassword.BackColor = Color.FromArgb(250, 251, 252);
             txtRegisterConfirmPassword.BorderStyle = BorderStyle.FixedSingle;
             txtRegisterConfirmPassword.Font = new Font("Segoe UI", 10F);
-            txtRegisterConfirmPassword.Location = new Point(20, 97);
+            txtRegisterConfirmPassword.Location = new Point(20, 146);
             txtRegisterConfirmPassword.Name = "txtRegisterConfirmPassword";
             txtRegisterConfirmPassword.PasswordChar = '●';
             txtRegisterConfirmPassword.Size = new Size(392, 30);
             txtRegisterConfirmPassword.TabIndex = 5;
-            // 
-            // lblRegisterEmail
-            // 
-            lblRegisterEmail.AutoSize = true;
-            lblRegisterEmail.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblRegisterEmail.ForeColor = Color.FromArgb(52, 73, 94);
-            lblRegisterEmail.Location = new Point(20, 135);
-            lblRegisterEmail.Name = "lblRegisterEmail";
-            lblRegisterEmail.Size = new Size(124, 20);
-            lblRegisterEmail.TabIndex = 6;
-            lblRegisterEmail.Text = "Email (tùy chọn)";
-            // 
-            // txtRegisterEmail
-            // 
-            txtRegisterEmail.BackColor = Color.FromArgb(250, 251, 252);
-            txtRegisterEmail.BorderStyle = BorderStyle.FixedSingle;
-            txtRegisterEmail.Font = new Font("Segoe UI", 10F);
-            txtRegisterEmail.Location = new Point(20, 157);
-            txtRegisterEmail.Name = "txtRegisterEmail";
-            txtRegisterEmail.Size = new Size(392, 30);
-            txtRegisterEmail.TabIndex = 7;
             // 
             // btnRegister
             // 
@@ -256,7 +231,7 @@ namespace CaroLAN
             btnRegister.Name = "btnRegister";
             btnRegister.Size = new Size(392, 40);
             btnRegister.TabIndex = 8;
-            btnRegister.Text = "✅ ĐĂNG KÝ";
+            btnRegister.Text = "ĐĂNG KÝ";
             btnRegister.UseVisualStyleBackColor = false;
             btnRegister.Click += btnRegister_Click;
             // 
@@ -360,21 +335,6 @@ namespace CaroLAN
             txtServerIP.TextAlign = HorizontalAlignment.Center;
             txtServerIP.TextChanged += txtServerIP_TextChanged;
             // 
-            // btnFindServers
-            // 
-            btnFindServers.BackColor = Color.FromArgb(230, 126, 34);
-            btnFindServers.FlatAppearance.BorderSize = 0;
-            btnFindServers.FlatStyle = FlatStyle.Flat;
-            btnFindServers.Font = new Font("Segoe UI", 7F, FontStyle.Bold);
-            btnFindServers.ForeColor = Color.White;
-            btnFindServers.Location = new Point(105, 20);
-            btnFindServers.Name = "btnFindServers";
-            btnFindServers.Size = new Size(20, 25);
-            btnFindServers.TabIndex = 4;
-            btnFindServers.Text = "🔍";
-            btnFindServers.UseVisualStyleBackColor = false;
-            btnFindServers.Click += btnFindServers_Click;
-            // 
             // btnConnect
             // 
             btnConnect.BackColor = Color.FromArgb(46, 204, 113);
@@ -389,6 +349,21 @@ namespace CaroLAN
             btnConnect.Text = "Kết nối";
             btnConnect.UseVisualStyleBackColor = false;
             btnConnect.Click += btnConnect_Click;
+            // 
+            // btnFindServers
+            // 
+            btnFindServers.BackColor = Color.FromArgb(230, 126, 34);
+            btnFindServers.FlatAppearance.BorderSize = 0;
+            btnFindServers.FlatStyle = FlatStyle.Flat;
+            btnFindServers.Font = new Font("Segoe UI", 7F, FontStyle.Bold);
+            btnFindServers.ForeColor = Color.White;
+            btnFindServers.Location = new Point(105, 20);
+            btnFindServers.Name = "btnFindServers";
+            btnFindServers.Size = new Size(20, 25);
+            btnFindServers.TabIndex = 4;
+            btnFindServers.Text = "🔍";
+            btnFindServers.UseVisualStyleBackColor = false;
+            btnFindServers.Click += btnFindServers_Click;
             // 
             // panelHeader
             // 
@@ -455,8 +430,6 @@ namespace CaroLAN
         private System.Windows.Forms.Label lblLoginUsername;
         private System.Windows.Forms.TabPage tabPageRegister;
         private System.Windows.Forms.Button btnRegister;
-        private System.Windows.Forms.TextBox txtRegisterEmail;
-        private System.Windows.Forms.Label lblRegisterEmail;
         private System.Windows.Forms.TextBox txtRegisterConfirmPassword;
         private System.Windows.Forms.Label lblRegisterConfirmPassword;
         private System.Windows.Forms.TextBox txtRegisterPassword;
