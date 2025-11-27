@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions; // ✅ Thêm namespace cho Regex
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -35,6 +36,9 @@ namespace CaroLAN
         
         // ✅ Queue chứa message từ LoginForm
         private Queue<string> pendingMessages;
+
+        // ✅ Thêm Regex pattern cho CLIENT_LIST
+        private static readonly Regex ClientListRegex = new Regex(@"^CLIENT_LIST:(.*)$", RegexOptions.Compiled);
 
         public sanhCho() : this(string.Empty, string.Empty, null, null)
         {
@@ -431,14 +435,22 @@ namespace CaroLAN
                         }
 
                         // Xử lý danh sách client (chỉ khi không trong phòng)
-                        if (data.StartsWith("CLIENT_LIST:") && !isInRoom)
+                        if (!isInRoom)
                         {
-                            System.Diagnostics.Debug.WriteLine($"📥 Nhận CLIENT_LIST: {data}");
-                            string[] clients = data.Substring("CLIENT_LIST:".Length).Split(',');
-                            Invoke(new Action(() =>
+                            Match clientListMatch = ClientListRegex.Match(data);
+                            if (clientListMatch.Success)
                             {
-                                UpdateClientList(clients);
-                            }));
+                                string clientData = clientListMatch.Groups[1].Value;
+                                string[] clients = string.IsNullOrEmpty(clientData) 
+                                    ? Array.Empty<string>() 
+                                    : clientData.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                                
+                                Invoke(new Action(() =>
+                                {
+                                    UpdateClientList(clients);
+                                }));
+                                continue; // ✅ Đã xử lý xong, tiếp tục loop
+                            }
                         }
 
                         // ✅ Xử lý lịch sử đấu (của tôi)
