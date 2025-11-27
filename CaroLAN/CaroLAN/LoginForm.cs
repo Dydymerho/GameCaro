@@ -10,6 +10,7 @@ namespace CaroLAN
         private readonly SocketManager socket;
         private Thread? listenThread;
         private CancellationTokenSource cancellationTokenSource;
+        private ServerDiscoveryClient? serverDiscovery; // ✅ Server discovery client
 
         private bool isLoggedIn;
         private string currentUsername = string.Empty;
@@ -19,12 +20,12 @@ namespace CaroLAN
         private int wins;
         private int losses;
 
-        private void LoginForm_Load(object sender, EventArgs e)
+        private void LoginForm_Load(object? sender, EventArgs? e)
         {
             // Nếu đã nhập sẵn IP thì tự động connect
             if (!string.IsNullOrWhiteSpace(txtServerIP.Text))
             {
-                btnConnect_Click(null, null);  // Tự động kết nối khi form chạy
+                btnConnect_Click(this, EventArgs.Empty);  // Tự động kết nối khi form chạy
             }
         }
 
@@ -34,9 +35,147 @@ namespace CaroLAN
             InitializeComponent();
             socket = new SocketManager();
             cancellationTokenSource = new CancellationTokenSource();
+            serverDiscovery = new ServerDiscoveryClient(); // ✅ Khởi tạo server discovery
             lblStatus.Text = "Chưa kết nối";
 
             this.Load += LoginForm_Load; // auto connect to localhost
+        }
+
+        /// <summary>
+        /// ✅ Xử lý nút tìm server
+        /// </summary>
+        private void btnFindServers_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                lblStatus.Text = "🔍 Đang tìm server...";
+                btnFindServers.Enabled = false;
+                Application.DoEvents();
+
+                List<DiscoveredServer> foundServers = new List<DiscoveredServer>();
+
+                serverDiscovery?.StartDiscovery(
+                    onServerFound: (server) =>
+                    {
+                        // Callback khi tìm thấy server mới
+                        foundServers.Add(server);
+                    },
+                    onDiscoveryComplete: (servers) =>
+                    {
+                        // Callback khi quét xong
+                        Invoke(new Action(() =>
+                        {
+                            btnFindServers.Enabled = true;
+
+                            if (servers.Count == 0)
+                            {
+                                lblStatus.Text = "Không tìm thấy server nào";
+                                MessageBox.Show("Không tìm thấy server trong mạng LAN.\n\nVui lòng đảm bảo:\n- Server đã được bật\n- Cả server và client trong cùng mạng LAN\n- Firewall không chặn kết nối",
+                                    "Không tìm thấy server",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                            }
+                            else if (servers.Count == 1)
+                            {
+                                // Chỉ có 1 server, tự động điền IP
+                                txtServerIP.Text = servers[0].IPAddress;
+                                lblStatus.Text = $"✅ Tìm thấy: {servers[0].ServerName}";
+                                MessageBox.Show($"Đã tìm thấy server:\n{servers[0].ServerName}\n{servers[0].IPAddress}:{servers[0].Port}",
+                                    "Tìm thấy server",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                            }
+                            else
+                            {
+                                // Nhiều server, cho phép chọn
+                                ShowServerSelectionDialog(servers);
+                            }
+                        }));
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Lỗi khi tìm server";
+                btnFindServers.Enabled = true;
+                MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// ✅ Hiển thị dialog để chọn server khi tìm thấy nhiều server
+        /// </summary>
+        private void ShowServerSelectionDialog(List<DiscoveredServer> servers)
+        {
+            Form selectionForm = new Form
+            {
+                Text = "Chọn server",
+                Width = 400,
+                Height = 300,
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            Label lblInfo = new Label
+            {
+                Text = $"Tìm thấy {servers.Count} server trong mạng LAN:",
+                Location = new Point(20, 20),
+                AutoSize = true
+            };
+
+            ListBox lstServers = new ListBox
+            {
+                Location = new Point(20, 50),
+                Width = 340,
+                Height = 150
+            };
+
+            foreach (var server in servers)
+            {
+                lstServers.Items.Add(server);
+            }
+
+            if (lstServers.Items.Count > 0)
+            {
+                lstServers.SelectedIndex = 0;
+            }
+
+            Button btnSelect = new Button
+            {
+                Text = "Chọn",
+                Location = new Point(180, 215),
+                Width = 80,
+                DialogResult = DialogResult.OK
+            };
+
+            Button btnCancel = new Button
+            {
+                Text = "Hủy",
+                Location = new Point(270, 215),
+                Width = 80,
+                DialogResult = DialogResult.Cancel
+            };
+
+            selectionForm.Controls.Add(lblInfo);
+            selectionForm.Controls.Add(lstServers);
+            selectionForm.Controls.Add(btnSelect);
+            selectionForm.Controls.Add(btnCancel);
+
+            selectionForm.AcceptButton = btnSelect;
+            selectionForm.CancelButton = btnCancel;
+
+            if (selectionForm.ShowDialog() == DialogResult.OK && lstServers.SelectedItem != null)
+            {
+                DiscoveredServer selected = (DiscoveredServer)lstServers.SelectedItem;
+                txtServerIP.Text = selected.IPAddress;
+                lblStatus.Text = $"✅ Đã chọn: {selected.ServerName}";
+            }
+            else
+            {
+                lblStatus.Text = "Đã hủy chọn server";
+            }
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -319,6 +458,9 @@ namespace CaroLAN
                 {
                     listenThread.Join(1000);
                 }
+                
+                // ✅ Dừng server discovery nếu đang chạy
+                serverDiscovery?.StopDiscovery();
             }
             catch
             {

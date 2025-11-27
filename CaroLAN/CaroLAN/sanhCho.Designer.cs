@@ -31,6 +31,7 @@
             label1 = new Label();
             lstClients = new ListBox();
             btnConnect = new Button();
+            btnFindServers = new Button();
             txtIP = new TextBox();
             lblStatus = new Label();
             button3 = new Button();
@@ -94,21 +95,6 @@
             lstClients.Size = new Size(520, 140);
             lstClients.TabIndex = 1;
             // 
-            // btnConnect
-            // 
-            btnConnect.BackColor = Color.FromArgb(46, 204, 113);
-            btnConnect.FlatAppearance.BorderSize = 0;
-            btnConnect.FlatStyle = FlatStyle.Flat;
-            btnConnect.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnConnect.ForeColor = Color.White;
-            btnConnect.Location = new Point(130, 27);
-            btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(120, 27);
-            btnConnect.TabIndex = 2;
-            btnConnect.Text = "Kết nối";
-            btnConnect.UseVisualStyleBackColor = false;
-            btnConnect.Click += btnConnect_Click_1;
-            // 
             // txtIP
             // 
             txtIP.BackColor = Color.White;
@@ -116,11 +102,40 @@
             txtIP.Font = new Font("Segoe UI", 9F);
             txtIP.Location = new Point(10, 27);
             txtIP.Name = "txtIP";
-            txtIP.ReadOnly = true;
-            txtIP.Size = new Size(115, 27);
+            txtIP.Size = new Size(95, 27);
             txtIP.TabIndex = 1;
             txtIP.Text = "127.0.0.1";
             txtIP.TextAlign = HorizontalAlignment.Center;
+            // 
+            // btnFindServers
+            // 
+            btnFindServers.BackColor = Color.FromArgb(230, 126, 34);
+            btnFindServers.FlatAppearance.BorderSize = 0;
+            btnFindServers.FlatStyle = FlatStyle.Flat;
+            btnFindServers.Font = new Font("Segoe UI", 7F, FontStyle.Bold);
+            btnFindServers.ForeColor = Color.White;
+            btnFindServers.Location = new Point(110, 27);
+            btnFindServers.Name = "btnFindServers";
+            btnFindServers.Size = new Size(20, 27);
+            btnFindServers.TabIndex = 4;
+            btnFindServers.Text = "🔍";
+            btnFindServers.UseVisualStyleBackColor = false;
+            btnFindServers.Click += btnFindServers_Click;
+            // 
+            // btnConnect
+            // 
+            btnConnect.BackColor = Color.FromArgb(46, 204, 113);
+            btnConnect.FlatAppearance.BorderSize = 0;
+            btnConnect.FlatStyle = FlatStyle.Flat;
+            btnConnect.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnConnect.ForeColor = Color.White;
+            btnConnect.Location = new Point(135, 27);
+            btnConnect.Name = "btnConnect";
+            btnConnect.Size = new Size(115, 27);
+            btnConnect.TabIndex = 2;
+            btnConnect.Text = "Kết nối";
+            btnConnect.UseVisualStyleBackColor = false;
+            btnConnect.Click += btnConnect_Click_1;
             // 
             // lblStatus
             // 
@@ -297,6 +312,7 @@
             panelConnection.BackColor = Color.FromArgb(52, 152, 219);
             panelConnection.Controls.Add(lblConnectionTitle);
             panelConnection.Controls.Add(txtIP);
+            panelConnection.Controls.Add(btnFindServers);
             panelConnection.Controls.Add(btnConnect);
             panelConnection.Dock = DockStyle.Right;
             panelConnection.Location = new Point(920, 15);
@@ -479,6 +495,7 @@
         private Label label1;
         private ListBox lstClients;
         private Button btnConnect;
+        private Button btnFindServers;
         private TextBox txtIP;
         private Label lblStatus;
         private Button button3;

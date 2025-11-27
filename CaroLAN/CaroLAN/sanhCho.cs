@@ -18,6 +18,7 @@ namespace CaroLAN
         private readonly SocketManager socket;
         Thread listenThread;
         private CancellationTokenSource cancellationTokenSource;
+        private ServerDiscoveryClient? serverDiscovery; // ✅ Server discovery client
 
         private string currentRoomId;
         private bool isInRoom = false;
@@ -49,6 +50,7 @@ namespace CaroLAN
             receivedInvitations = new Dictionary<string, string>();
             invitationTimestamps = new Dictionary<string, DateTime>();
             cancellationTokenSource = new CancellationTokenSource();
+            serverDiscovery = new ServerDiscoveryClient(); // ✅ Khởi tạo server discovery
 
             FormClosing += sanhCho_FormClosing;
 
@@ -736,11 +738,192 @@ namespace CaroLAN
                     listenThread.Join(1000); // Đợi tối đa 1 giây
                 }
 
+                // ✅ Dừng server discovery nếu đang chạy
+                serverDiscovery?.StopDiscovery();
+
                 socket.Disconnect();
             }
             catch
             {
                 // Ignore errors when closing
+            }
+        }
+
+        /// <summary>
+        /// ✅ Xử lý nút tìm server - giúp tự động tìm server trong mạng LAN
+        /// </summary>
+        private void btnFindServers_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                lblStatus.Text = "🔍 Đang tìm server trong mạng LAN...";
+                btnFindServers.Enabled = false;
+                Application.DoEvents();
+
+                List<DiscoveredServer> foundServers = new List<DiscoveredServer>();
+
+                serverDiscovery?.StartDiscovery(
+                    onServerFound: (server) =>
+                    {
+                        // Callback khi tìm thấy server mới
+                        foundServers.Add(server);
+                        Invoke(new Action(() =>
+                        {
+                            lblStatus.Text = $"🔍 Đã tìm thấy {foundServers.Count} server...";
+                        }));
+                    },
+                    onDiscoveryComplete: (servers) =>
+                    {
+                        // Callback khi quét xong
+                        Invoke(new Action(() =>
+                        {
+                            btnFindServers.Enabled = true;
+
+                            if (servers.Count == 0)
+                            {
+                                lblStatus.Text = "❌ Không tìm thấy server nào";
+                                MessageBox.Show(
+                                    "Không tìm thấy server trong mạng LAN.\n\n" +
+                                    "Vui lòng đảm bảo:\n" +
+                                    "✓ Server đã được bật\n" +
+                                    "✓ Cả server và client trong cùng mạng LAN\n" +
+                                    "✓ Firewall không chặn kết nối (port 9998 và 9999)",
+                                    "Không tìm thấy server",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                            }
+                            else if (servers.Count == 1)
+                            {
+                                // Chỉ có 1 server, tự động điền IP
+                                txtIP.Text = servers[0].IPAddress;
+                                lblStatus.Text = $"✅ Tìm thấy: {servers[0].ServerName}";
+                                
+                                var result = MessageBox.Show(
+                                    $"Đã tìm thấy server:\n\n" +
+                                    $"📌 Tên: {servers[0].ServerName}\n" +
+                                    $"📍 Địa chỉ: {servers[0].IPAddress}:{servers[0].Port}\n\n" +
+                                    $"Bạn có muốn kết nối ngay không?",
+                                    "Tìm thấy server",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Question);
+
+                                if (result == DialogResult.Yes)
+                                {
+                                    ConnectToServer();
+                                }
+                            }
+                            else
+                            {
+                                // Nhiều server, cho phép chọn
+                                lblStatus.Text = $"✅ Tìm thấy {servers.Count} server";
+                                ShowServerSelectionDialog(servers);
+                            }
+                        }));
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "❌ Lỗi khi tìm server";
+                btnFindServers.Enabled = true;
+                MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// ✅ Hiển thị dialog để chọn server khi tìm thấy nhiều server
+        /// </summary>
+        private void ShowServerSelectionDialog(List<DiscoveredServer> servers)
+        {
+            Form selectionForm = new Form
+            {
+                Text = "Chọn server để kết nối",
+                Width = 450,
+                Height = 350,
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                BackColor = Color.FromArgb(245, 247, 250)
+            };
+
+            Label lblInfo = new Label
+            {
+                Text = $"🎮 Tìm thấy {servers.Count} server trong mạng LAN:",
+                Location = new Point(20, 20),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.FromArgb(52, 73, 94)
+            };
+
+            ListBox lstServers = new ListBox
+            {
+                Location = new Point(20, 50),
+                Width = 390,
+                Height = 200,
+                Font = new Font("Segoe UI", 9),
+                BackColor = Color.FromArgb(250, 251, 252),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            foreach (var server in servers)
+            {
+                lstServers.Items.Add(server);
+            }
+
+            if (lstServers.Items.Count > 0)
+            {
+                lstServers.SelectedIndex = 0;
+            }
+
+            Button btnSelect = new Button
+            {
+                Text = "✅ Kết nối",
+                Location = new Point(200, 265),
+                Width = 100,
+                Height = 35,
+                DialogResult = DialogResult.OK,
+                BackColor = Color.FromArgb(46, 204, 113),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            btnSelect.FlatAppearance.BorderSize = 0;
+
+            Button btnCancel = new Button
+            {
+                Text = "❌ Hủy",
+                Location = new Point(310, 265),
+                Width = 100,
+                Height = 35,
+                DialogResult = DialogResult.Cancel,
+                BackColor = Color.FromArgb(231, 76, 60),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            btnCancel.FlatAppearance.BorderSize = 0;
+
+            selectionForm.Controls.Add(lblInfo);
+            selectionForm.Controls.Add(lstServers);
+            selectionForm.Controls.Add(btnSelect);
+            selectionForm.Controls.Add(btnCancel);
+
+            selectionForm.AcceptButton = btnSelect;
+            selectionForm.CancelButton = btnCancel;
+
+            if (selectionForm.ShowDialog() == DialogResult.OK && lstServers.SelectedItem != null)
+            {
+                DiscoveredServer selected = (DiscoveredServer)lstServers.SelectedItem;
+                txtIP.Text = selected.IPAddress;
+                lblStatus.Text = $"✅ Đã chọn: {selected.ServerName}";
+                
+                // Tự động kết nối
+                ConnectToServer();
+            }
+            else
+            {
+                lblStatus.Text = "Đã hủy chọn server";
             }
         }
 

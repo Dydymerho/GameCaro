@@ -42,6 +42,7 @@ namespace CaroLAN
             lblConnectionTitle = new Label();
             lblServerIP = new Label();
             txtServerIP = new TextBox();
+            btnFindServers = new Button();
             btnConnect = new Button();
             panelHeader = new Panel();
             lblTitle = new Label();
@@ -316,6 +317,7 @@ namespace CaroLAN
             panelConnection.Controls.Add(lblServerIP);
             panelConnection.Controls.Add(txtServerIP);
             panelConnection.Controls.Add(btnConnect);
+            panelConnection.Controls.Add(btnFindServers);
             panelConnection.Dock = DockStyle.Right;
             panelConnection.Location = new Point(240, 15);
             panelConnection.Name = "panelConnection";
@@ -352,11 +354,26 @@ namespace CaroLAN
             txtServerIP.Font = new Font("Segoe UI", 8F);
             txtServerIP.Location = new Point(30, 20);
             txtServerIP.Name = "txtServerIP";
-            txtServerIP.Size = new Size(90, 25);
+            txtServerIP.Size = new Size(70, 25);
             txtServerIP.TabIndex = 2;
             txtServerIP.Text = "127.0.0.1";
             txtServerIP.TextAlign = HorizontalAlignment.Center;
             txtServerIP.TextChanged += txtServerIP_TextChanged;
+            // 
+            // btnFindServers
+            // 
+            btnFindServers.BackColor = Color.FromArgb(230, 126, 34);
+            btnFindServers.FlatAppearance.BorderSize = 0;
+            btnFindServers.FlatStyle = FlatStyle.Flat;
+            btnFindServers.Font = new Font("Segoe UI", 7F, FontStyle.Bold);
+            btnFindServers.ForeColor = Color.White;
+            btnFindServers.Location = new Point(105, 20);
+            btnFindServers.Name = "btnFindServers";
+            btnFindServers.Size = new Size(20, 25);
+            btnFindServers.TabIndex = 4;
+            btnFindServers.Text = "🔍";
+            btnFindServers.UseVisualStyleBackColor = false;
+            btnFindServers.Click += btnFindServers_Click;
             // 
             // btnConnect
             // 
@@ -365,9 +382,9 @@ namespace CaroLAN
             btnConnect.FlatStyle = FlatStyle.Flat;
             btnConnect.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
             btnConnect.ForeColor = Color.White;
-            btnConnect.Location = new Point(125, 20);
+            btnConnect.Location = new Point(130, 20);
             btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(105, 25);
+            btnConnect.Size = new Size(100, 25);
             btnConnect.TabIndex = 3;
             btnConnect.Text = "Kết nối";
             btnConnect.UseVisualStyleBackColor = false;
@@ -453,6 +470,7 @@ namespace CaroLAN
         private Label lblServerIP;
         private TextBox txtServerIP;
         private Button btnConnect;
+        private Button btnFindServers;
         private Panel panelHeader;
         private Label lblTitle;
     }
