@@ -340,13 +340,16 @@ namespace WinFormServer
                         cmd.Parameters.AddWithValue("@winner_id", winnerId == null ? DBNull.Value : winnerId);
                         
                         int result = cmd.ExecuteNonQuery();
+                        System.Diagnostics.Debug.WriteLine($"[SaveMatchHistory] Room: {roomId}, P1: {player1Id}, P2: {player2Id}, Winner: {winnerId}, Result: {result}");
                         return result > 0;
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Bỏ qua lỗi
+                // Log lỗi để debug
+                System.Diagnostics.Debug.WriteLine($"[SaveMatchHistory] ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SaveMatchHistory] StackTrace: {ex.StackTrace}");
                 return false;
             }
         }

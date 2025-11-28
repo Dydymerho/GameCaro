@@ -568,6 +568,9 @@ namespace WinFormServer
         // ✅ Hàm helper xử lý khi game kết thúc
         private void HandleGameEnd(GameRoom room, GameMoveResult result, Action<string> logAction)
         {
+            // ✅ Đánh dấu game đã kết thúc để tránh lưu lịch sử lần 2 khi leave room
+            room.IsGameStarted = false;
+            
             if (result.EndReason == GameEndReason.FiveInRow && result.Winner != null && result.Loser != null)
             {
                 // Gửi thông báo
@@ -601,6 +604,9 @@ namespace WinFormServer
             {
                 var room = roomManager.GetPlayerRoom(resignerSocket);
                 if (room == null || !room.IsGameStarted) return;
+
+                // ✅ Đánh dấu game đã kết thúc để tránh lưu lịch sử lần 2 khi leave room
+                room.IsGameStarted = false;
 
                 // ✅ XỬ LÝ ĐẦU HÀNG QUA GAMEENGINE
                 var result = gameEngine.ProcessResign(room, resignerSocket, GetAuthenticatedUser);
@@ -640,12 +646,18 @@ namespace WinFormServer
                 if (room != null)
                 {
                     string roomId = room.RoomId;
+                    
+                    // ✅ Chỉ xử lý nếu game đang diễn ra (chưa kết thúc)
+                    bool wasGameInProgress = room.IsGameStarted;
 
                     // ✅ XỬ LÝ RỜI PHÒNG QUA GAMEENGINE
                     var result = gameEngine.ProcessDisconnect(room, clientSocket, GetAuthenticatedUser);
 
-                    if (result != null)
+                    if (result != null && wasGameInProgress)
                     {
+                        // ✅ Đánh dấu game đã kết thúc
+                        room.IsGameStarted = false;
+                        
                         // Game đã bắt đầu → có winner/loser
                         SendHistoryToUser(result.Winner, logAction);
                         SendHistoryToUser(result.Loser, logAction);
