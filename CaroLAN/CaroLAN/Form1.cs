@@ -18,11 +18,10 @@ namespace CaroLAN
         private System.Windows.Forms.Timer turnTimer;
         private bool iAmPlayerX;
 
-        // Màu sắc chính
-        private readonly Color ColorX = Color.FromArgb(70, 130, 180); // Steel Blue
-        private readonly Color ColorO = Color.FromArgb(220, 20, 60);  // Crimson
-        private readonly Color ColorActive = Color.FromArgb(240, 248, 255); // Alice Blue - màu active
-        private readonly Color ColorInactive = Color.White; // Trắng - màu inactive
+        private readonly Color ColorX = Color.FromArgb(70, 130, 180);
+        private readonly Color ColorO = Color.FromArgb(220, 20, 60);
+        private readonly Color ColorActive = Color.FromArgb(240, 248, 255);
+        private readonly Color ColorInactive = Color.White;
 
         public Form1(string roomId, SocketManager socket, bool startFirst)
         {
@@ -40,16 +39,13 @@ namespace CaroLAN
             chessBoard.PlayerClicked += ChessBoard_PlayerClicked;
             chessBoard.GameEnded += ChessBoard_GameEnded;
 
-            // Vẽ icon X và O trong PictureBox
             DrawXIcon();
             DrawOIcon();
 
-            // ✅ Cập nhật UI cho 2 người chơi
             lblRoom.Text = $"🎯 Phòng: {roomId}";
 
             if (iAmPlayerX)
             {
-                // Tôi là X - đi trước
                 lblPlayerX.Text = "Bạn";
                 lblPlayerO.Text = "Đối thủ";
                 lblPlayerXStatus.Text = "⚡ Đang chơi";
@@ -58,12 +54,11 @@ namespace CaroLAN
             }
             else
             {
-                // Tôi là O - đi sau
                 lblPlayerX.Text = "Đối thủ";
                 lblPlayerO.Text = "Bạn";
                 lblPlayerXStatus.Text = "⚡ Đang chơi";
                 lblPlayerOStatus.Text = "⏳ Chờ lượt";
-                pnlPlayerX.BackColor = ColorActive; // X đi trước
+                pnlPlayerX.BackColor = ColorActive;
             }
 
             lblTimer.Text = "⏰ --";
@@ -71,7 +66,6 @@ namespace CaroLAN
             InitTimer();
             StartListening();
 
-            // Chat input enter handler
             try
             {
                 txtChatInput.KeyDown += TxtChatInput_KeyDown;
@@ -79,7 +73,6 @@ namespace CaroLAN
             catch { }
         }
 
-        // Vẽ hình X trong PictureBox
         private void DrawXIcon()
         {
             Bitmap bmp = new Bitmap(picPlayerX.Width, picPlayerX.Height);
@@ -93,7 +86,6 @@ namespace CaroLAN
                     pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
                     pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
 
-                    // Vẽ X
                     g.DrawLine(pen, 15, 15, 55, 55);
                     g.DrawLine(pen, 55, 15, 15, 55);
                 }
@@ -101,7 +93,6 @@ namespace CaroLAN
             picPlayerX.Image = bmp;
         }
 
-        // Vẽ hình O trong PictureBox
         private void DrawOIcon()
         {
             Bitmap bmp = new Bitmap(picPlayerO.Width, picPlayerO.Height);
@@ -112,19 +103,16 @@ namespace CaroLAN
 
                 using (Pen pen = new Pen(Color.White, 8))
                 {
-                    // Vẽ O
                     g.DrawEllipse(pen, 15, 15, 40, 40);
                 }
             }
             picPlayerO.Image = bmp;
         }
 
-        // Cập nhật trạng thái người chơi
         private void UpdatePlayerStatus(bool isXTurn)
         {
             if (isXTurn)
             {
-                // Lượt của X
                 pnlPlayerX.BackColor = ColorActive;
                 pnlPlayerO.BackColor = ColorInactive;
 
@@ -141,7 +129,6 @@ namespace CaroLAN
             }
             else
             {
-                // Lượt của O
                 pnlPlayerX.BackColor = ColorInactive;
                 pnlPlayerO.BackColor = ColorActive;
 
@@ -169,14 +156,13 @@ namespace CaroLAN
                     timeLeft--;
                     lblTimer.Text = $"⏰ {timeLeft}s";
 
-                    // Chỉ đổi màu chữ khi còn ít thời gian
                     if (timeLeft <= 5)
                     {
-                        lblTimer.ForeColor = ColorO; // Đỏ
+                        lblTimer.ForeColor = ColorO;
                     }
                     else
                     {
-                        lblTimer.ForeColor = ColorX; // Xanh
+                        lblTimer.ForeColor = ColorX;
                     }
 
                     if (timeLeft <= 0)
@@ -249,14 +235,12 @@ namespace CaroLAN
                             {
                                 Invoke(new Action(() =>
                                 {
-                                    // ✅ Phát âm thanh đặt cờ của đối thủ
                                     SoundManager.PlayMoveSound();
                                     
                                     chessBoard.OtherPlayerMove(new Point(x, y));
                                     isMyTurn = true;
 
-                                    // Cập nhật trạng thái: bây giờ là lượt của tôi
-                                    UpdatePlayerStatus(iAmPlayerX); // true nếu tôi là X
+                                    UpdatePlayerStatus(iAmPlayerX);
                                     StartTurnTimer();
                                 }));
                             }
@@ -271,7 +255,6 @@ namespace CaroLAN
                             }));
                         }
 
-                        // ✅ XỬ LÝ KHI ĐỐI THỦ ĐẦU HÀNG (message từ server)
                         if (data == "OPPONENT_RESIGNED")
                         {
                             Invoke(new Action(() =>
@@ -286,7 +269,6 @@ namespace CaroLAN
                                     MessageBoxIcon.Information
                                 );
                                 
-                                // Tự động đóng form sau 2 giây
                                 System.Threading.Timer? closeTimer = null;
                                 closeTimer = new System.Threading.Timer((state) =>
                                 {
@@ -337,10 +319,8 @@ namespace CaroLAN
                             }));
                         }
 
-                        // Chat messages from opponent (broadcasted by server)
                         if (data.StartsWith("CHAT_FROM:"))
                         {
-                            // Format: CHAT_FROM:username:message
                             string payload = data.Substring("CHAT_FROM:".Length);
                             int idx = payload.IndexOf(':');
                             if (idx > 0)
@@ -392,10 +372,8 @@ namespace CaroLAN
                 return;
             }
             
-            // ✅ Phát âm thanh đặt cờ
             SoundManager.PlayMoveSound();
             
-            // ✅ Luôn gửi GAME_MOVE, server sẽ kiểm tra thắng thua
             string messageToSend = $"GAME_MOVE:{e.X},{e.Y}";
 
             try
@@ -411,9 +389,8 @@ namespace CaroLAN
 
             StopTurnTimer();
 
-            // Cập nhật trạng thái: bây giờ là lượt của đối thủ
             isMyTurn = false;
-            UpdatePlayerStatus(!iAmPlayerX); // Lượt của người kia
+            UpdatePlayerStatus(!iAmPlayerX);
         }
 
         private void ChessBoard_GameEnded(object sender, Player winner)
@@ -434,7 +411,6 @@ namespace CaroLAN
                 }
                 catch (Exception ex)
                 {
-                    // Bỏ qua lỗi gửi
                 }
                 EndGame("🏳️ Bạn đã đầu hàng!");
             }
@@ -482,7 +458,6 @@ namespace CaroLAN
             base.OnFormClosing(e);
         }
 
-        // Append a chat message to the chat box
         private void AppendChatMessage(string sender, string message, bool incoming)
         {
             try

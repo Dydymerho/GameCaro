@@ -15,23 +15,15 @@ namespace CaroLAN
         public event EventHandler<Point> PlayerClicked;
         public event EventHandler<Player> GameEnded;
 
-        // ✅ Biến phân biệt người chơi - sử dụng để xác định hiển thị X hay O
-        // Player.One = X (màu xanh) = người đi trước
-        // Player.Two = O (màu đỏ) = người đi sau
         public Player currentPlayer = Player.One;
 
-      
-        // ✅ Constructor mới với tham số để set player
         public ChessBoardManager(Panel chessBoard, bool isFirstPlayer)
         {
             board = new Button[BOARD_SIZE, BOARD_SIZE];
             matrix = new int[BOARD_SIZE, BOARD_SIZE];
             
-            // ✅ Set player dựa vào tham số
-            // true = đi trước = Player.One = X
-            // false = đi sau = Player.Two = O
             currentPlayer = isFirstPlayer ? Player.One : Player.Two;
-            isPlayerTurn = isFirstPlayer; // Người đầu tiên được đi trước
+            isPlayerTurn = isFirstPlayer;
             
             DrawBoard(chessBoard);
         }
@@ -40,8 +32,6 @@ namespace CaroLAN
         {
 
             isGameOver = false;
-            // ✅ Đặt lại lượt về người chơi tương ứng
-            // Chỉ set isPlayerTurn nếu chưa được set trong constructor
             if (panel.Controls.Count == 0)
             {
                 isPlayerTurn = (currentPlayer == Player.One);
@@ -78,7 +68,6 @@ namespace CaroLAN
             Point point = (Point)btn.Tag;
             if (matrix[point.X, point.Y] != 0) return;
 
-            // ✅ Hiển thị X hoặc O dựa vào currentPlayer
             if (currentPlayer == Player.One)
             {
                 btn.Text = "X";
@@ -93,7 +82,6 @@ namespace CaroLAN
                 matrix[point.X, point.Y] = 2;
             }
 
-            // Gửi tọa độ nước đi ra ngoài - Server sẽ kiểm tra thắng thua
             PlayerClicked?.Invoke(this, point);
 
             isPlayerTurn = false;
@@ -103,17 +91,14 @@ namespace CaroLAN
         {
             if (matrix[point.X, point.Y] != 0) return;
             
-            // ✅ Hiển thị X hoặc O ngược lại với currentPlayer
             if (currentPlayer == Player.One)
             {
-                // Nếu mình là X (Player.One), đối thủ là O (Player.Two)
                 board[point.X, point.Y].Text = "O";
                 board[point.X, point.Y].ForeColor = Color.Red;
                 matrix[point.X, point.Y] = 2;
             }
             else
             {
-                // Nếu mình là O (Player.Two), đối thủ là X (Player.One)
                 board[point.X, point.Y].Text = "X";
                 board[point.X, point.Y].ForeColor = Color.Blue;
                 matrix[point.X, point.Y] = 1;
@@ -125,7 +110,6 @@ namespace CaroLAN
         public void ResetBoard()
         {
             isGameOver = false;
-            // ✅ Đặt lại lượt về người chơi tương ứng
             isPlayerTurn = (currentPlayer == Player.One);
             for (int i = 0; i < BOARD_SIZE; i++)
             {
@@ -142,7 +126,7 @@ namespace CaroLAN
 
     public enum Player
     {
-        One,   // X - Người đi trước - Màu xanh
-        Two    // O - Người đi sau - Màu đỏ
+        One,
+        Two
     }
 }

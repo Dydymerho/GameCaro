@@ -7,9 +7,6 @@ using System.Threading;
 
 namespace CaroLAN
 {
-    /// <summary>
-    /// Thông tin về một server được phát hiện
-    /// </summary>
     public class DiscoveredServer
     {
         public string ServerName { get; set; }
@@ -31,13 +28,10 @@ namespace CaroLAN
         }
     }
 
-    /// <summary>
-    /// Class để client tìm kiếm server trong mạng LAN thông qua broadcast
-    /// </summary>
     public class ServerDiscoveryClient
     {
-        private const int BROADCAST_PORT = 9998; // Port dùng cho broadcast
-        private const int DISCOVERY_TIMEOUT = 5000; // Thời gian quét
+        private const int BROADCAST_PORT = 9998;
+        private const int DISCOVERY_TIMEOUT = 5000;
         
         private UdpClient? udpClient;
         private Thread? listenThread;
@@ -50,11 +44,6 @@ namespace CaroLAN
             discoveredServers = new Dictionary<string, DiscoveredServer>();
         }
         
-        /// <summary>
-        /// Bắt đầu quét tìm server trong mạng LAN
-        /// </summary>
-        /// <param name="onServerFound">Callback được gọi khi tìm thấy server mới</param>
-        /// <param name="onDiscoveryComplete">Callback được gọi khi quét xong</param>
         public void StartDiscovery(Action<DiscoveredServer>? onServerFound = null, 
                                    Action<List<DiscoveredServer>>? onDiscoveryComplete = null)
         {
@@ -70,7 +59,6 @@ namespace CaroLAN
                     discoveredServers.Clear();
                 }
                 
-                // Bind vào IPAddress.Any và port BROADCAST_PORT
                 udpClient = new UdpClient();
                 udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, BROADCAST_PORT));
@@ -88,9 +76,6 @@ namespace CaroLAN
             }
         }
         
-        /// <summary>
-        /// Dừng quét
-        /// </summary>
         public void StopDiscovery()
         {
             isDiscovering = false;
@@ -112,9 +97,6 @@ namespace CaroLAN
             }
         }
         
-        /// <summary>
-        /// Lắng nghe broadcast từ server
-        /// </summary>
         private void ListenForBroadcasts(Action<DiscoveredServer>? onServerFound, 
                                         Action<List<DiscoveredServer>>? onDiscoveryComplete)
         {
@@ -124,25 +106,21 @@ namespace CaroLAN
             {
                 try
                 {
-                    // Kiểm tra timeout
                     if ((DateTime.Now - startTime).TotalMilliseconds >= DISCOVERY_TIMEOUT)
                     {
                         break;
                     }
                     
-                    // Kiểm tra có dữ liệu không
                     if (udpClient == null || udpClient.Available == 0)
                     {
                         Thread.Sleep(100);
                         continue;
                     }
                     
-                    // Nhận broadcast từ bất kỳ địa chỉ nào
                     IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
                     byte[] data = udpClient.Receive(ref remoteEndPoint);
                     string message = Encoding.UTF8.GetString(data);
                     
-                    // Parse message: "GAMECARO_SERVER:<server_name>:<local_ip>:<game_port>"
                     if (message.StartsWith("GAMECARO_SERVER:"))
                     {
                         string[] parts = message.Split(':');
@@ -163,12 +141,10 @@ namespace CaroLAN
                                     DiscoveredServer server = new DiscoveredServer(serverName, ipAddress, port);
                                     discoveredServers[key] = server;
                                     
-                                    // Gọi callback khi tìm thấy server mới
                                     onServerFound?.Invoke(server);
                                 }
                                 else
                                 {
-                                    // Cập nhật thời gian thấy lần cuối
                                     discoveredServers[key].LastSeen = DateTime.Now;
                                 }
                             }
@@ -177,7 +153,6 @@ namespace CaroLAN
                 }
                 catch (SocketException)
                 {
-                    // Timeout hoặc lỗi socket, tiếp tục
                     Thread.Sleep(100);
                 }
                 catch (Exception ex)
@@ -189,7 +164,6 @@ namespace CaroLAN
                 }
             }
             
-            // Quét xong, gọi callback
             List<DiscoveredServer> serverList;
             lock (lockObject)
             {
@@ -198,7 +172,6 @@ namespace CaroLAN
             
             onDiscoveryComplete?.Invoke(serverList);
             
-            // Dọn dẹp
             try
             {
                 udpClient?.Close();
@@ -210,9 +183,6 @@ namespace CaroLAN
             isDiscovering = false;
         }
         
-        /// <summary>
-        /// Lấy danh sách server đã phát hiện
-        /// </summary>
         public List<DiscoveredServer> GetDiscoveredServers()
         {
             lock (lockObject)

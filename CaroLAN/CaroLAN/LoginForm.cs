@@ -10,8 +10,8 @@ namespace CaroLAN
         private readonly SocketManager socket;
         private Thread? listenThread;
         private CancellationTokenSource cancellationTokenSource;
-        private ServerDiscoveryClient? serverDiscovery; // ✅ Server discovery client
-        private Queue<string> pendingMessages = new Queue<string>(); // ✅ Lưu message chưa xử lý
+        private ServerDiscoveryClient? serverDiscovery;
+        private Queue<string> pendingMessages = new Queue<string>();
 
         private bool isLoggedIn;
         private string currentUsername = string.Empty;
@@ -23,10 +23,8 @@ namespace CaroLAN
 
         private void LoginForm_Load(object? sender, EventArgs? e)
         {
-            // ✅ Khởi tạo trạng thái ban đầu
             UpdateConnectionState(false);
             
-            //  Tự động tìm server
             AutoFindAndConnectServer();
         }
 
@@ -36,17 +34,14 @@ namespace CaroLAN
             InitializeComponent();
             socket = new SocketManager();
             cancellationTokenSource = new CancellationTokenSource();
-            serverDiscovery = new ServerDiscoveryClient(); // ✅ Khởi tạo server discovery
+            serverDiscovery = new ServerDiscoveryClient();
             lblStatus.Text = "Chưa kết nối";
 
-            this.Load += LoginForm_Load; // auto connect to localhost
+            this.Load += LoginForm_Load;
         }
 
-        // ✅ Method cập nhật trạng thái enable/disable các button dựa trên kết nối
         private void UpdateConnectionState(bool isConnected)
         {
-            // Khi chưa kết nối: chỉ enable nút kết nối và tìm server
-            // Khi đã kết nối: enable các tab đăng nhập/đăng ký
             btnLogin.Enabled = isConnected;
             btnRegister.Enabled = isConnected;
             tabControl1.Enabled = isConnected;
@@ -57,7 +52,6 @@ namespace CaroLAN
             }
         }
 
-        /// ✅ Xử lý nút tìm server
         private void btnFindServers_Click(object sender, EventArgs e)
         {
             try
@@ -71,12 +65,10 @@ namespace CaroLAN
                 serverDiscovery?.StartDiscovery(
                     onServerFound: (server) =>
                     {
-                        // Callback khi tìm thấy server mới
                         foundServers.Add(server);
                     },
                     onDiscoveryComplete: (servers) =>
                     {
-                        // Callback khi quét xong
                         Invoke(new Action(() =>
                         {
                             btnFindServers.Enabled = true;
@@ -91,16 +83,13 @@ namespace CaroLAN
                             }
                             else if (servers.Count == 1)
                             {
-                                // Chỉ có 1 server, tự động điền IP và kết nối
                                 txtServerIP.Text = servers[0].IPAddress;
                                 lblStatus.Text = $"✅ Tìm thấy: {servers[0].ServerName}";
                                 
-                                // ✅ Tự động kết nối
                                 ConnectToSelectedServer();
                             }
                             else
                             {
-                                // Nhiều server, cho phép chọn
                                 ShowServerSelectionDialog(servers);
                             }
                         }));
@@ -115,7 +104,6 @@ namespace CaroLAN
             }
         }
 
-        /// ✅ Hiển thị dialog để chọn server khi tìm thấy nhiều server
         private void ShowServerSelectionDialog(List<DiscoveredServer> servers)
         {
             Form selectionForm = new Form
@@ -183,7 +171,6 @@ namespace CaroLAN
                 txtServerIP.Text = selected.IPAddress;
                 lblStatus.Text = $"✅ Đã chọn: {selected.ServerName}";
                 
-                // ✅ Tự động kết nối sau khi chọn
                 ConnectToSelectedServer();
             }
             else
@@ -205,13 +192,12 @@ namespace CaroLAN
 
             if (socket.IsConnected)
             {
-                // Ngắt kết nối thủ công
                 socket.Disconnect();
                 lblStatus.Text = "Đã ngắt kết nối";
                 btnConnect.Text = "Kết nối";
                 btnConnect.Enabled = true;
                 txtServerIP.Enabled = true;
-                UpdateConnectionState(false); // ✅ Disable các button
+                UpdateConnectionState(false);
                 return;
             }
 
@@ -227,13 +213,13 @@ namespace CaroLAN
                     btnConnect.Text = "Ngắt kết nối";
                     btnConnect.Enabled = true;
                     txtServerIP.Enabled = false;
-                    UpdateConnectionState(true); // ✅ Enable các button
+                    UpdateConnectionState(true);
                 }
                 else
                 {
                     lblStatus.Text = "❌ Không kết nối được server";
                     btnConnect.Enabled = true;
-                    UpdateConnectionState(false); // ✅ Disable các button
+                    UpdateConnectionState(false);
                     MessageBox.Show("Không thể kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -241,12 +227,11 @@ namespace CaroLAN
             {
                 lblStatus.Text = "Lỗi kết nối";
                 btnConnect.Enabled = true;
-                UpdateConnectionState(false); // ✅ Disable các button
+                UpdateConnectionState(false);
                 MessageBox.Show($"Lỗi khi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        /// ✅ Tự động tìm server và kết nối khi form load
         private void AutoFindAndConnectServer()
         {
             try
@@ -259,11 +244,9 @@ namespace CaroLAN
                 serverDiscovery?.StartDiscovery(
                     onServerFound: (server) =>
                     {
-                        // Không cần xử lý gì khi tìm thấy từng server
                     },
                     onDiscoveryComplete: (servers) =>
                     {
-                        // Callback khi quét xong
                         Invoke(new Action(() =>
                         {
                             btnConnect.Enabled = true;
@@ -273,18 +256,16 @@ namespace CaroLAN
                             {
                                 lblStatus.Text = "⚠️ Không tìm thấy server. Vui lòng nhập IP thủ công.";
                                 txtServerIP.Focus();
-                                UpdateConnectionState(false); // ✅ Disable các button
+                                UpdateConnectionState(false);
                             }
                             else if (servers.Count == 1)
                             {
-                                // Chỉ có 1 server, tự động kết nối
                                 txtServerIP.Text = servers[0].IPAddress;
                                 lblStatus.Text = $"✅ Tìm thấy: {servers[0].ServerName}";
                                 ConnectToSelectedServer();
                             }
                             else
                             {
-                                // Nhiều server, cho phép chọn
                                 lblStatus.Text = $"Tìm thấy {servers.Count} server. Vui lòng chọn.";
                                 ShowServerSelectionDialog(servers);
                             }
@@ -297,12 +278,11 @@ namespace CaroLAN
                 lblStatus.Text = "Lỗi khi tìm server";
                 btnConnect.Enabled = true;
                 btnFindServers.Enabled = true;
-                UpdateConnectionState(false); // ✅ Disable các button
+                UpdateConnectionState(false);
                 MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        ///  Kết nối đến server đã chọn
         private void ConnectToSelectedServer()
         {
             string serverIP = txtServerIP.Text.Trim();
@@ -310,7 +290,7 @@ namespace CaroLAN
             if (string.IsNullOrWhiteSpace(serverIP))
             {
                 lblStatus.Text = "Chưa có địa chỉ server";
-                UpdateConnectionState(false); // ✅ Disable các button
+                UpdateConnectionState(false);
                 return;
             }
 
@@ -326,13 +306,13 @@ namespace CaroLAN
                     btnConnect.Text = "Ngắt kết nối";
                     btnConnect.Enabled = true;
                     txtServerIP.Enabled = false;
-                    UpdateConnectionState(true); // ✅ Enable các button
+                    UpdateConnectionState(true);
                 }
                 else
                 {
                     lblStatus.Text = "❌ Không kết nối được server";
                     btnConnect.Enabled = true;
-                    UpdateConnectionState(false); // ✅ Disable các button
+                    UpdateConnectionState(false);
                     MessageBox.Show("Không thể kết nối đến server!\nVui lòng kiểm tra:\n- Server đã bật\n- Địa chỉ IP đúng\n- Firewall không chặn", 
                         "Lỗi kết nối", 
                         MessageBoxButtons.OK, 
@@ -343,7 +323,7 @@ namespace CaroLAN
             {
                 lblStatus.Text = "❌ Lỗi kết nối";
                 btnConnect.Enabled = true;
-                UpdateConnectionState(false); // ✅ Disable các button
+                UpdateConnectionState(false);
                 MessageBox.Show($"Lỗi khi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -365,7 +345,6 @@ namespace CaroLAN
                 return;
             }
 
-            // ✅ Lưu password để tự động đăng nhập lại khi reconnect
             currentPassword = password;
 
             try
@@ -373,7 +352,6 @@ namespace CaroLAN
                 socket.Send($"LOGIN:{username}:{password}");
                 lblStatus.Text = "Đang đăng nhập...";
                 
-                // ✅ Đợi response từ server (tối đa 5 giây)
                 string? response = WaitForResponse("LOGIN_", 5000);
                 
                 if (response != null && response.StartsWith("LOGIN_SUCCESS:"))
@@ -413,9 +391,6 @@ namespace CaroLAN
             }
         }
 
-        /// <summary>
-        /// ✅ Đợi response từ server (blocking)
-        /// </summary>
         private string? WaitForResponse(string prefix, int timeoutMs)
         {
             DateTime startTime = DateTime.Now;
@@ -438,7 +413,6 @@ namespace CaroLAN
                         }
                         else
                         {
-                            // ✅ Lưu message không match để sanhCho xử lý sau
                             lock (pendingMessages)
                             {
                                 pendingMessages.Enqueue(data);
@@ -457,9 +431,6 @@ namespace CaroLAN
             return null;
         }
 
-        /// <summary>
-        /// ✅ Lấy các message đang pending để sanhCho xử lý
-        /// </summary>
         public Queue<string> GetPendingMessages()
         {
             lock (pendingMessages)
@@ -500,7 +471,6 @@ namespace CaroLAN
                 return;
             }
 
-            // Bỏ email: gửi luôn REGISTER:{username}:{password}
             string registerMessage = $"REGISTER:{username}:{password}";
 
             try
@@ -508,7 +478,6 @@ namespace CaroLAN
                 socket.Send(registerMessage);
                 lblStatus.Text = "Đang đăng ký...";
                 
-                // ✅ Đợi response từ server
                 string? response = WaitForResponse("REGISTER_", 5000);
                 
                 if (response != null && response.StartsWith("REGISTER_SUCCESS:"))
@@ -595,7 +564,6 @@ namespace CaroLAN
                             }
                             catch (Exception ex)
                             {
-                                // Log error if needed
                             }
                         }
                         else if (data.StartsWith("LOGIN_FAILED:"))
@@ -628,12 +596,10 @@ namespace CaroLAN
                         }
                         else if (data.StartsWith("AUTH_REQUIRED:"))
                         {
-                            // Không làm gì trong màn hình đăng nhập
                         }
                     }
                     catch (InvalidOperationException)
                     {
-                        // Form đã bị đóng hoặc Invoke không thể thực thi
                         if (!token.IsCancellationRequested)
                         {
                             try
@@ -671,7 +637,7 @@ namespace CaroLAN
         }
 
         public string GetUsername() => currentUsername;
-        public string GetPassword() => currentPassword; // ✅ Trả về password để tự động đăng nhập lại
+        public string GetPassword() => currentPassword;
         public int GetUserId() => userId;
         public bool IsLoggedIn() => isLoggedIn;
         public SocketManager GetSocket() => socket;
@@ -680,12 +646,10 @@ namespace CaroLAN
         {
             try
             {
-                // ✅ Dừng server discovery nếu đang chạy
                 serverDiscovery?.StopDiscovery();
             }
             catch
             {
-                // ignore
             }
 
             if (!isLoggedIn && socket.IsConnected)

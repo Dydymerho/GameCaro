@@ -59,10 +59,11 @@ namespace CaroLAN
             tabControl1.Controls.Add(tabPageRegister);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Font = new Font("Segoe UI", 10F);
-            tabControl1.Location = new Point(30, 20);
+            tabControl1.Location = new Point(26, 15);
+            tabControl1.Margin = new Padding(3, 2, 3, 2);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(440, 280);
+            tabControl1.Size = new Size(386, 210);
             tabControl1.TabIndex = 0;
             // 
             // tabPageLogin
@@ -73,10 +74,11 @@ namespace CaroLAN
             tabPageLogin.Controls.Add(lblLoginPassword);
             tabPageLogin.Controls.Add(txtLoginPassword);
             tabPageLogin.Controls.Add(btnLogin);
-            tabPageLogin.Location = new Point(4, 32);
+            tabPageLogin.Location = new Point(4, 26);
+            tabPageLogin.Margin = new Padding(3, 2, 3, 2);
             tabPageLogin.Name = "tabPageLogin";
-            tabPageLogin.Padding = new Padding(20);
-            tabPageLogin.Size = new Size(432, 244);
+            tabPageLogin.Padding = new Padding(18, 15, 18, 15);
+            tabPageLogin.Size = new Size(378, 180);
             tabPageLogin.TabIndex = 0;
             tabPageLogin.Text = "🔐 Đăng nhập";
             // 
@@ -85,9 +87,9 @@ namespace CaroLAN
             lblLoginUsername.AutoSize = true;
             lblLoginUsername.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             lblLoginUsername.ForeColor = Color.FromArgb(52, 73, 94);
-            lblLoginUsername.Location = new Point(20, 20);
+            lblLoginUsername.Location = new Point(18, 15);
             lblLoginUsername.Name = "lblLoginUsername";
-            lblLoginUsername.Size = new Size(128, 23);
+            lblLoginUsername.Size = new Size(107, 19);
             lblLoginUsername.TabIndex = 0;
             lblLoginUsername.Text = "Tên đăng nhập";
             // 
@@ -96,9 +98,10 @@ namespace CaroLAN
             txtLoginUsername.BackColor = Color.FromArgb(250, 251, 252);
             txtLoginUsername.BorderStyle = BorderStyle.FixedSingle;
             txtLoginUsername.Font = new Font("Segoe UI", 11F);
-            txtLoginUsername.Location = new Point(20, 45);
+            txtLoginUsername.Location = new Point(18, 34);
+            txtLoginUsername.Margin = new Padding(3, 2, 3, 2);
             txtLoginUsername.Name = "txtLoginUsername";
-            txtLoginUsername.Size = new Size(392, 32);
+            txtLoginUsername.Size = new Size(343, 27);
             txtLoginUsername.TabIndex = 1;
             // 
             // lblLoginPassword
@@ -106,9 +109,9 @@ namespace CaroLAN
             lblLoginPassword.AutoSize = true;
             lblLoginPassword.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             lblLoginPassword.ForeColor = Color.FromArgb(52, 73, 94);
-            lblLoginPassword.Location = new Point(20, 90);
+            lblLoginPassword.Location = new Point(18, 68);
             lblLoginPassword.Name = "lblLoginPassword";
-            lblLoginPassword.Size = new Size(86, 23);
+            lblLoginPassword.Size = new Size(71, 19);
             lblLoginPassword.TabIndex = 2;
             lblLoginPassword.Text = "Mật khẩu";
             // 
@@ -117,10 +120,11 @@ namespace CaroLAN
             txtLoginPassword.BackColor = Color.FromArgb(250, 251, 252);
             txtLoginPassword.BorderStyle = BorderStyle.FixedSingle;
             txtLoginPassword.Font = new Font("Segoe UI", 11F);
-            txtLoginPassword.Location = new Point(20, 115);
+            txtLoginPassword.Location = new Point(18, 86);
+            txtLoginPassword.Margin = new Padding(3, 2, 3, 2);
             txtLoginPassword.Name = "txtLoginPassword";
             txtLoginPassword.PasswordChar = '●';
-            txtLoginPassword.Size = new Size(392, 32);
+            txtLoginPassword.Size = new Size(343, 27);
             txtLoginPassword.TabIndex = 3;
             // 
             // btnLogin
@@ -130,9 +134,10 @@ namespace CaroLAN
             btnLogin.FlatStyle = FlatStyle.Flat;
             btnLogin.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             btnLogin.ForeColor = Color.White;
-            btnLogin.Location = new Point(20, 170);
+            btnLogin.Location = new Point(18, 128);
+            btnLogin.Margin = new Padding(3, 2, 3, 2);
             btnLogin.Name = "btnLogin";
-            btnLogin.Size = new Size(392, 45);
+            btnLogin.Size = new Size(343, 34);
             btnLogin.TabIndex = 4;
             btnLogin.Text = "ĐĂNG NHẬP";
             btnLogin.UseVisualStyleBackColor = false;
@@ -148,10 +153,11 @@ namespace CaroLAN
             tabPageRegister.Controls.Add(lblRegisterConfirmPassword);
             tabPageRegister.Controls.Add(txtRegisterConfirmPassword);
             tabPageRegister.Controls.Add(btnRegister);
-            tabPageRegister.Location = new Point(4, 32);
+            tabPageRegister.Location = new Point(4, 26);
+            tabPageRegister.Margin = new Padding(3, 2, 3, 2);
             tabPageRegister.Name = "tabPageRegister";
-            tabPageRegister.Padding = new Padding(20, 15, 20, 15);
-            tabPageRegister.Size = new Size(432, 244);
+            tabPageRegister.Padding = new Padding(18, 11, 18, 11);
+            tabPageRegister.Size = new Size(378, 180);
             tabPageRegister.TabIndex = 1;
             tabPageRegister.Text = "📝 Đăng ký";
             // 
@@ -160,9 +166,9 @@ namespace CaroLAN
             lblRegisterUsername.AutoSize = true;
             lblRegisterUsername.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblRegisterUsername.ForeColor = Color.FromArgb(52, 73, 94);
-            lblRegisterUsername.Location = new Point(20, 15);
+            lblRegisterUsername.Location = new Point(18, 11);
             lblRegisterUsername.Name = "lblRegisterUsername";
-            lblRegisterUsername.Size = new Size(112, 20);
+            lblRegisterUsername.Size = new Size(88, 15);
             lblRegisterUsername.TabIndex = 0;
             lblRegisterUsername.Text = "Tên đăng nhập";
             // 
@@ -171,9 +177,10 @@ namespace CaroLAN
             txtRegisterUsername.BackColor = Color.FromArgb(250, 251, 252);
             txtRegisterUsername.BorderStyle = BorderStyle.FixedSingle;
             txtRegisterUsername.Font = new Font("Segoe UI", 10F);
-            txtRegisterUsername.Location = new Point(20, 37);
+            txtRegisterUsername.Location = new Point(18, 28);
+            txtRegisterUsername.Margin = new Padding(3, 2, 3, 2);
             txtRegisterUsername.Name = "txtRegisterUsername";
-            txtRegisterUsername.Size = new Size(392, 30);
+            txtRegisterUsername.Size = new Size(343, 25);
             txtRegisterUsername.TabIndex = 1;
             // 
             // lblRegisterPassword
@@ -181,9 +188,9 @@ namespace CaroLAN
             lblRegisterPassword.AutoSize = true;
             lblRegisterPassword.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblRegisterPassword.ForeColor = Color.FromArgb(52, 73, 94);
-            lblRegisterPassword.Location = new Point(20, 69);
+            lblRegisterPassword.Location = new Point(18, 52);
             lblRegisterPassword.Name = "lblRegisterPassword";
-            lblRegisterPassword.Size = new Size(75, 20);
+            lblRegisterPassword.Size = new Size(59, 15);
             lblRegisterPassword.TabIndex = 2;
             lblRegisterPassword.Text = "Mật khẩu";
             // 
@@ -192,10 +199,11 @@ namespace CaroLAN
             txtRegisterPassword.BackColor = Color.FromArgb(250, 251, 252);
             txtRegisterPassword.BorderStyle = BorderStyle.FixedSingle;
             txtRegisterPassword.Font = new Font("Segoe UI", 10F);
-            txtRegisterPassword.Location = new Point(20, 91);
+            txtRegisterPassword.Location = new Point(18, 68);
+            txtRegisterPassword.Margin = new Padding(3, 2, 3, 2);
             txtRegisterPassword.Name = "txtRegisterPassword";
             txtRegisterPassword.PasswordChar = '●';
-            txtRegisterPassword.Size = new Size(392, 30);
+            txtRegisterPassword.Size = new Size(343, 25);
             txtRegisterPassword.TabIndex = 3;
             // 
             // lblRegisterConfirmPassword
@@ -203,9 +211,9 @@ namespace CaroLAN
             lblRegisterConfirmPassword.AutoSize = true;
             lblRegisterConfirmPassword.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblRegisterConfirmPassword.ForeColor = Color.FromArgb(52, 73, 94);
-            lblRegisterConfirmPassword.Location = new Point(20, 124);
+            lblRegisterConfirmPassword.Location = new Point(18, 93);
             lblRegisterConfirmPassword.Name = "lblRegisterConfirmPassword";
-            lblRegisterConfirmPassword.Size = new Size(143, 20);
+            lblRegisterConfirmPassword.Size = new Size(112, 15);
             lblRegisterConfirmPassword.TabIndex = 4;
             lblRegisterConfirmPassword.Text = "Xác nhận mật khẩu";
             // 
@@ -214,10 +222,11 @@ namespace CaroLAN
             txtRegisterConfirmPassword.BackColor = Color.FromArgb(250, 251, 252);
             txtRegisterConfirmPassword.BorderStyle = BorderStyle.FixedSingle;
             txtRegisterConfirmPassword.Font = new Font("Segoe UI", 10F);
-            txtRegisterConfirmPassword.Location = new Point(20, 146);
+            txtRegisterConfirmPassword.Location = new Point(18, 110);
+            txtRegisterConfirmPassword.Margin = new Padding(3, 2, 3, 2);
             txtRegisterConfirmPassword.Name = "txtRegisterConfirmPassword";
             txtRegisterConfirmPassword.PasswordChar = '●';
-            txtRegisterConfirmPassword.Size = new Size(392, 30);
+            txtRegisterConfirmPassword.Size = new Size(343, 25);
             txtRegisterConfirmPassword.TabIndex = 5;
             // 
             // btnRegister
@@ -227,9 +236,10 @@ namespace CaroLAN
             btnRegister.FlatStyle = FlatStyle.Flat;
             btnRegister.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             btnRegister.ForeColor = Color.White;
-            btnRegister.Location = new Point(20, 195);
+            btnRegister.Location = new Point(18, 146);
+            btnRegister.Margin = new Padding(3, 2, 3, 2);
             btnRegister.Name = "btnRegister";
-            btnRegister.Size = new Size(392, 40);
+            btnRegister.Size = new Size(343, 30);
             btnRegister.TabIndex = 8;
             btnRegister.Text = "ĐĂNG KÝ";
             btnRegister.UseVisualStyleBackColor = false;
@@ -241,10 +251,10 @@ namespace CaroLAN
             lblStatus.Dock = DockStyle.Left;
             lblStatus.Font = new Font("Segoe UI", 9F);
             lblStatus.ForeColor = Color.FromArgb(52, 73, 94);
-            lblStatus.Location = new Point(20, 8);
+            lblStatus.Location = new Point(18, 6);
             lblStatus.Name = "lblStatus";
-            lblStatus.Padding = new Padding(0, 3, 0, 0);
-            lblStatus.Size = new Size(117, 23);
+            lblStatus.Padding = new Padding(0, 2, 0, 0);
+            lblStatus.Size = new Size(89, 17);
             lblStatus.TabIndex = 0;
             lblStatus.Text = "⚪ Chưa kết nối";
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
@@ -255,10 +265,10 @@ namespace CaroLAN
             lblUserInfo.Dock = DockStyle.Right;
             lblUserInfo.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             lblUserInfo.ForeColor = Color.FromArgb(149, 165, 166);
-            lblUserInfo.Location = new Point(480, 8);
+            lblUserInfo.Location = new Point(420, 6);
             lblUserInfo.Name = "lblUserInfo";
-            lblUserInfo.Padding = new Padding(0, 3, 0, 0);
-            lblUserInfo.Size = new Size(0, 23);
+            lblUserInfo.Padding = new Padding(0, 2, 0, 0);
+            lblUserInfo.Size = new Size(0, 17);
             lblUserInfo.TabIndex = 1;
             lblUserInfo.TextAlign = ContentAlignment.MiddleRight;
             // 
@@ -268,10 +278,11 @@ namespace CaroLAN
             panelStatusBar.Controls.Add(lblStatus);
             panelStatusBar.Controls.Add(lblUserInfo);
             panelStatusBar.Dock = DockStyle.Top;
-            panelStatusBar.Location = new Point(0, 90);
+            panelStatusBar.Location = new Point(0, 68);
+            panelStatusBar.Margin = new Padding(3, 2, 3, 2);
             panelStatusBar.Name = "panelStatusBar";
-            panelStatusBar.Padding = new Padding(20, 8, 20, 8);
-            panelStatusBar.Size = new Size(500, 40);
+            panelStatusBar.Padding = new Padding(18, 6, 18, 6);
+            panelStatusBar.Size = new Size(438, 30);
             panelStatusBar.TabIndex = 1;
             // 
             // panelMain
@@ -279,10 +290,11 @@ namespace CaroLAN
             panelMain.BackColor = Color.FromArgb(245, 247, 250);
             panelMain.Controls.Add(tabControl1);
             panelMain.Dock = DockStyle.Fill;
-            panelMain.Location = new Point(0, 130);
+            panelMain.Location = new Point(0, 98);
+            panelMain.Margin = new Padding(3, 2, 3, 2);
             panelMain.Name = "panelMain";
-            panelMain.Padding = new Padding(30, 20, 30, 20);
-            panelMain.Size = new Size(500, 320);
+            panelMain.Padding = new Padding(26, 15, 26, 15);
+            panelMain.Size = new Size(438, 240);
             panelMain.TabIndex = 2;
             // 
             // panelConnection
@@ -294,10 +306,11 @@ namespace CaroLAN
             panelConnection.Controls.Add(btnConnect);
             panelConnection.Controls.Add(btnFindServers);
             panelConnection.Dock = DockStyle.Right;
-            panelConnection.Location = new Point(240, 15);
+            panelConnection.Location = new Point(210, 11);
+            panelConnection.Margin = new Padding(3, 2, 3, 2);
             panelConnection.Name = "panelConnection";
-            panelConnection.Padding = new Padding(10, 5, 10, 5);
-            panelConnection.Size = new Size(240, 60);
+            panelConnection.Padding = new Padding(9, 4, 9, 4);
+            panelConnection.Size = new Size(210, 46);
             panelConnection.TabIndex = 1;
             // 
             // lblConnectionTitle
@@ -305,9 +318,9 @@ namespace CaroLAN
             lblConnectionTitle.AutoSize = true;
             lblConnectionTitle.Font = new Font("Segoe UI", 7F, FontStyle.Bold);
             lblConnectionTitle.ForeColor = Color.White;
-            lblConnectionTitle.Location = new Point(10, 5);
+            lblConnectionTitle.Location = new Point(9, 4);
             lblConnectionTitle.Name = "lblConnectionTitle";
-            lblConnectionTitle.Size = new Size(66, 15);
+            lblConnectionTitle.Size = new Size(57, 12);
             lblConnectionTitle.TabIndex = 0;
             lblConnectionTitle.Text = "🔌 SERVER";
             // 
@@ -316,9 +329,9 @@ namespace CaroLAN
             lblServerIP.AutoSize = true;
             lblServerIP.Font = new Font("Segoe UI", 7F);
             lblServerIP.ForeColor = Color.White;
-            lblServerIP.Location = new Point(10, 22);
+            lblServerIP.Location = new Point(9, 16);
             lblServerIP.Name = "lblServerIP";
-            lblServerIP.Size = new Size(20, 15);
+            lblServerIP.Size = new Size(16, 12);
             lblServerIP.TabIndex = 1;
             lblServerIP.Text = "IP:";
             // 
@@ -327,9 +340,10 @@ namespace CaroLAN
             txtServerIP.BackColor = Color.White;
             txtServerIP.BorderStyle = BorderStyle.FixedSingle;
             txtServerIP.Font = new Font("Segoe UI", 8F);
-            txtServerIP.Location = new Point(30, 20);
+            txtServerIP.Location = new Point(26, 15);
+            txtServerIP.Margin = new Padding(3, 2, 3, 2);
             txtServerIP.Name = "txtServerIP";
-            txtServerIP.Size = new Size(70, 25);
+            txtServerIP.Size = new Size(62, 22);
             txtServerIP.TabIndex = 2;
             txtServerIP.Text = "127.0.0.1";
             txtServerIP.TextAlign = HorizontalAlignment.Center;
@@ -342,9 +356,10 @@ namespace CaroLAN
             btnConnect.FlatStyle = FlatStyle.Flat;
             btnConnect.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
             btnConnect.ForeColor = Color.White;
-            btnConnect.Location = new Point(130, 20);
+            btnConnect.Location = new Point(114, 15);
+            btnConnect.Margin = new Padding(3, 2, 3, 2);
             btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(100, 25);
+            btnConnect.Size = new Size(88, 19);
             btnConnect.TabIndex = 3;
             btnConnect.Text = "Kết nối";
             btnConnect.UseVisualStyleBackColor = false;
@@ -357,9 +372,10 @@ namespace CaroLAN
             btnFindServers.FlatStyle = FlatStyle.Flat;
             btnFindServers.Font = new Font("Segoe UI", 7F, FontStyle.Bold);
             btnFindServers.ForeColor = Color.White;
-            btnFindServers.Location = new Point(105, 20);
+            btnFindServers.Location = new Point(92, 15);
+            btnFindServers.Margin = new Padding(3, 2, 3, 2);
             btnFindServers.Name = "btnFindServers";
-            btnFindServers.Size = new Size(20, 25);
+            btnFindServers.Size = new Size(18, 19);
             btnFindServers.TabIndex = 4;
             btnFindServers.Text = "🔍";
             btnFindServers.UseVisualStyleBackColor = false;
@@ -372,9 +388,10 @@ namespace CaroLAN
             panelHeader.Controls.Add(panelConnection);
             panelHeader.Dock = DockStyle.Top;
             panelHeader.Location = new Point(0, 0);
+            panelHeader.Margin = new Padding(3, 2, 3, 2);
             panelHeader.Name = "panelHeader";
-            panelHeader.Padding = new Padding(20, 15, 20, 15);
-            panelHeader.Size = new Size(500, 90);
+            panelHeader.Padding = new Padding(18, 11, 18, 11);
+            panelHeader.Size = new Size(438, 68);
             panelHeader.TabIndex = 0;
             // 
             // lblTitle
@@ -382,22 +399,23 @@ namespace CaroLAN
             lblTitle.AutoSize = true;
             lblTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
             lblTitle.ForeColor = Color.White;
-            lblTitle.Location = new Point(20, 20);
+            lblTitle.Location = new Point(18, 15);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(221, 46);
+            lblTitle.Size = new Size(176, 37);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "GAME CARO";
             // 
             // LoginForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(500, 450);
+            ClientSize = new Size(438, 338);
             Controls.Add(panelMain);
             Controls.Add(panelStatusBar);
             Controls.Add(panelHeader);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Margin = new Padding(3, 2, 3, 2);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "LoginForm";
