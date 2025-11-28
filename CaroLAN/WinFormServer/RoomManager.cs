@@ -71,11 +71,12 @@ namespace WinFormServer
             // Xóa player khỏi room
             room.RemovePlayer(player);
 
-            // Nếu còn một người → xóa mapping của người còn lại để họ trở thành rảnh
+            // ✅ Nếu còn một người → xóa mapping VÀ xóa player khỏi room để họ hoàn toàn rời phòng
             if (room.Players.Count == 1)
             {
                 Socket remaining = room.Players[0];
                 playerRooms.TryRemove(remaining, out _);
+                room.RemovePlayer(remaining); // ✅ THÊM: Xóa player còn lại khỏi room
             }
 
             // Nếu phòng trống → xóa phòng

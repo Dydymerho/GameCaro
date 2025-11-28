@@ -251,6 +251,14 @@ namespace WinFormServer
                 var room = roomManager.GetPlayerRoom(clientSocket);
                 if (room != null)
                 {
+                    // ✅ Thông báo cho đối thủ TRƯỚC khi xóa phòng
+                    foreach (var player in room.Players.ToList())
+                    {
+                        if (player != clientSocket && player.Connected)
+                        {
+                            SendToClient(player, "OPPONENT_LEFT");
+                        }
+                    }
                     roomBoards.TryRemove(room.RoomId, out _);
                 }
                 
@@ -258,6 +266,9 @@ namespace WinFormServer
                 
                 // Xóa các lời mời liên quan đến client này
                 RemoveClientInvitations(clientSocket);
+                
+                // ✅ Kiểm tra xem client đã đăng nhập chưa TRƯỚC khi xóa
+                bool wasAuthenticated = authenticatedUsers.ContainsKey(clientSocket);
                 
                 // ✅ Xóa user đã đăng nhập
                 authenticatedUsers.TryRemove(clientSocket, out _);
@@ -269,9 +280,12 @@ namespace WinFormServer
                 }
                 clientSocket.Close();
                 
-                // ✅ Cập nhật danh sách khi có client ngắt kết nối
-                SendClientListToAll(logAction);
-                globalUpdateClientListAction?.Invoke();
+                // ✅ Chỉ cập nhật danh sách khi client ĐÃ ĐĂNG NHẬP ngắt kết nối
+                if (wasAuthenticated)
+                {
+                    SendClientListToAll(logAction);
+                    globalUpdateClientListAction?.Invoke();
+                }
             }
         }
 
@@ -352,7 +366,14 @@ namespace WinFormServer
         {
             List<string> connectedClients = GetConnectedClients();
             string clientListMessage = "CLIENT_LIST:" + string.Join(",", connectedClients);
-            Broadcast(clientListMessage, clients, logAction);
+            
+            // ✅ Chỉ gửi đến những client đã đăng nhập
+            List<Socket> authenticatedClients;
+            lock (clients)
+            {
+                authenticatedClients = clients.Where(c => IsAuthenticated(c)).ToList();
+            }
+            Broadcast(clientListMessage, authenticatedClients, logAction);
         }
 
         // Gửi danh sách client đến client 
@@ -378,7 +399,12 @@ namespace WinFormServer
                         // Perform a non-blocking check to ensure the client is still connected
                         if (client.Connected)
                         {
-                            // ✅ Lấy username nếu đã đăng nhập, nếu không thì dùng endpoint
+                            // ✅ CHỈ thêm vào danh sách nếu đã đăng nhập
+                            if (!IsAuthenticated(client))
+                            {
+                                continue; // Bỏ qua client chưa đăng nhập
+                            }
+                            
                             string displayName = GetUsername(client);
                             
                             // ✅ Kiểm tra xem client có đang trong phòng không
@@ -461,6 +487,15 @@ namespace WinFormServer
         {
             try
             {
+                // ✅ Kiểm tra xem player đã ở trong phòng chưa, nếu có thì cleanup trước
+                var existingRoom = roomManager.GetPlayerRoom(clientSocket);
+                if (existingRoom != null)
+                {
+                    logAction?.Invoke($"⚠️ Player {clientSocket.RemoteEndPoint} đang ở phòng {existingRoom.RoomId}, cleanup trước...");
+                    roomBoards.TryRemove(existingRoom.RoomId, out _);
+                    roomManager.LeaveRoom(clientSocket);
+                }
+                
                 string roomId = null;
                 if (message.Contains(":"))
                 {
@@ -663,12 +698,18 @@ namespace WinFormServer
                         SendHistoryToUser(result.Loser, logAction);
                     }
 
+                    // ✅ Thông báo cho đối thủ TRƯỚC khi xóa phòng
+                    foreach (var player in room.Players.ToList())
+                    {
+                        if (player != clientSocket && player.Connected)
+                        {
+                            SendToClient(player, "OPPONENT_LEFT");
+                        }
+                    }
+
                     // Xóa bàn cờ
                     roomBoards.TryRemove(roomId, out _);
                     roomManager.LeaveRoom(clientSocket);
-
-                    // Thông báo cho đối thủ
-                    roomManager.BroadcastToRoom(roomId, "OPPONENT_LEFT");
 
                     logAction?.Invoke($"👋 {clientSocket.RemoteEndPoint} rời phòng {roomId}");
 
