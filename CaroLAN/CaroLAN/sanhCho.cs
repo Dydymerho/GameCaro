@@ -577,9 +577,9 @@ namespace CaroLAN
                     lblStatus.Text = $"Nhận lời mời từ {senderInfo}";
                 }));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine("Error in invitation: " + ex.Message);
+                // Bỏ qua lỗi
             }
         }
 

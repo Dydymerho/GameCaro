@@ -151,9 +151,9 @@ namespace WinFormServer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Lỗi đăng ký: {ex.Message}");
+                // Bỏ qua lỗi
                 return false;
             }
         }
@@ -203,9 +203,9 @@ namespace WinFormServer
                 }
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Lỗi đăng nhập: {ex.Message}");
+                // Bỏ qua lỗi
                 return null;
             }
         }
@@ -249,9 +249,9 @@ namespace WinFormServer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Lỗi cập nhật last_login: {ex.Message}");
+                // Bỏ qua lỗi
             }
         }
 
@@ -273,9 +273,9 @@ namespace WinFormServer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Lỗi cập nhật thống kê: {ex.Message}");
+                // Bỏ qua lỗi
             }
         }
 
@@ -314,9 +314,9 @@ namespace WinFormServer
                 }
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Lỗi lấy thông tin user: {ex.Message}");
+                // Bỏ qua lỗi
                 return null;
             }
         }
@@ -344,9 +344,9 @@ namespace WinFormServer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Lỗi lưu lịch sử đấu: {ex.Message}");
+                // Bỏ qua lỗi
                 return false;
             }
         }
@@ -400,9 +400,9 @@ namespace WinFormServer
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Lỗi lấy lịch sử đấu của user: {ex.Message}");
+                // Bỏ qua lỗi
             }
             return history;
         }
