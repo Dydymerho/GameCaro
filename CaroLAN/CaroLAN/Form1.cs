@@ -525,7 +525,6 @@ namespace CaroLAN
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            UpdateSoundButtonsText();
         }
 
         private void pnlBoardContainer_Paint(object sender, PaintEventArgs e)
@@ -538,31 +537,5 @@ namespace CaroLAN
 
         }
 
-        // ✅ Cập nhật text cho các button âm thanh
-        private void UpdateSoundButtonsText()
-        {
-            btnToggleMusic.Text = SoundManager.MusicEnabled ? "🎵 Nhạc: BẬT" : "🔇 Nhạc: TẮT";
-            btnToggleSfx.Text = SoundManager.SfxEnabled ? "🔊 SFX: BẬT" : "🔈 SFX: TẮT";
-        }
-
-        // ✅ Xử lý toggle nhạc nền
-        private void btnToggleMusic_Click(object sender, EventArgs e)
-        {
-            SoundManager.PlayClickSound();
-            SoundManager.ToggleMusic();
-            UpdateSoundButtonsText();
-        }
-
-        // ✅ Xử lý toggle SFX
-        private void btnToggleSfx_Click(object sender, EventArgs e)
-        {
-            SoundManager.ToggleSfx();
-            UpdateSoundButtonsText();
-            
-            if (SoundManager.SfxEnabled)
-            {
-                SoundManager.PlayClickSound(); // Phát âm thanh test
-            }
-        }
     }
 }
