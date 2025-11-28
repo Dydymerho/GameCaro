@@ -20,13 +20,7 @@ namespace CaroLAN
         // Player.Two = O (màu đỏ) = người đi sau
         public Player currentPlayer = Player.One;
 
-        public ChessBoardManager(Panel chessBoard)
-        {
-            board = new Button[BOARD_SIZE, BOARD_SIZE];
-            matrix = new int[BOARD_SIZE, BOARD_SIZE];
-            DrawBoard(chessBoard);
-        }
-
+      
         // ✅ Constructor mới với tham số để set player
         public ChessBoardManager(Panel chessBoard, bool isFirstPlayer)
         {
@@ -91,6 +85,7 @@ namespace CaroLAN
                 btn.ForeColor = Color.Blue;
                 matrix[point.X, point.Y] = 1;
             }
+
             else
             {
                 btn.Text = "O";

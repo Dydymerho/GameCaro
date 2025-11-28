@@ -244,6 +244,7 @@ namespace CaroLAN
             return socket != null && socket.Connected && isConnected;
         }
 
+        // Lấy thông tin về địa chỉ và cổng của server đang kết nối.
         public string GetServerEndPoint()
         {
             try
