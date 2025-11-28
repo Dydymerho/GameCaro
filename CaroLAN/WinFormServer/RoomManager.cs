@@ -38,7 +38,6 @@ namespace WinFormServer
                 if (availableRoom != null)
                 {
                     roomId = availableRoom.RoomId;
-                    Console.WriteLine($"[RoomManager] Người chơi ghép vào phòng sẵn có: {roomId}");
                 }
                 else
                 {
@@ -55,7 +54,6 @@ namespace WinFormServer
             if (room.AddPlayer(player))
             {
                 playerRooms.TryAdd(player, roomId);
-                Console.WriteLine($"[RoomManager] Người chơi {player.RemoteEndPoint} vào phòng {roomId} ({room.Players.Count}/2)");
                 return true;
             }
 
@@ -72,21 +70,18 @@ namespace WinFormServer
 
             // Xóa player khỏi room
             room.RemovePlayer(player);
-            Console.WriteLine($"[RoomManager] Người chơi {player.RemoteEndPoint} rời phòng {roomId}");
 
             // Nếu còn một người → xóa mapping của người còn lại để họ trở thành rảnh
             if (room.Players.Count == 1)
             {
                 Socket remaining = room.Players[0];
-                playerRooms.TryRemove(remaining, out _);  // 
-                Console.WriteLine($"[RoomManager] Người chơi còn lại {remaining.RemoteEndPoint} được giải phóng khỏi phòng");
+                playerRooms.TryRemove(remaining, out _);
             }
 
             // Nếu phòng trống → xóa phòng
             if (room.IsEmpty())
             {
                 rooms.TryRemove(roomId, out _);
-                Console.WriteLine($"[RoomManager] 🗑️ Phòng {roomId} đã bị xóa (trống)");
             }
         }
 
@@ -117,12 +112,11 @@ namespace WinFormServer
                         {
                             try
                             {
-                                // MessageBox.Show("start");
                                 player.Send(data);
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Lỗi gửi dữ liệu tới {player.RemoteEndPoint}: {ex.Message}");
+                                // Bỏ qua lỗi
                             }
                         }
                     }
@@ -148,7 +142,7 @@ namespace WinFormServer
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Lỗi gửi tin nhắn tới {player.RemoteEndPoint}: {ex.Message}");
+                            // Bỏ qua lỗi
                         }
                     }
                 }
@@ -178,7 +172,7 @@ namespace WinFormServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi gửi private message tới {recipient.RemoteEndPoint}: {ex.Message}");
+                // Bỏ qua lỗi
                 return false;
             }
         }

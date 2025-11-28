@@ -370,7 +370,6 @@ namespace CaroLAN
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"📤 LoginForm gửi: LOGIN:{username}:***");
                 socket.Send($"LOGIN:{username}:{password}");
                 lblStatus.Text = "Đang đăng nhập...";
                 
@@ -435,13 +434,11 @@ namespace CaroLAN
                     {
                         if (data.StartsWith(prefix))
                         {
-                            System.Diagnostics.Debug.WriteLine($"📥 WaitForResponse nhận đúng: {data.Substring(0, Math.Min(50, data.Length))}...");
                             return data;
                         }
                         else
                         {
                             // ✅ Lưu message không match để sanhCho xử lý sau
-                            System.Diagnostics.Debug.WriteLine($"📦 WaitForResponse lưu message khác: {data.Substring(0, Math.Min(50, data.Length))}...");
                             lock (pendingMessages)
                             {
                                 pendingMessages.Enqueue(data);
@@ -508,7 +505,6 @@ namespace CaroLAN
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"📤 LoginForm gửi: REGISTER:{username}:***");
                 socket.Send(registerMessage);
                 lblStatus.Text = "Đang đăng ký...";
                 
@@ -543,23 +539,18 @@ namespace CaroLAN
 
         private void StartListening()
         {
-            System.Diagnostics.Debug.WriteLine("🎧 StartListening() được gọi");
-            
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
 
             listenThread = new Thread(() =>
             {
-                System.Diagnostics.Debug.WriteLine("🎧 Listen thread đã bắt đầu");
-                
                 while (!token.IsCancellationRequested)
                 {
                     try
                     {
                         if (!socket.IsConnected)
                         {
-                            System.Diagnostics.Debug.WriteLine("⚠️ Socket disconnected trong listen thread");
                             Invoke(new Action(() =>
                             {
                                 lblStatus.Text = "Mất kết nối đến server";
@@ -576,8 +567,6 @@ namespace CaroLAN
                             Thread.Sleep(10);
                             continue;
                         }
-                        
-                        System.Diagnostics.Debug.WriteLine($"📥 LoginForm nhận: {data}");
 
                         if (data.StartsWith("LOGIN_SUCCESS:"))
                         {
@@ -603,14 +592,10 @@ namespace CaroLAN
                                         Close();
                                     }));
                                 }
-                                else
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"⚠️ LOGIN_SUCCESS không khớp pattern: {data}");
-                                }
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"⚠️ Lỗi parse LOGIN_SUCCESS: {ex.Message}");
+                                // Log error if needed
                             }
                         }
                         else if (data.StartsWith("LOGIN_FAILED:"))

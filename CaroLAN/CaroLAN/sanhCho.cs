@@ -107,12 +107,11 @@ namespace CaroLAN
                         if (socket.IsConnected)
                         {
                             socket.Send("GET_CLIENT_LIST");
-                            System.Diagnostics.Debug.WriteLine("🔄 Đã gửi GET_CLIENT_LIST");
                         }
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"❌ Lỗi gửi GET_CLIENT_LIST: {ex.Message}");
+                        // Log error if needed
                     }
                 });
             }
@@ -148,7 +147,6 @@ namespace CaroLAN
 
             listenThread = new Thread(() =>
             {
-                System.Diagnostics.Debug.WriteLine("🎧 Lobby listening thread started");
                 int loopCount = 0;
                 
                 Thread.Sleep(100);
@@ -159,16 +157,9 @@ namespace CaroLAN
                     {
                         loopCount++;
                         
-                        // Kiểm tra kết nối định kỳ
-                        if (loopCount % 100 == 0)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"🔄 Loop {loopCount}, IsConnected: {socket.IsConnected}");
-                        }
-                        
                         // Kiểm tra kết nối
                         if (!socket.IsConnected)
                         {
-                            System.Diagnostics.Debug.WriteLine("❌ Socket disconnected detected!");
                             Invoke(new Action(() =>
                             {
                                 lblStatus.Text = "Mất kết nối! Đang thử kết nối lại...";
@@ -180,6 +171,8 @@ namespace CaroLAN
                                 bool reconnected = TryReconnect();
                                 if (!reconnected)
                                 {
+                                    btnAccept.Enabled = true;
+                                    btnRequest.Enabled = true;
                                     btnConnect.Text = "Kết nối";
                                     btnConnect.Enabled = true;
                                     txtIP.Enabled = true;
@@ -198,7 +191,6 @@ namespace CaroLAN
                             if (pendingMessages.Count > 0)
                             {
                                 data = pendingMessages.Dequeue();
-                                System.Diagnostics.Debug.WriteLine($"📦 Xử lý pending message: {data.Substring(0, Math.Min(100, data.Length))}...");
                             }
                             else
                             {
@@ -212,8 +204,6 @@ namespace CaroLAN
                             Thread.Sleep(10);
                             continue;
                         }
-                        
-                        System.Diagnostics.Debug.WriteLine($"📥 Sảnh chờ nhận: {data.Substring(0, Math.Min(100, data.Length))}...");
 
                         // ✅ Bỏ qua message phản hồi chung từ server
                         if (data.StartsWith("Server đã nhận:"))
@@ -505,7 +495,6 @@ namespace CaroLAN
                                 if (reconnected)
                                 {
                                     lblStatus.Text = "Đã kết nối lại sau lỗi!";
-                                    System.Diagnostics.Debug.WriteLine("✅ Reconnected after exception");
                                 }
                                 else
                                 {
@@ -525,8 +514,6 @@ namespace CaroLAN
                         break;
                     }
                 }
-
-                System.Diagnostics.Debug.WriteLine("🛑 Lobby listening thread stopped");
                 
                 // Dọn dẹp sau khi thread kết thúc
                 try
@@ -590,9 +577,9 @@ namespace CaroLAN
                     lblStatus.Text = $"Nhận lời mời từ {senderInfo}";
                 }));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine("Error in invitation: " + ex.Message);
+                // Bỏ qua lỗi
             }
         }
 
@@ -624,11 +611,8 @@ namespace CaroLAN
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"🔄 UpdateClientList được gọi với {clients.Length} client(s)");
-                
                 if (lstClients.InvokeRequired)
                 {
-                    System.Diagnostics.Debug.WriteLine("⚠️ UpdateClientList gọi từ thread khác, invoke lại");
                     lstClients.Invoke(new Action(() => UpdateClientList(clients)));
                     return;
                 }
@@ -637,7 +621,6 @@ namespace CaroLAN
 
                 if (clients.Length == 0 || string.IsNullOrEmpty(clients[0]))
                 {
-                    System.Diagnostics.Debug.WriteLine("ℹ️ Không có client nào để hiển thị");
                     return;
                 }
 
@@ -709,7 +692,6 @@ namespace CaroLAN
 
                     if (isMe)
                     {
-                        System.Diagnostics.Debug.WriteLine($"⏭️ Bỏ qua chính mình: {cleanClient}");
                         continue; // Bỏ qua chính mình
                     }
 
@@ -727,22 +709,16 @@ namespace CaroLAN
                 foreach (string client in availableClients)
                 {
                     lstClients.Items.Add(client);
-                    System.Diagnostics.Debug.WriteLine($"➕ Thêm client available: {client}");
                 }
 
                 // Thêm client busy xuống cuối
                 foreach (string client in busyClients)
                 {
                     lstClients.Items.Add(client);
-                    System.Diagnostics.Debug.WriteLine($"➕ Thêm client busy: {client}");
                 }
-                
-                System.Diagnostics.Debug.WriteLine($"✅ Hoàn thành UpdateClientList: {lstClients.Items.Count} item(s)");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Lỗi UpdateClientList: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                 MessageBox.Show($"Lỗi cập nhật danh sách: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -768,6 +744,8 @@ namespace CaroLAN
                 // Gửi yêu cầu tham gia phòng
                 socket.Send("JOIN_ROOM");
                 lblStatus.Text = "Đang tìm phòng...";
+                btnRequest.Enabled = false; // Vô hiệu hóa nút mời chơi trong lúc chờ
+                btnAccept.Enabled = false;
             }
             catch (Exception ex)
             {
@@ -784,7 +762,7 @@ namespace CaroLAN
             {
                 if (!listenThread.Join(2000)) // Đợi tối đa 2 giây
                 {
-                    System.Diagnostics.Debug.WriteLine("⚠️ Thread lobbyListening không dừng kịp thời");
+                    // Thread không dừng kịp thời
                 }
             }
 
@@ -803,6 +781,8 @@ namespace CaroLAN
                 {
                     // Khi form game đóng, hiện lại form sảnh chờ
                     this.Show();
+                    btnRequest.Enabled = true;
+                    btnAccept.Enabled = true;
 
                     // Reset trạng thái
                     isInRoom = false;
@@ -1224,7 +1204,7 @@ namespace CaroLAN
                 {
                     if (!listenThread.Join(2000))
                     {
-                        System.Diagnostics.Debug.WriteLine("Thread không dừng trong thời gian chờ");
+                        // Thread không dừng trong thời gian chờ
                     }
                 }
 
@@ -1516,7 +1496,6 @@ namespace CaroLAN
             catch (Exception ex)
             {
                 // Bỏ qua lỗi, không hiển thị message box vì đây là background operation
-                System.Diagnostics.Debug.WriteLine($"Lỗi khi tải lịch sử: {ex.Message}");
             }
         }
 
@@ -1525,8 +1504,6 @@ namespace CaroLAN
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("🔄 Đang thử reconnect...");
-                
                 string serverIP = txtIP.Text.Trim();
                 if (string.IsNullOrEmpty(serverIP))
                 {
@@ -1555,7 +1532,6 @@ namespace CaroLAN
                     lobbyListening();
                     
                     lblStatus.Text = "Đã kết nối lại thành công!";
-                    System.Diagnostics.Debug.WriteLine("✅ Reconnect thành công");
                     return true;
                 }
                 
@@ -1564,7 +1540,6 @@ namespace CaroLAN
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Lỗi reconnect: {ex.Message}");
                 UpdateConnectionState(false); // ✅ Disable các button
                 return false;
             }

@@ -131,29 +131,34 @@ namespace CaroLAN
                     // Nếu Poll = true nhưng Available = 0 → Socket đã bị đóng
                     if (socket.Available == 0)
                     {
-                        System.Diagnostics.Debug.WriteLine("⚠️ Poll returned true but Available = 0, socket likely closed");
                         isConnected = false;
                         return string.Empty;
                     }
                 }
-                
-                byte[] buffer = new byte[1024];
-                int recv = socket.Receive(buffer);
+                // Đọc toàn bộ dữ liệu hiện có trên socket (nhiều chunk có thể được gửi từ server)
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                byte[] buffer = new byte[2048];
 
-                if (recv == 0)
+                // Đảm bảo ít nhất một lần receive khi Poll/Available cho biết có dữ liệu
+                do
                 {
-                    // Server đã đóng kết nối
-                    System.Diagnostics.Debug.WriteLine("⚠️ Receive returned 0, connection closed");
-                    isConnected = false;
-                    return string.Empty;
-                }
+                    int recv = socket.Receive(buffer);
+                    if (recv == 0)
+                    {
+                        // Server đã đóng kết nối
+                        isConnected = false;
+                        break;
+                    }
 
-                string data = Encoding.UTF8.GetString(buffer, 0, recv);
+                    sb.Append(Encoding.UTF8.GetString(buffer, 0, recv));
+                    // Tiếp tục vòng lặp nếu vẫn còn dữ liệu chờ (socket.Available > 0)
+                } while (socket.Available > 0);
+
+                string data = sb.ToString();
                 return data;
             }
             catch (SocketException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"⚠️ SocketException in Receive: {ex.SocketErrorCode} - {ex.Message}");
                 if (ex.SocketErrorCode != SocketError.WouldBlock && 
                     ex.SocketErrorCode != SocketError.TimedOut)
                 {
@@ -164,14 +169,12 @@ namespace CaroLAN
             catch (ObjectDisposedException)
             {
                 // Socket đã bị dispose
-                System.Diagnostics.Debug.WriteLine("⚠️ ObjectDisposedException in Receive");
                 isConnected = false;
                 return string.Empty;
             }
             catch (Exception ex)
             {
                 // Các lỗi khác
-                System.Diagnostics.Debug.WriteLine($"⚠️ Exception in Receive: {ex.Message}");
                 isConnected = false;
                 return string.Empty;
             }
@@ -206,7 +209,6 @@ namespace CaroLAN
                     
                     if (hasReadEvent && socket.Available == 0)
                     {
-                        System.Diagnostics.Debug.WriteLine("⚠️ IsConnected: Poll detected closed connection");
                         isConnected = false;
                         return false;
                     }
@@ -215,19 +217,16 @@ namespace CaroLAN
                 }
                 catch (SocketException ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ SocketException in IsConnected: {ex.SocketErrorCode}");
                     isConnected = false;
                     return false;
                 }
                 catch (ObjectDisposedException)
                 {
-                    System.Diagnostics.Debug.WriteLine("⚠️ ObjectDisposedException in IsConnected");
                     isConnected = false;
                     return false;
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ Exception in IsConnected: {ex.Message}");
                     isConnected = false;
                     return false;
                 }
