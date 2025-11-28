@@ -180,6 +180,8 @@ namespace CaroLAN
                                 bool reconnected = TryReconnect();
                                 if (!reconnected)
                                 {
+                                    btnAccept.Enabled = true;
+                                    btnRequest.Enabled = true;
                                     btnConnect.Text = "Kết nối";
                                     btnConnect.Enabled = true;
                                     txtIP.Enabled = true;
@@ -768,6 +770,8 @@ namespace CaroLAN
                 // Gửi yêu cầu tham gia phòng
                 socket.Send("JOIN_ROOM");
                 lblStatus.Text = "Đang tìm phòng...";
+                btnRequest.Enabled = false; // Vô hiệu hóa nút mời chơi trong lúc chờ
+                btnAccept.Enabled = false;
             }
             catch (Exception ex)
             {
@@ -803,6 +807,8 @@ namespace CaroLAN
                 {
                     // Khi form game đóng, hiện lại form sảnh chờ
                     this.Show();
+                    btnRequest.Enabled = true;
+                    btnAccept.Enabled = true;
 
                     // Reset trạng thái
                     isInRoom = false;
