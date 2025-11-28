@@ -206,6 +206,7 @@ namespace CaroLAN
 
         private void EndGameDueToTimeout()
         {
+            SoundManager.PlayLoseSound();
             MessageBox.Show("⏰ Hết thời gian! Bạn đã thua lượt này.", "Thời gian hết", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             socket.Send("RESIGN");
             EndGame("Thua do hết thời gian");
@@ -248,6 +249,9 @@ namespace CaroLAN
                             {
                                 Invoke(new Action(() =>
                                 {
+                                    // ✅ Phát âm thanh đặt cờ của đối thủ
+                                    SoundManager.PlayMoveSound();
+                                    
                                     chessBoard.OtherPlayerMove(new Point(x, y));
                                     isMyTurn = true;
 
@@ -262,6 +266,7 @@ namespace CaroLAN
                         {
                             Invoke(new Action(() =>
                             {
+                                SoundManager.PlayWinSound();
                                 EndGame("🏆 Đối thủ đã đầu hàng! Bạn thắng!");
                             }));
                         }
@@ -271,6 +276,7 @@ namespace CaroLAN
                         {
                             Invoke(new Action(() =>
                             {
+                                SoundManager.PlayWinSound();
                                 StopTurnTimer();
                                 chessBoard.isGameOver = true;
                                 MessageBox.Show(
@@ -314,7 +320,9 @@ namespace CaroLAN
                             {
                                 Invoke(new Action(() =>
                                 {
+                                    SoundManager.PlayMoveSound();
                                     chessBoard.OtherPlayerMove(new Point(x, y));
+                                    SoundManager.PlayLoseSound();
                                     EndGame("😢 Bạn đã thua trận đấu này!");
                                 }));
                             }
@@ -324,6 +332,7 @@ namespace CaroLAN
                         {
                             Invoke(new Action(() =>
                             {
+                                SoundManager.PlayWinSound();
                                 EndGame("🎉 Chúc mừng, bạn đã thắng trận đấu!");
                             }));
                         }
@@ -383,6 +392,9 @@ namespace CaroLAN
                 return;
             }
             
+            // ✅ Phát âm thanh đặt cờ
+            SoundManager.PlayMoveSound();
+            
             // ✅ Luôn gửi GAME_MOVE, server sẽ kiểm tra thắng thua
             string messageToSend = $"GAME_MOVE:{e.X},{e.Y}";
 
@@ -411,9 +423,11 @@ namespace CaroLAN
 
         private void btnResign_Click(object sender, EventArgs e)
         {
+            SoundManager.PlayClickSound();
             var confirm = MessageBox.Show("🏳️ Bạn có chắc muốn đầu hàng?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (confirm == DialogResult.Yes)
             {
+                SoundManager.PlayLoseSound();
                 try
                 {
                     socket.Send("RESIGN");
@@ -487,6 +501,7 @@ namespace CaroLAN
             string text = txtChatInput.Text?.Trim() ?? string.Empty;
             if (string.IsNullOrEmpty(text)) return;
 
+            SoundManager.PlayClickSound();
             try
             {
                 socket.Send("CHAT:" + text);
@@ -510,7 +525,7 @@ namespace CaroLAN
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            UpdateSoundButtonsText();
         }
 
         private void pnlBoardContainer_Paint(object sender, PaintEventArgs e)
@@ -521,6 +536,33 @@ namespace CaroLAN
         private void pnlHeader_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+
+        // ✅ Cập nhật text cho các button âm thanh
+        private void UpdateSoundButtonsText()
+        {
+            btnToggleMusic.Text = SoundManager.MusicEnabled ? "🎵 Nhạc: BẬT" : "🔇 Nhạc: TẮT";
+            btnToggleSfx.Text = SoundManager.SfxEnabled ? "🔊 SFX: BẬT" : "🔈 SFX: TẮT";
+        }
+
+        // ✅ Xử lý toggle nhạc nền
+        private void btnToggleMusic_Click(object sender, EventArgs e)
+        {
+            SoundManager.PlayClickSound();
+            SoundManager.ToggleMusic();
+            UpdateSoundButtonsText();
+        }
+
+        // ✅ Xử lý toggle SFX
+        private void btnToggleSfx_Click(object sender, EventArgs e)
+        {
+            SoundManager.ToggleSfx();
+            UpdateSoundButtonsText();
+            
+            if (SoundManager.SfxEnabled)
+            {
+                SoundManager.PlayClickSound(); // Phát âm thanh test
+            }
         }
     }
 }

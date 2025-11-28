@@ -72,6 +72,8 @@
             lblPlayerOStatus = new Label();
             lblTimer = new Label();
             btnResign = new Button();
+            btnToggleMusic = new Button();
+            btnToggleSfx = new Button();
             pnlBoardContainer.SuspendLayout();
             pnlChat.SuspendLayout();
             pnlSidebar.SuspendLayout();
@@ -172,6 +174,8 @@
             pnlSidebar.Controls.Add(pnlPlayerX);
             pnlSidebar.Controls.Add(pnlPlayerO);
             pnlSidebar.Controls.Add(lblTimer);
+            pnlSidebar.Controls.Add(btnToggleMusic);
+            pnlSidebar.Controls.Add(btnToggleSfx);
             pnlSidebar.Controls.Add(btnResign);
             pnlSidebar.Location = new Point(12, 12);
             pnlSidebar.Name = "pnlSidebar";
@@ -296,13 +300,45 @@
             btnResign.FlatStyle = FlatStyle.Flat;
             btnResign.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             btnResign.ForeColor = Color.White;
-            btnResign.Location = new Point(32, 405);
+            btnResign.Location = new Point(32, 430);
             btnResign.Name = "btnResign";
-            btnResign.Size = new Size(209, 60);
+            btnResign.Size = new Size(209, 50);
             btnResign.TabIndex = 4;
             btnResign.Text = "🏳️ ĐẦU HÀNG";
             btnResign.UseVisualStyleBackColor = false;
             btnResign.Click += btnResign_Click;
+            // 
+            // btnToggleMusic
+            // 
+            btnToggleMusic.BackColor = Color.FromArgb(46, 204, 113);
+            btnToggleMusic.Cursor = Cursors.Hand;
+            btnToggleMusic.FlatAppearance.BorderSize = 0;
+            btnToggleMusic.FlatStyle = FlatStyle.Flat;
+            btnToggleMusic.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnToggleMusic.ForeColor = Color.White;
+            btnToggleMusic.Location = new Point(9, 385);
+            btnToggleMusic.Name = "btnToggleMusic";
+            btnToggleMusic.Size = new Size(125, 35);
+            btnToggleMusic.TabIndex = 5;
+            btnToggleMusic.Text = "🎵 Nhạc: BẬT";
+            btnToggleMusic.UseVisualStyleBackColor = false;
+            btnToggleMusic.Click += btnToggleMusic_Click;
+            // 
+            // btnToggleSfx
+            // 
+            btnToggleSfx.BackColor = Color.FromArgb(46, 204, 113);
+            btnToggleSfx.Cursor = Cursors.Hand;
+            btnToggleSfx.FlatAppearance.BorderSize = 0;
+            btnToggleSfx.FlatStyle = FlatStyle.Flat;
+            btnToggleSfx.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnToggleSfx.ForeColor = Color.White;
+            btnToggleSfx.Location = new Point(140, 385);
+            btnToggleSfx.Name = "btnToggleSfx";
+            btnToggleSfx.Size = new Size(119, 35);
+            btnToggleSfx.TabIndex = 6;
+            btnToggleSfx.Text = "🔊 SFX: BẬT";
+            btnToggleSfx.UseVisualStyleBackColor = false;
+            btnToggleSfx.Click += btnToggleSfx_Click;
             // 
             // Form1
             // 
@@ -333,5 +369,8 @@
         }
 
         #endregion
+
+        private Button btnToggleMusic;
+        private Button btnToggleSfx;
     }
 }

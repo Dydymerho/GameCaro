@@ -126,6 +126,8 @@ namespace CaroLAN
 
         private void btnConnect_Click_1(object sender, EventArgs e)
         {
+            SoundManager.PlayClickSound();
+            
             // NGẮT KẾT NỐI
             if (socket.IsConnected)
             {
@@ -727,6 +729,8 @@ namespace CaroLAN
         // button bat dau choi
         private void button3_Click(object sender, EventArgs e)
         {
+            SoundManager.PlayClickSound();
+            
             if (!socket.IsConnected)
             {
                 MessageBox.Show("Bạn chưa kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -829,6 +833,9 @@ namespace CaroLAN
         {
             try
             {
+                // ✅ Dừng nhạc nền khi đóng form
+                SoundManager.StopMusic();
+                
                 if (socket.IsConnected)
                 {
                     // Gửi tín hiệu rời phòng
@@ -873,6 +880,8 @@ namespace CaroLAN
         /// </summary>
         private void btnFindServers_Click(object sender, EventArgs e)
         {
+            SoundManager.PlayClickSound();
+            
             try
             {
                 lblStatus.Text = "🔍 Đang tìm server trong mạng LAN...";
@@ -1048,6 +1057,11 @@ namespace CaroLAN
 
         private void sanhCho_Load(object sender, EventArgs e)
         {
+            // ✅ Khởi tạo SoundManager và phát nhạc lobby
+            SoundManager.Initialize();
+            SoundManager.PlayLobbyMusic();
+            UpdateSoundButtonsText();
+            
             // ✅ Khởi tạo trạng thái ban đầu dựa trên kết nối
             UpdateConnectionState(socket.IsConnected);
             
@@ -1230,6 +1244,8 @@ namespace CaroLAN
         // ✅ Xử lý nút mời chơi
         private void btnRequest_Click(object sender, EventArgs e)
         {
+            SoundManager.PlayClickSound();
+            
             if (!socket.IsConnected)
             {
                 MessageBox.Show("Bạn chưa kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1282,6 +1298,8 @@ namespace CaroLAN
         // ✅ Xử lý nút chấp nhận
         private void btnAccept_Click(object sender, EventArgs e)
         {
+            SoundManager.PlayClickSound();
+            
             if (lstRequests.SelectedItem == null)
             {
                 MessageBox.Show("Vui lòng chọn một lời mời để chấp nhận!");
@@ -1456,6 +1474,8 @@ namespace CaroLAN
         // ✅ Làm mới lịch sử của tôi
         private void btnRefreshMy_Click(object sender, EventArgs e)
         {
+            SoundManager.PlayClickSound();
+            
             if (!socket.IsConnected)
             {
                 MessageBox.Show("Bạn chưa kết nối đến server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1542,6 +1562,38 @@ namespace CaroLAN
             {
                 UpdateConnectionState(false); // ✅ Disable các button
                 return false;
+            }
+        }
+
+        // ✅ Cập nhật text cho các button âm thanh
+        private void UpdateSoundButtonsText()
+        {
+            btnToggleMusic.Text = SoundManager.MusicEnabled ? "🎵 Nhạc: BẬT" : "🔇 Nhạc: TẮT";
+            btnToggleSfx.Text = SoundManager.SfxEnabled ? "🔊 SFX: BẬT" : "🔈 SFX: TẮT";
+        }
+
+        // ✅ Xử lý toggle nhạc nền
+        private void btnToggleMusic_Click(object sender, EventArgs e)
+        {
+            SoundManager.PlayClickSound();
+            SoundManager.ToggleMusic();
+            UpdateSoundButtonsText();
+            
+            if (SoundManager.MusicEnabled)
+            {
+                SoundManager.PlayLobbyMusic();
+            }
+        }
+
+        // ✅ Xử lý toggle SFX
+        private void btnToggleSfx_Click(object sender, EventArgs e)
+        {
+            SoundManager.ToggleSfx();
+            UpdateSoundButtonsText();
+            
+            if (SoundManager.SfxEnabled)
+            {
+                SoundManager.PlayClickSound(); // Phát âm thanh test
             }
         }
     }

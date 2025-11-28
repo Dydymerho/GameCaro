@@ -63,6 +63,9 @@
             panelPlayers = new Panel();
             panelQuickMatch = new Panel();
             lblQuickMatchTitle = new Label();
+            btnToggleMusic = new Button();
+            btnToggleSfx = new Button();
+            panelSoundControls = new Panel();
             tabHistory.SuspendLayout();
             tabMyHistory.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvMyHistory).BeginInit();
@@ -368,6 +371,7 @@
             // 
             panelHeader.BackColor = Color.FromArgb(41, 128, 185);
             panelHeader.Controls.Add(lblTitle);
+            panelHeader.Controls.Add(panelSoundControls);
             panelHeader.Controls.Add(panelConnection);
             panelHeader.Dock = DockStyle.Top;
             panelHeader.Location = new Point(0, 0);
@@ -413,6 +417,48 @@
             lblConnectionTitle.Size = new Size(87, 19);
             lblConnectionTitle.TabIndex = 0;
             lblConnectionTitle.Text = "🔌 KẾT NỐI";
+            // 
+            // panelSoundControls
+            // 
+            panelSoundControls.BackColor = Color.FromArgb(52, 152, 219);
+            panelSoundControls.Controls.Add(btnToggleMusic);
+            panelSoundControls.Controls.Add(btnToggleSfx);
+            panelSoundControls.Dock = DockStyle.Right;
+            panelSoundControls.Location = new Point(660, 15);
+            panelSoundControls.Name = "panelSoundControls";
+            panelSoundControls.Padding = new Padding(10, 5, 10, 5);
+            panelSoundControls.Size = new Size(260, 70);
+            panelSoundControls.TabIndex = 2;
+            // 
+            // btnToggleMusic
+            // 
+            btnToggleMusic.BackColor = Color.FromArgb(46, 204, 113);
+            btnToggleMusic.FlatAppearance.BorderSize = 0;
+            btnToggleMusic.FlatStyle = FlatStyle.Flat;
+            btnToggleMusic.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnToggleMusic.ForeColor = Color.White;
+            btnToggleMusic.Location = new Point(10, 10);
+            btnToggleMusic.Name = "btnToggleMusic";
+            btnToggleMusic.Size = new Size(115, 50);
+            btnToggleMusic.TabIndex = 0;
+            btnToggleMusic.Text = "🎵 Nhạc: BẬT";
+            btnToggleMusic.UseVisualStyleBackColor = false;
+            btnToggleMusic.Click += btnToggleMusic_Click;
+            // 
+            // btnToggleSfx
+            // 
+            btnToggleSfx.BackColor = Color.FromArgb(46, 204, 113);
+            btnToggleSfx.FlatAppearance.BorderSize = 0;
+            btnToggleSfx.FlatStyle = FlatStyle.Flat;
+            btnToggleSfx.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnToggleSfx.ForeColor = Color.White;
+            btnToggleSfx.Location = new Point(135, 10);
+            btnToggleSfx.Name = "btnToggleSfx";
+            btnToggleSfx.Size = new Size(115, 50);
+            btnToggleSfx.TabIndex = 1;
+            btnToggleSfx.Text = "🔊 SFX: BẬT";
+            btnToggleSfx.UseVisualStyleBackColor = false;
+            btnToggleSfx.Click += btnToggleSfx_Click;
             // 
             // panelStatusBar
             // 
@@ -599,5 +645,8 @@
         private Panel panelHistoryControls;
         private Label lblHistoryStats;
         private Button btnRefreshMy;
+        private Panel panelSoundControls;
+        private Button btnToggleMusic;
+        private Button btnToggleSfx;
     }
 }
