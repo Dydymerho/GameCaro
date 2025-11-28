@@ -98,10 +98,7 @@ namespace CaroLAN
                 matrix[point.X, point.Y] = 2;
             }
 
-            // ✅ KIỂM TRA THẮNG CHO CHÍNH NGƯỜI VỪA ĐI
-            bool isWinner = CheckWin(point.X, point.Y);
-
-            // Gửi tọa độ nước đi ra ngoài
+            // Gửi tọa độ nước đi ra ngoài - Server sẽ kiểm tra thắng thua
             PlayerClicked?.Invoke(this, point);
 
             isPlayerTurn = false;
@@ -128,37 +125,6 @@ namespace CaroLAN
             }
 
             isPlayerTurn = true;
-        }
-
-        public bool CheckWin(int row, int col)
-        {
-            int player = matrix[row, col];
-            int[][] dirs = new int[] []
-            {
-                new int[]{0,1}, new int[]{1,0}, new int[]{1,1}, new int[]{1,-1}
-            };
-
-            foreach (var d in dirs)
-            {
-                int count = 1;
-                count += Count(row, col, d[0], d[1], player);
-                count += Count(row, col, -d[0], -d[1], player);
-                if (count >= 5) return true;
-            }
-            return false;
-        }
-
-        private int Count(int r, int c, int dr, int dc, int player)
-        {
-            int cnt = 0;
-            for (int i = 1; i < 5; i++)
-            {
-                int nr = r + dr * i, nc = c + dc * i;
-                if (nr < 0 || nc < 0 || nr >= BOARD_SIZE || nc >= BOARD_SIZE) break;
-                if (matrix[nr, nc] == player) cnt++;
-                else break;
-            }
-            return cnt;
         }
 
         public void ResetBoard()

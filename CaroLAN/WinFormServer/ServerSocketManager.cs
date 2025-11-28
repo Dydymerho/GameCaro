@@ -17,12 +17,16 @@ namespace WinFormServer
         private List<Thread> threads = new List<Thread>();
         private bool isRunning = false;
         private RoomManager roomManager;
-        private ConcurrentDictionary<string, GameInvitation> invitations; // ✅ Quản lý lời mời
-        private System.Threading.Timer invitationCleanupTimer; // ✅ Timer dọn dẹp lời mời hết hạn
-        private Action<string> globalLogAction; // ✅ Lưu log action
-        private Action globalUpdateClientListAction; // ✅ Lưu update action
-        private UserManager userManager; // ✅ Quản lý user
-        private ConcurrentDictionary<Socket, User> authenticatedUsers; // ✅ Lưu user đã đăng nhập
+        private ConcurrentDictionary<string, GameInvitation> invitations;
+        private System.Threading.Timer invitationCleanupTimer;
+        private Action<string> globalLogAction;
+        private Action globalUpdateClientListAction;
+        private UserManager userManager;
+        private ConcurrentDictionary<Socket, User> authenticatedUsers;
+        private ConcurrentDictionary<string, GameBoardState> roomBoards;
+        
+        // ✅ Thêm GameEngine để xử lý logic game
+        private GameEngine gameEngine;
 
         public ServerSocketManager(UserManager userManager)
         {
@@ -30,8 +34,11 @@ namespace WinFormServer
             roomManager = new RoomManager();
             invitations = new ConcurrentDictionary<string, GameInvitation>();
             authenticatedUsers = new ConcurrentDictionary<Socket, User>();
+            roomBoards = new ConcurrentDictionary<string, GameBoardState>();
             
-            // Khởi tạo timer để dọn dẹp lời mời hết hạn mỗi 2 giây
+            // ✅ Khởi tạo GameEngine (logAction sẽ được set sau)
+            gameEngine = new GameEngine(userManager, null);
+            
             invitationCleanupTimer = new System.Threading.Timer(CleanupExpiredInvitations, null, 2000, 2000);
         }
 
@@ -62,6 +69,9 @@ namespace WinFormServer
 
             globalLogAction = logAction;
             globalUpdateClientListAction = updateClientList;
+            
+            // ✅ Cập nhật logAction cho GameEngine
+            gameEngine = new GameEngine(userManager, logAction);
 
             logAction?.Invoke($"Server đang lắng nghe trên cổng {PORT}...");
 
@@ -173,11 +183,6 @@ namespace WinFormServer
                             logAction?.Invoke($"Lỗi xử lý CHAT: {ex.Message}");
                         }
                     }
-                    else if (message.StartsWith("GAME_WIN:")) // ✅ XỬ LÝ KHI CÓ NGƯỜI THẮNG
-                    {
-                        HandleGameWin(clientSocket, message, logAction);
-                        handled = true;
-                    }
                     else if (message == "RESIGN") // ✅ XỬ LÝ KHI NGƯỜI CHƠI ĐẦU HÀNG
                     {
                         HandleResign(clientSocket, logAction);
@@ -208,11 +213,6 @@ namespace WinFormServer
                         HandleRejectInvitation(clientSocket, message, logAction);
                         handled = true;
                     }
-                    else if (message == "GET_CLIENT_LIST") // XỬ LÝ YÊU CẦU DANH SÁCH CLIENT
-                    {
-                        SendClientListToClient(clientSocket, logAction);
-                        handled = true;
-                    }
                     else if (message == "DISCONNECT")
                     {
                         // Client yêu cầu ngắt kết nối
@@ -222,7 +222,6 @@ namespace WinFormServer
                     }
 
                     // Chỉ gửi phản hồi chung cho các message không được xử lý đặc biệt
-                    // ham nay giu lai tham khao, ko co tac dung nhieu
                     if (!handled && !string.IsNullOrEmpty(message))
                     {
                         string response = $"Server đã nhận: {message}";
@@ -248,6 +247,13 @@ namespace WinFormServer
             }
             finally
             {
+                // ✅ Xóa bàn cờ khi người chơi rời khỏi phòng
+                var room = roomManager.GetPlayerRoom(clientSocket);
+                if (room != null)
+                {
+                    roomBoards.TryRemove(room.RoomId, out _);
+                }
+                
                 roomManager.LeaveRoom(clientSocket);
                 
                 // Xóa các lời mời liên quan đến client này
@@ -475,10 +481,12 @@ namespace WinFormServer
                     SendClientListToAll(logAction);
                     globalUpdateClientListAction?.Invoke();
 
-                    // Khi đủ 2 người → bắt đầu game
+                    // Khi đủ 2 người → bắt đầu game và khởi tạo bàn cờ
                     if (room.IsFull() && !room.IsGameStarted)
                     {
                         room.IsGameStarted = true;
+                        // ✅ Khởi tạo bàn cờ cho phòng này
+                        roomBoards.TryAdd(room.RoomId, new GameBoardState());
                         roomManager.BroadcastToRoom(room.RoomId, "GAME_START");
                         logAction?.Invoke($"🔥 Bắt đầu game trong phòng {room.RoomId}");
                     }
@@ -494,83 +502,99 @@ namespace WinFormServer
             }
         }
 
-        // ✅ Truyền nước đi giữa 2 người chơi
+        // ✅ Refactor HandleGameMove để sử dụng GameEngine
         private void HandleGameMove(Socket clientSocket, string message, Action<string> logAction)
         {
             try
             {
                 var room = roomManager.GetPlayerRoom(clientSocket);
-                if (room != null && room.IsGameStarted)
+                if (room == null || !room.IsGameStarted)
                 {
-                    roomManager.BroadcastToRoom(room.RoomId, message, clientSocket);
-                    logAction?.Invoke($"➡️ Truyền nước đi trong phòng {room.RoomId}");
+                    SendToClient(clientSocket, "GAME_MOVE_FAILED:Bạn chưa trong phòng hoặc game chưa bắt đầu");
+                    return;
+                }
+
+                // Parse tọa độ
+                string[] parts = message.Substring("GAME_MOVE:".Length).Split(',');
+                if (parts.Length != 2 || !int.TryParse(parts[0], out int row) || !int.TryParse(parts[1], out int col))
+                {
+                    SendToClient(clientSocket, "GAME_MOVE_FAILED:Định dạng không hợp lệ");
+                    return;
+                }
+
+                // Lấy trạng thái bàn cờ
+                if (!roomBoards.TryGetValue(room.RoomId, out GameBoardState? boardState))
+                {
+                    logAction?.Invoke($"⚠️ Không tìm thấy bàn cờ cho phòng {room.RoomId}");
+                    return;
+                }
+
+                // ✅ XỬ LÝ NƯỚC ĐI QUA GAMEENGINE
+                var result = gameEngine.ProcessMove(
+                    boardState,
+                    room,
+                    clientSocket,
+                    row,
+                    col,
+                    GetAuthenticatedUser
+                );
+
+                // Kiểm tra lỗi
+                if (result.ErrorMessage != null)
+                {
+                    SendToClient(clientSocket, $"GAME_MOVE_FAILED:{result.ErrorMessage}");
+                    return;
+                }
+
+                // Xử lý kết quả
+                if (result.IsGameOver)
+                {
+                    HandleGameEnd(room, result, logAction);
+                }
+                else
+                {
+                    // Nước đi bình thường, chuyển cho đối thủ
+                    roomManager.BroadcastToRoom(room.RoomId, $"GAME_MOVE:{row},{col}", clientSocket);
+                    logAction?.Invoke($"➡️ Truyền nước đi [{row},{col}] trong phòng {room.RoomId}");
                 }
             }
             catch (Exception ex)
             {
                 logAction?.Invoke($"Lỗi GAME_MOVE: {ex.Message}");
+                SendToClient(clientSocket, $"GAME_MOVE_FAILED:{ex.Message}");
             }
         }
 
-        // ✅ Xử lý khi một người chơi tuyên bố thắng
-        private void HandleGameWin(Socket winnerSocket, string message, Action<string> logAction)
+        // ✅ Hàm helper xử lý khi game kết thúc
+        private void HandleGameEnd(GameRoom room, GameMoveResult result, Action<string> logAction)
         {
-            try
+            if (result.EndReason == GameEndReason.FiveInRow && result.Winner != null && result.Loser != null)
             {
-                var room = roomManager.GetPlayerRoom(winnerSocket);
-                if (room == null || !room.IsGameStarted) return;
+                // Gửi thông báo
+                SendToClient(result.Winner, "YOU_WON");
+                SendToClient(result.Loser, $"OPPONENT_WON:{result.LastMove.X},{result.LastMove.Y}");
 
-                string moveData = message.Substring("GAME_WIN:".Length);
-
-                Socket loserSocket = room.GetOpponent(winnerSocket);
-
-                User? winner = GetAuthenticatedUser(winnerSocket);
-                User? loser = GetAuthenticatedUser(loserSocket);
-
-                if (loserSocket.Connected)
-                {
-                    SendToClient(loserSocket, $"OPPONENT_WON:{moveData}");
-                }
-
-                SendToClient(winnerSocket, "YOU_WON");
-
-                if (winner != null)
-                {
-                    userManager.UpdateGameStats(winner.Id, true);
-                    logAction?.Invoke($"🏆 {winner.Username} thắng.");
-                }
-                if (loser != null)
-                {
-                    userManager.UpdateGameStats(loser.Id, false);
-                    logAction?.Invoke($"💀 {loser.Username} thua.");
-                }
-
-                // ✅ Lưu lịch sử đấu (player1 là người đầu tiên vào phòng, player2 là người thứ hai)
-                if (winner != null && loser != null && room.Players.Count >= 2)
-                {
-                    int player1Id = GetAuthenticatedUser(room.Players[0])?.Id ?? 0;
-                    int player2Id = GetAuthenticatedUser(room.Players[1])?.Id ?? 0;
-                    if (player1Id > 0 && player2Id > 0)
-                    {
-                        userManager.SaveMatchHistory(room.RoomId, player1Id, player2Id, winner.Id);
-                        logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {room.RoomId}");
-                        
-                        // ✅ Gửi lịch sử cập nhật cho winner và loser
-                        SendHistoryToUser(winnerSocket, logAction);
-                        SendHistoryToUser(loserSocket, logAction);
-                    }
-                }
-
-                SendClientListToAll(logAction);
-                globalUpdateClientListAction?.Invoke();
+                // Gửi lịch sử cập nhật
+                SendHistoryToUser(result.Winner, logAction);
+                SendHistoryToUser(result.Loser, logAction);
             }
-            catch (Exception ex)
+            else if (result.EndReason == GameEndReason.Draw)
             {
-                logAction?.Invoke($"Lỗi HandleGameWin: {ex.Message}");
+                // Hòa
+                roomManager.BroadcastToRoom(room.RoomId, "GAME_DRAW");
+                logAction?.Invoke($"🤝 Trận đấu trong phòng {room.RoomId} hòa");
             }
+
+            // Xóa bàn cờ
+            roomBoards.TryRemove(room.RoomId, out _);
+
+            SendClientListToAll(logAction);
+            globalUpdateClientListAction?.Invoke();
         }
 
-        // ✅ Xử lý khi người chơi đầu hàng
+        // ✅ Xóa HandleGameWin vì đã không sử dụng
+        
+        // ✅ Refactor HandleResign để sử dụng GameEngine
         private void HandleResign(Socket resignerSocket, Action<string> logAction)
         {
             try
@@ -578,43 +602,21 @@ namespace WinFormServer
                 var room = roomManager.GetPlayerRoom(resignerSocket);
                 if (room == null || !room.IsGameStarted) return;
 
-                Socket opponentSocket = room.GetOpponent(resignerSocket);
+                // ✅ XỬ LÝ ĐẦU HÀNG QUA GAMEENGINE
+                var result = gameEngine.ProcessResign(room, resignerSocket, GetAuthenticatedUser);
 
-                User? resigner = GetAuthenticatedUser(resignerSocket);
-                User? opponent = GetAuthenticatedUser(opponentSocket);
+                // Gửi thông báo
+                SendToClient(result.Winner, "OPPONENT_RESIGNED");
+                
+                // Gửi lịch sử cập nhật
+                SendHistoryToUser(result.Winner, logAction);
+                SendHistoryToUser(result.Loser, logAction);
 
-                // Người đầu hàng thua, đối thủ thắng
-                if (opponentSocket.Connected)
-                {
-                    SendToClient(opponentSocket, "RESIGN");
-                }
+                // Xóa bàn cờ
+                roomBoards.TryRemove(room.RoomId, out _);
 
-                if (resigner != null)
-                {
-                    userManager.UpdateGameStats(resigner.Id, false);
-                    logAction?.Invoke($"💀 {resigner.Username} đầu hàng.");
-                }
-                if (opponent != null)
-                {
-                    userManager.UpdateGameStats(opponent.Id, true);
-                    logAction?.Invoke($"🏆 {opponent.Username} thắng (đối thủ đầu hàng).");
-                }
-
-                // ✅ Lưu lịch sử đấu (player1 là người đầu tiên vào phòng, player2 là người thứ hai)
-                if (resigner != null && opponent != null && room.Players.Count >= 2)
-                {
-                    int player1Id = GetAuthenticatedUser(room.Players[0])?.Id ?? 0;
-                    int player2Id = GetAuthenticatedUser(room.Players[1])?.Id ?? 0;
-                    if (player1Id > 0 && player2Id > 0)
-                    {
-                        userManager.SaveMatchHistory(room.RoomId, player1Id, player2Id, opponent.Id);
-                        logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {room.RoomId}");
-                        
-                        // ✅ Gửi lịch sử cập nhật cho resigner và opponent
-                        SendHistoryToUser(resignerSocket, logAction);
-                        SendHistoryToUser(opponentSocket, logAction);
-                    }
-                }
+                SendClientListToAll(logAction);
+                globalUpdateClientListAction?.Invoke();
             }
             catch (Exception ex)
             {
@@ -638,43 +640,26 @@ namespace WinFormServer
                 if (room != null)
                 {
                     string roomId = room.RoomId;
-                    bool wasGameStarted = room.IsGameStarted;
-                    
-                    // ✅ Nếu game đã bắt đầu, lưu lịch sử (người rời thua, đối thủ thắng)
-                    if (wasGameStarted && room.Players.Count >= 2)
-                    {
-                        Socket opponentSocket = room.GetOpponent(clientSocket);
-                        User? leaver = GetAuthenticatedUser(clientSocket);
-                        User? opponent = GetAuthenticatedUser(opponentSocket);
 
-                        if (leaver != null && opponent != null)
-                        {
-                            userManager.UpdateGameStats(leaver.Id, false);
-                            userManager.UpdateGameStats(opponent.Id, true);
-                            
-                            // Xác định player1 và player2 dựa trên thứ tự vào phòng
-                            int player1Id = GetAuthenticatedUser(room.Players[0])?.Id ?? 0;
-                            int player2Id = GetAuthenticatedUser(room.Players[1])?.Id ?? 0;
-                            if (player1Id > 0 && player2Id > 0)
-                            {
-                                userManager.SaveMatchHistory(roomId, player1Id, player2Id, opponent.Id);
-                                logAction?.Invoke($"📝 Đã lưu lịch sử đấu: {roomId} (người rời thua)");
-                                
-                                // ✅ Gửi lịch sử cập nhật cho leaver và opponent
-                                SendHistoryToUser(clientSocket, logAction);
-                                SendHistoryToUser(opponentSocket, logAction);
-                            }
-                        }
+                    // ✅ XỬ LÝ RỜI PHÒNG QUA GAMEENGINE
+                    var result = gameEngine.ProcessDisconnect(room, clientSocket, GetAuthenticatedUser);
+
+                    if (result != null)
+                    {
+                        // Game đã bắt đầu → có winner/loser
+                        SendHistoryToUser(result.Winner, logAction);
+                        SendHistoryToUser(result.Loser, logAction);
                     }
 
+                    // Xóa bàn cờ
+                    roomBoards.TryRemove(roomId, out _);
                     roomManager.LeaveRoom(clientSocket);
 
                     // Thông báo cho đối thủ
                     roomManager.BroadcastToRoom(roomId, "OPPONENT_LEFT");
 
                     logAction?.Invoke($"👋 {clientSocket.RemoteEndPoint} rời phòng {roomId}");
-                    
-                    // ✅ Cập nhật danh sách client khi có người rời phòng (trở lại trạng thái rảnh)
+
                     SendClientListToAll(logAction);
                     globalUpdateClientListAction?.Invoke();
                 }
@@ -756,7 +741,6 @@ namespace WinFormServer
             }
         }
 
-
         //Xử lý chấp nhận lời mời
         private void HandleAcceptInvitation(Socket receiverSocket, string message, Action<string> logAction)
         {
@@ -796,11 +780,11 @@ namespace WinFormServer
                 roomManager.JoinRoom(invitation.Sender, roomId);
                 roomManager.JoinRoom(invitation.Receiver, roomId);
 
+                // ✅ Khởi tạo bàn cờ cho phòng mới
+                roomBoards.TryAdd(roomId, new GameBoardState());
+
                 // ✅ GỬI THÔNG TIN VỊ TRÍ CHO CẢ HAI NGƯỜI CHƠI
-                // Người gửi lời mời (Sender) = người đầu tiên vào phòng = đi TRƯỚC (X)
                 SendToClient(invitation.Sender, $"INVITATION_ACCEPTED:{invitationId}:{roomId}:FIRST");
-                
-                // Người nhận lời mời (Receiver) = người thứ hai vào phòng = đi SAU (O)
                 SendToClient(invitation.Receiver, $"INVITATION_ACCEPTED:{invitationId}:{roomId}:SECOND");
 
                 // ✅ Đánh dấu game đã bắt đầu
@@ -815,7 +799,6 @@ namespace WinFormServer
 
                 logAction?.Invoke($"✔ Lời mời {invitationId} được chấp nhận → tạo phòng {roomId}. Sender đi trước (X), Receiver đi sau (O)");
 
-                // Cập nhật lại danh sách client (BUSY)
                 SendClientListToAll(logAction);
                 globalUpdateClientListAction?.Invoke();
             }

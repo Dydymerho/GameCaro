@@ -266,6 +266,37 @@ namespace CaroLAN
                             }));
                         }
 
+                        // ✅ XỬ LÝ KHI ĐỐI THỦ ĐẦU HÀNG (message từ server)
+                        if (data == "OPPONENT_RESIGNED")
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                StopTurnTimer();
+                                chessBoard.isGameOver = true;
+                                MessageBox.Show(
+                                    "🏳️ Đối thủ đã đầu hàng!\n\n🏆 Bạn chiến thắng!",
+                                    "Chiến thắng",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information
+                                );
+                                
+                                // Tự động đóng form sau 2 giây
+                                System.Threading.Timer? closeTimer = null;
+                                closeTimer = new System.Threading.Timer((state) =>
+                                {
+                                    try
+                                    {
+                                        Invoke(new Action(() => this.Close()));
+                                    }
+                                    catch { }
+                                    finally
+                                    {
+                                        closeTimer?.Dispose();
+                                    }
+                                }, null, 2000, System.Threading.Timeout.Infinite);
+                            }));
+                        }
+
                         if (data == "OPPONENT_LEFT")
                         {
                             Invoke(new Action(() =>
@@ -351,8 +382,9 @@ namespace CaroLAN
                 MessageBox.Show("⚠️ Chưa đến lượt bạn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            bool isWinner = chessBoard.CheckWin(e.X, e.Y);
-            string messageToSend = isWinner ? $"GAME_WIN:{e.X},{e.Y}" : $"GAME_MOVE:{e.X},{e.Y}";
+            
+            // ✅ Luôn gửi GAME_MOVE, server sẽ kiểm tra thắng thua
+            string messageToSend = $"GAME_MOVE:{e.X},{e.Y}";
 
             try
             {
