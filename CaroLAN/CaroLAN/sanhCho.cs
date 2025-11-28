@@ -460,8 +460,36 @@ namespace CaroLAN
                         {
                             Invoke(new Action(() =>
                             {
-                                lblStatus.Text = "Không thể tham gia phòng!";
-                                MessageBox.Show("Không thể tham gia phòng. Vui lòng thử lại.", "Lỗi");
+                                lblStatus.Text = "Không thể tham gia phòng! Đang thử kết nối lại...";
+                                UpdateConnectionState(false); // ✅ Disable các button
+                                
+                                // ✅ Thử reconnect tự động
+                                bool reconnected = TryReconnect();
+                                
+                                if (reconnected)
+                                {
+                                    lblStatus.Text = "Đã kết nối lại thành công!";
+                                    // ✅ Yêu cầu cập nhật danh sách client sau khi reconnect
+                                    Task.Delay(300).ContinueWith(_ => 
+                                    {
+                                        try
+                                        {
+                                            if (socket.IsConnected)
+                                            {
+                                                socket.Send("GET_CLIENT_LIST");
+                                            }
+                                        }
+                                        catch { }
+                                    });
+                                }
+                                else
+                                {
+                                    // Reconnect thất bại
+                                    MessageBox.Show("Không thể tham gia phòng và không thể kết nối lại server.\n\nVui lòng kết nối lại thủ công.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    btnConnect.Text = "Kết nối";
+                                    btnConnect.Enabled = true;
+                                    txtIP.Enabled = true;
+                                }
                             }));
                         }
                     }
@@ -795,6 +823,26 @@ namespace CaroLAN
 
                     // ✅ Khởi động lại lobbyListening khi quay về
                     lobbyListening();
+
+                    // ✅ Yêu cầu cập nhật danh sách client sau khi quay về sảnh chờ
+                    Task.Delay(300).ContinueWith(_ => 
+                    {
+                        try
+                        {
+                            if (socket.IsConnected)
+                            {
+                                socket.Send("GET_CLIENT_LIST");
+                                Invoke(new Action(() =>
+                                {
+                                    lblStatus.Text = "Đang cập nhật danh sách người chơi...";
+                                }));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log error if needed
+                        }
+                    });
 
                     // ✅ Tự động cập nhật lịch sử sau khi game kết thúc (đợi 1 giây để đảm bảo server đã lưu)
                     System.Threading.Timer? historyUpdateTimer = null;

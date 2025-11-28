@@ -52,6 +52,9 @@
             btnRefreshMy = new Button();
             panelHeader = new Panel();
             lblTitle = new Label();
+            panelSoundControls = new Panel();
+            btnToggleMusic = new Button();
+            btnToggleSfx = new Button();
             panelConnection = new Panel();
             lblConnectionTitle = new Label();
             panelStatusBar = new Panel();
@@ -63,14 +66,12 @@
             panelPlayers = new Panel();
             panelQuickMatch = new Panel();
             lblQuickMatchTitle = new Label();
-            btnToggleMusic = new Button();
-            btnToggleSfx = new Button();
-            panelSoundControls = new Panel();
             tabHistory.SuspendLayout();
             tabMyHistory.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvMyHistory).BeginInit();
             panelHistoryControls.SuspendLayout();
             panelHeader.SuspendLayout();
+            panelSoundControls.SuspendLayout();
             panelConnection.SuspendLayout();
             panelStatusBar.SuspendLayout();
             panelMain.SuspendLayout();
@@ -393,31 +394,6 @@
             lblTitle.TabIndex = 0;
             lblTitle.Text = "🎮 GAME CARO";
             // 
-            // panelConnection
-            // 
-            panelConnection.BackColor = Color.FromArgb(52, 152, 219);
-            panelConnection.Controls.Add(lblConnectionTitle);
-            panelConnection.Controls.Add(txtIP);
-            panelConnection.Controls.Add(btnFindServers);
-            panelConnection.Controls.Add(btnConnect);
-            panelConnection.Dock = DockStyle.Right;
-            panelConnection.Location = new Point(920, 15);
-            panelConnection.Name = "panelConnection";
-            panelConnection.Padding = new Padding(10, 5, 10, 5);
-            panelConnection.Size = new Size(260, 70);
-            panelConnection.TabIndex = 1;
-            // 
-            // lblConnectionTitle
-            // 
-            lblConnectionTitle.AutoSize = true;
-            lblConnectionTitle.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
-            lblConnectionTitle.ForeColor = Color.White;
-            lblConnectionTitle.Location = new Point(10, 5);
-            lblConnectionTitle.Name = "lblConnectionTitle";
-            lblConnectionTitle.Size = new Size(87, 19);
-            lblConnectionTitle.TabIndex = 0;
-            lblConnectionTitle.Text = "🔌 KẾT NỐI";
-            // 
             // panelSoundControls
             // 
             panelSoundControls.BackColor = Color.FromArgb(52, 152, 219);
@@ -459,6 +435,31 @@
             btnToggleSfx.Text = "🔊 SFX: BẬT";
             btnToggleSfx.UseVisualStyleBackColor = false;
             btnToggleSfx.Click += btnToggleSfx_Click;
+            // 
+            // panelConnection
+            // 
+            panelConnection.BackColor = Color.FromArgb(52, 152, 219);
+            panelConnection.Controls.Add(lblConnectionTitle);
+            panelConnection.Controls.Add(txtIP);
+            panelConnection.Controls.Add(btnFindServers);
+            panelConnection.Controls.Add(btnConnect);
+            panelConnection.Dock = DockStyle.Right;
+            panelConnection.Location = new Point(920, 15);
+            panelConnection.Name = "panelConnection";
+            panelConnection.Padding = new Padding(10, 5, 10, 5);
+            panelConnection.Size = new Size(260, 70);
+            panelConnection.TabIndex = 1;
+            // 
+            // lblConnectionTitle
+            // 
+            lblConnectionTitle.AutoSize = true;
+            lblConnectionTitle.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            lblConnectionTitle.ForeColor = Color.White;
+            lblConnectionTitle.Location = new Point(10, 5);
+            lblConnectionTitle.Name = "lblConnectionTitle";
+            lblConnectionTitle.Size = new Size(87, 19);
+            lblConnectionTitle.TabIndex = 0;
+            lblConnectionTitle.Text = "🔌 KẾT NỐI";
             // 
             // panelStatusBar
             // 
@@ -591,6 +592,7 @@
             panelHistoryControls.PerformLayout();
             panelHeader.ResumeLayout(false);
             panelHeader.PerformLayout();
+            panelSoundControls.ResumeLayout(false);
             panelConnection.ResumeLayout(false);
             panelConnection.PerformLayout();
             panelStatusBar.ResumeLayout(false);
