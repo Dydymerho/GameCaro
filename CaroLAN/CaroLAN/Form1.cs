@@ -420,7 +420,7 @@ namespace CaroLAN
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Lỗi khi gửi RESIGN: {ex.Message}");
+                    // Bỏ qua lỗi gửi
                 }
                 EndGame("🏳️ Bạn đã đầu hàng!");
             }
@@ -456,7 +456,7 @@ namespace CaroLAN
                 {
                     if (!listenThread.Join(1000))
                     {
-                        System.Diagnostics.Debug.WriteLine("Listen thread không dừng trong thời gian chờ");
+                        // Listen thread không dừng trong thời gian chờ
                     }
                 }
 

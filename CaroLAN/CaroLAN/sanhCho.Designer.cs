@@ -457,9 +457,9 @@
             lblHistoryTitle.ForeColor = Color.FromArgb(52, 73, 94);
             lblHistoryTitle.Location = new Point(20, 15);
             lblHistoryTitle.Name = "lblHistoryTitle";
-            lblHistoryTitle.Size = new Size(154, 28);
+            lblHistoryTitle.Size = new Size(194, 28);
             lblHistoryTitle.TabIndex = 0;
-            lblHistoryTitle.Text = "📊 Lịch sử đấu";
+            lblHistoryTitle.Text = "📊 Lịch sử gần đây";
             // 
             // panelPlayersAndInvites
             // 
