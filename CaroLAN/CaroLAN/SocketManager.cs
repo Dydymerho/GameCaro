@@ -135,18 +135,26 @@ namespace CaroLAN
                         return string.Empty;
                     }
                 }
-                
-                byte[] buffer = new byte[1024];
-                int recv = socket.Receive(buffer);
+                // Đọc toàn bộ dữ liệu hiện có trên socket (nhiều chunk có thể được gửi từ server)
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                byte[] buffer = new byte[2048];
 
-                if (recv == 0)
+                // Đảm bảo ít nhất một lần receive khi Poll/Available cho biết có dữ liệu
+                do
                 {
-                    // Server đã đóng kết nối
-                    isConnected = false;
-                    return string.Empty;
-                }
+                    int recv = socket.Receive(buffer);
+                    if (recv == 0)
+                    {
+                        // Server đã đóng kết nối
+                        isConnected = false;
+                        break;
+                    }
 
-                string data = Encoding.UTF8.GetString(buffer, 0, recv);
+                    sb.Append(Encoding.UTF8.GetString(buffer, 0, recv));
+                    // Tiếp tục vòng lặp nếu vẫn còn dữ liệu chờ (socket.Available > 0)
+                } while (socket.Available > 0);
+
+                string data = sb.ToString();
                 return data;
             }
             catch (SocketException ex)
