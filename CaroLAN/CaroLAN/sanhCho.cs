@@ -494,17 +494,32 @@ namespace CaroLAN
                         // Chỉ hiển thị lỗi nếu không phải do cancellation
                         if (!token.IsCancellationRequested)
                         {
-                            System.Diagnostics.Debug.WriteLine($"❌ Exception trong lobby listening: {ex.GetType().Name} - {ex.Message}");
-                            System.Diagnostics.Debug.WriteLine($"Stack: {ex.StackTrace}");
-                            
                             Invoke(new Action(() =>
                             {
-                                lblStatus.Text = "Lỗi kết nối!";
-                                MessageBox.Show($"Lỗi khi nhận dữ liệu từ server: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                btnConnect.Text = "Kết nối";
-                                btnConnect.Enabled = true;
-                                txtIP.Enabled = true;
-                                UpdateConnectionState(false); // ✅ Disable các button
+                                lblStatus.Text = "Lỗi không xác định! Đang thử kết nối lại...";
+                                UpdateConnectionState(false);
+
+                                // ✅ THỬ RECONNECT TỰ ĐỘNG
+                                bool reconnected = TryReconnect();
+
+                                if (reconnected)
+                                {
+                                    lblStatus.Text = "Đã kết nối lại sau lỗi!";
+                                    System.Diagnostics.Debug.WriteLine("✅ Reconnected after exception");
+                                }
+                                else
+                                {
+                                    // ✅ Reconnect thất bại → hiển thị lỗi
+                                    MessageBox.Show(
+                                        $"Lỗi khi nhận dữ liệu từ server:\n\n{ex.GetType().Name}\n{ex.Message}\n\nKhông thể kết nối lại. Vui lòng kết nối thủ công.",
+                                        "Lỗi",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error
+                                    );
+                                    btnConnect.Text = "Kết nối";
+                                    btnConnect.Enabled = true;
+                                    txtIP.Enabled = true;
+                                }
                             }));
                         }
                         break;
