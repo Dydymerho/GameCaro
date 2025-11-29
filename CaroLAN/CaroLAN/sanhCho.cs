@@ -87,7 +87,6 @@ namespace CaroLAN
                 }
                 catch
                 {
-                    // ignore parse errors
                 }
 
                 myEndPoint = socket.GetLocalEndPoint();
@@ -478,7 +477,7 @@ namespace CaroLAN
                                 lblStatus.Text = "Lỗi không xác định! Đang thử kết nối lại...";
                                 UpdateConnectionState(false);
 
-                                // ✅ THỬ RECONNECT TỰ ĐỘNG
+                                // THỬ RECONNECT TỰ ĐỘNG
                                 bool reconnected = TryReconnect();
 
                                 if (reconnected)
@@ -487,7 +486,7 @@ namespace CaroLAN
                                 }
                                 else
                                 {
-                                    // ✅ Reconnect thất bại → hiển thị lỗi
+                                    // Reconnect thất bại → hiển thị lỗi
                                     MessageBox.Show(
                                         $"Lỗi khi nhận dữ liệu từ server:\n\n{ex.GetType().Name}\n{ex.Message}\n\nKhông thể kết nối lại. Vui lòng kết nối thủ công.",
                                         "Lỗi",

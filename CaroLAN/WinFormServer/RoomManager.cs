@@ -11,7 +11,7 @@ namespace WinFormServer
     internal class RoomManager
     {
         private ConcurrentDictionary<string, GameRoom> rooms;
-        private ConcurrentDictionary<Socket, string> playerRooms; // Mapping player -> roomId
+        private ConcurrentDictionary<Socket, string> playerRooms; 
 
         public RoomManager()
         {
@@ -71,12 +71,11 @@ namespace WinFormServer
             // Xóa player khỏi room
             room.RemovePlayer(player);
 
-            // ✅ Nếu còn một người → xóa mapping VÀ xóa player khỏi room để họ hoàn toàn rời phòng
             if (room.Players.Count == 1)
             {
                 Socket remaining = room.Players[0];
                 playerRooms.TryRemove(remaining, out _);
-                room.RemovePlayer(remaining); // ✅ THÊM: Xóa player còn lại khỏi room
+                room.RemovePlayer(remaining); 
             }
 
             // Nếu phòng trống → xóa phòng
@@ -124,7 +123,7 @@ namespace WinFormServer
             }
         }
 
-        // Gửi tin nhắn từ sender tới các client khác trong cùng phòng (chat phòng / relay)
+        // Gửi tin nhắn từ sender tới các client khác trong cùng phòng
         public bool RelayMessage(Socket sender, string message)
         {
             var room = GetPlayerRoom(sender);
@@ -151,7 +150,7 @@ namespace WinFormServer
             return true;
         }
 
-        // Gửi tin nhắn riêng tới một client xác định bởi endpoint string (ví dụ "127.0.0.1:12345")
+        // Gửi tin nhắn riêng tới một client xác định bởi endpoint string 
         public bool SendPrivateMessage(Socket sender, string recipientEndpointString, string message)
         {
             var room = GetPlayerRoom(sender);

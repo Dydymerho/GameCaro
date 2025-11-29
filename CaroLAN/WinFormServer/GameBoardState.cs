@@ -38,10 +38,10 @@ namespace WinFormServer
 
             int[][] directions = new int[][]
             {
-                new int[]{0, 1},   // → Ngang
-                new int[]{1, 0},   // ↓ Dọc
-                new int[]{1, 1},   // ↘ Chéo chính
-                new int[]{1, -1}   // ↙ Chéo phụ
+                new int[]{0, 1},   // Ngang
+                new int[]{1, 0},   // Dọc
+                new int[]{1, 1},   // Chéo chính
+                new int[]{1, -1}   // Chéo phụ
             };
 
             foreach (var dir in directions)

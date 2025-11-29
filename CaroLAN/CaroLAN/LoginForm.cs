@@ -15,7 +15,7 @@ namespace CaroLAN
 
         private bool isLoggedIn;
         private string currentUsername = string.Empty;
-        private string currentPassword = string.Empty; // ✅ Lưu password để tự động đăng nhập lại
+        private string currentPassword = string.Empty;
         private int userId;
         private int totalGames;
         private int wins;

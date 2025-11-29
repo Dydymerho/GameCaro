@@ -8,9 +8,8 @@ namespace WinFormServer
     {
         ServerSocketManager? socket;
         UserManager? userManager;
-        BroadcastDiscovery? broadcastDiscovery; // Broadcast discovery
+        BroadcastDiscovery? broadcastDiscovery;
 
-        // database config localhost
         private const string DB_SERVER = "localhost";
         private const string DB_DATABASE = "gamecaro";
         private const string DB_USER = "root";
@@ -42,7 +41,7 @@ namespace WinFormServer
                 userManager = new UserManager(DB_SERVER, DB_DATABASE, DB_USER, DB_PASSWORD);
                 socket = new ServerSocketManager(userManager);
                 
-                // ✅ Khởi tạo broadcast discovery
+                // Khởi tạo broadcast discovery
                 broadcastDiscovery = new BroadcastDiscovery("GameCaro Server", ServerSocketManager.PORT);
                 
                 LogToTextBox("Server đã sẵn sàng. Nhấn 'Bat server' để bắt đầu server.");
@@ -70,7 +69,7 @@ namespace WinFormServer
             {
                 socket?.CreateServer(LogToTextBox, UpdateClientList);
                 
-                // ✅ Bắt đầu broadcast khi server chạy
+                // Bắt đầu broadcast khi server chạy
                 broadcastDiscovery?.Start();
                 LogToTextBox("Broadcast discovery đã được bật - Client có thể tự động tìm server!");
                 
@@ -92,7 +91,7 @@ namespace WinFormServer
         {
             try
             {
-                // ✅ Dừng broadcast trước
+                // Dừng broadcast trước
                 broadcastDiscovery?.Stop();
                 LogToTextBox("Broadcast discovery đã được tắt.");
                 

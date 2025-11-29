@@ -30,9 +30,9 @@ namespace CaroLAN
                 socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 
                 byte[] keepAliveValues = new byte[12];
-                BitConverter.GetBytes((uint)1).CopyTo(keepAliveValues, 0);  // enable
-                BitConverter.GetBytes((uint)60000).CopyTo(keepAliveValues, 4);  // keepalivetime (ms)
-                BitConverter.GetBytes((uint)30000).CopyTo(keepAliveValues, 8);  // keepaliveinterval (ms)
+                BitConverter.GetBytes((uint)1).CopyTo(keepAliveValues, 0);  
+                BitConverter.GetBytes((uint)60000).CopyTo(keepAliveValues, 4);  
+                BitConverter.GetBytes((uint)30000).CopyTo(keepAliveValues, 8);  
                 socket.IOControl(IOControlCode.KeepAliveValues, keepAliveValues, null);
                 
                 
