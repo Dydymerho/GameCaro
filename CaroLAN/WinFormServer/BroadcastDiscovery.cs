@@ -6,14 +6,10 @@ using System.Threading;
 
 namespace WinFormServer
 {
-    
-    /// Class để server gửi broadcast thông báo địa chỉ IP trong mạng LAN
-    /// Các client có thể lắng nghe để tự động tìm server
-    /// </summary>
     public class BroadcastDiscovery
     {
-        private const int BROADCAST_PORT = 9998; // Port dùng cho broadcast
-        private const int BROADCAST_INTERVAL = 3000; // Gửi broadcast mỗi 3 giây
+        private const int BROADCAST_PORT = 9998;
+        private const int BROADCAST_INTERVAL = 3000;
         
         private UdpClient? udpClient;
         private Thread? broadcastThread;
@@ -27,8 +23,6 @@ namespace WinFormServer
             this.gamePort = gamePort;
         }
         
-        
-        /// Bắt đầu gửi broadcast thông báo server
         public void Start()
         {
             if (isRunning)
@@ -38,10 +32,8 @@ namespace WinFormServer
             
             try
             {
-                // Bind vào địa chỉ cụ thể thay vì Any để tránh conflict
                 udpClient = new UdpClient();
                 udpClient.EnableBroadcast = true;
-                // Cho phép gửi đến nhiều interface
                 udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 isRunning = true;
                 
@@ -55,8 +47,6 @@ namespace WinFormServer
             }
         }
         
-        
-        /// Dừng gửi broadcast
         public void Stop()
         {
             isRunning = false;
@@ -78,26 +68,17 @@ namespace WinFormServer
             }
         }
         
-        
-        /// Vòng lặp gửi broadcast định kỳ
         private void BroadcastLoop()
         {
             while (isRunning)
             {
                 try
                 {
-                    // Lấy địa chỉ IP local của server
                     string localIP = GetLocalIPAddress();
                     
-                    // Tạo message broadcast: "GAMECARO_SERVER:<server_name>:<local_ip>:<game_port>"
                     string message = $"GAMECARO_SERVER:{serverName}:{localIP}:{gamePort}";
                     byte[] data = Encoding.UTF8.GetBytes(message);
                     
-                    // Gửi broadcast đến 255.255.255.255
-                    // IPEndPoint broadcastEndpoint = new IPEndPoint(IPAddress.Broadcast, BROADCAST_PORT);
-                    // udpClient?.Send(data, data.Length, broadcastEndpoint);
-                    
-                    // Gửi đến subnet broadcast 
                     string subnetBroadcast = GetSubnetBroadcast(localIP);
                     if (!string.IsNullOrEmpty(subnetBroadcast))
                     {
@@ -118,8 +99,6 @@ namespace WinFormServer
             }
         }
         
-        
-        /// Lấy địa chỉ IP local đầu tiên của máy tính trong mạng LAN
         private string GetLocalIPAddress()
         {
             try
@@ -127,7 +106,6 @@ namespace WinFormServer
                 string hostName = Dns.GetHostName();
                 IPAddress[] addresses = Dns.GetHostAddresses(hostName);
                 
-                // Tìm địa chỉ IPv4 đầu tiên không phải localhost
                 foreach (IPAddress address in addresses)
                 {
                     if (address.AddressFamily == AddressFamily.InterNetwork && 
@@ -142,9 +120,6 @@ namespace WinFormServer
             return "127.0.0.1";
         }
         
-        
-        /// Tính subnet broadcast address 
-        /// VD: 192.168.1.100 → 192.168.1.255
         private string GetSubnetBroadcast(string ipAddress)
         {
             try

@@ -2,9 +2,6 @@
 
 namespace WinFormServer
 {
-    /// <summary>
-    /// Quản lý trạng thái bàn cờ: ma trận, kiểm tra thắng thua 
-    /// </summary>
     internal class GameBoardState
     {
         private const int BOARD_SIZE = 15;
@@ -15,10 +12,6 @@ namespace WinFormServer
             matrix = new int[BOARD_SIZE, BOARD_SIZE];
         }
 
-        /// <summary>
-        /// Lấy giá trị ô tại vị trí (row, col)
-        /// </summary>
-        /// <returns>0 = trống, 1 = player 1 (X), 2 = player 2 (O), -1 = out of bounds</returns>
         public int GetCell(int row, int col)
         {
             if (!IsValidPosition(row, col))
@@ -26,10 +19,6 @@ namespace WinFormServer
             return matrix[row, col];
         }
 
-        /// <summary>
-        /// Đặt giá trị cho ô tại vị trí (row, col)
-        /// </summary>
-        /// <returns>true nếu đặt thành công, false nếu ô đã có quân hoặc vị trí không hợp lệ</returns>
         public bool SetCell(int row, int col, int value)
         {
             if (!IsValidPosition(row, col))
@@ -42,9 +31,6 @@ namespace WinFormServer
             return true;
         }
 
-        /// <summary>
-        /// Kiểm tra có 5 quân liên tiếp từ vị trí (row, col) không
-        /// </summary>
         public bool CheckWin(int row, int col, int player)
         {
             if (!IsValidPosition(row, col) || matrix[row, col] != player)
@@ -71,9 +57,6 @@ namespace WinFormServer
             return false;
         }
 
-        /// <summary>
-        /// Kiểm tra bàn cờ đã đầy chưa (hòa)
-        /// </summary>
         public bool IsBoardFull()
         {
             for (int i = 0; i < BOARD_SIZE; i++)
@@ -87,17 +70,11 @@ namespace WinFormServer
             return true;
         }
 
-        /// <summary>
-        /// Reset bàn cờ về trạng thái ban đầu
-        /// </summary>
         public void Reset()
         {
             Array.Clear(matrix, 0, matrix.Length);
         }
 
-        /// <summary>
-        /// Đếm số quân liên tiếp theo một hướng
-        /// </summary>
         private int CountInDirection(int row, int col, int deltaRow, int deltaCol, int player)
         {
             int count = 0;
@@ -117,25 +94,16 @@ namespace WinFormServer
             return count;
         }
 
-        /// <summary>
-        /// Kiểm tra vị trí có hợp lệ không
-        /// </summary>
         private bool IsValidPosition(int row, int col)
         {
             return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
         }
 
-        /// <summary>
-        /// Lấy snapshot của bàn cờ (để debug/logging)
-        /// </summary>
         public int[,] GetSnapshot()
         {
             return (int[,])matrix.Clone();
         }
 
-        /// <summary>
-        /// Lấy kích thước bàn cờ
-        /// </summary>
         public int GetBoardSize()
         {
             return BOARD_SIZE;

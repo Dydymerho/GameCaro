@@ -4,7 +4,6 @@ using System.Net.Sockets;
 
 namespace WinFormServer
 {
-    /// Quản lý toàn bộ logic game: xử lý nước đi, kiểm tra thắng thua, cập nhật stats
  
     internal class GameEngine
     {
@@ -29,24 +28,20 @@ namespace WinFormServer
                 LastMove = new Point(row, col)
             };
 
-            // Xác định người chơi (player 1 = X = 1, player 2 = O = 2)
             int playerValue = room.Players[0] == playerSocket ? 1 : 2;
 
-            // Kiểm tra ô đã được đánh chưa
             if (boardState.GetCell(row, col) != 0)
             {
                 result.ErrorMessage = "Ô này đã được đánh";
                 return result;
             }
 
-            // Đánh dấu nước đi
             if (!boardState.SetCell(row, col, playerValue))
             {
                 result.ErrorMessage = "Không thể đánh nước này";
                 return result;
             }
 
-            // Kiểm tra thắng thua
             bool isWinner = boardState.CheckWin(row, col, playerValue);
             bool isDraw = !isWinner && boardState.IsBoardFull();
 
@@ -57,21 +52,18 @@ namespace WinFormServer
                 result.Winner = playerSocket;
                 result.Loser = room.GetOpponent(playerSocket);
 
-                // Cập nhật stats và lịch sử
                 UpdateGameStats(room, result.Winner, result.Loser, getUserFunc);
             }
             else if (isDraw)
             {
                 result.IsGameOver = true;
                 result.EndReason = GameEndReason.Draw;
-                // Trong trường hợp hòa, không có winner/loser
                 logAction?.Invoke($"🤝 Trận đấu trong phòng {room.RoomId} hòa");
             }
 
             return result;
         }
 
-        /// Xử lý khi người chơi đầu hàng
         public GameEndResult ProcessResign(
             GameRoom room,
             Socket resignerSocket,
@@ -86,7 +78,6 @@ namespace WinFormServer
                 roomId: room.RoomId
             );
 
-            // Cập nhật stats
             UpdateGameStats(room, result.Winner, result.Loser, getUserFunc);
 
             logAction?.Invoke($"💀 {GetUsername(resignerSocket, getUserFunc)} đầu hàng trong phòng {room.RoomId}");
@@ -94,7 +85,6 @@ namespace WinFormServer
             return result;
         }
 
-        /// Xử lý khi người chơi rời phòng (ngắt kết nối)
         public GameEndResult? ProcessDisconnect(
             GameRoom room,
             Socket disconnectedSocket,
@@ -114,7 +104,6 @@ namespace WinFormServer
                 roomId: room.RoomId
             );
 
-            // Cập nhật stats
             UpdateGameStats(room, result.Winner, result.Loser, getUserFunc);
 
             logAction?.Invoke($"👋 {GetUsername(disconnectedSocket, getUserFunc)} rời phòng {room.RoomId} - đối thủ thắng");
@@ -122,7 +111,6 @@ namespace WinFormServer
             return result;
         }
 
-        /// Cập nhật thống kê và lưu lịch sử cho cả hai người chơi
         private void UpdateGameStats(
             GameRoom room,
             Socket? winnerSocket,
@@ -144,8 +132,6 @@ namespace WinFormServer
                 logAction?.Invoke($"💀 {loser.Username} thua");
             }
 
-            // Lưu lịch sử đấu - sử dụng trực tiếp winner/loser thay vì room.Players
-            // vì room.Players có thể đã thay đổi khi disconnect
             if (winner != null && loser != null)
             {
                 int winnerId = winner.Id;
@@ -153,7 +139,6 @@ namespace WinFormServer
 
                 if (winnerId > 0 && loserId > 0)
                 {
-                    // player1 = winner, player2 = loser
                     bool saved = userManager.SaveMatchHistory(room.RoomId, winnerId, loserId, winnerId);
                     if (saved)
                     {
@@ -175,7 +160,6 @@ namespace WinFormServer
             }
         }
 
-        /// Lấy username từ socket
         private string GetUsername(Socket socket, Func<Socket, User?> getUserFunc)
         {
             var user = getUserFunc(socket);

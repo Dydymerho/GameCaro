@@ -15,20 +15,16 @@ namespace WinFormServer
             connectionString = $"Server={server};Database={database};Uid={userId};Pwd={password};CharSet=utf8mb4;";
         }
 
-        // Kiểm tra và tạo database nếu chưa có
         public static bool InitializeDatabase(string server, string database, string userId, string password, Action<string>? logAction = null)
         {
             try
             {
-                // Kết nối đến MySQL server (không chỉ định database)
                 string serverConnectionString = $"Server={server};Uid={userId};Pwd={password};CharSet=utf8mb4;";
                 
                 using (MySqlConnection conn = new MySqlConnection(serverConnectionString))
                 {
                     conn.Open();
                     logAction?.Invoke("Đã kết nối đến MySQL server.");
-
-                    // Kiểm tra xem database có tồn tại không
                     string checkDbQuery = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{database}'";
                     using (MySqlCommand cmd = new MySqlCommand(checkDbQuery, conn))
                     {
@@ -36,7 +32,6 @@ namespace WinFormServer
                         
                         if (result == null)
                         {
-                            // Database chưa tồn tại, tạo mới
                             logAction?.Invoke($"Database '{database}' chưa tồn tại. Đang tạo database...");
                             string createDbQuery = $"CREATE DATABASE IF NOT EXISTS {database} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
                             using (MySqlCommand createCmd = new MySqlCommand(createDbQuery, conn))
@@ -50,14 +45,10 @@ namespace WinFormServer
                             logAction?.Invoke($"Database '{database}' đã tồn tại.");
                         }
                     }
-
-                    // Kết nối đến database vừa tạo/kiểm tra để tạo tables
                     string dbConnectionString = $"Server={server};Database={database};Uid={userId};Pwd={password};CharSet=utf8mb4;";
                     using (MySqlConnection dbConn = new MySqlConnection(dbConnectionString))
                     {
                         dbConn.Open();
-                        
-                        // Tạo bảng users nếu chưa có
                         string createUsersTable = @"
                             CREATE TABLE IF NOT EXISTS users (
                                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,8 +68,6 @@ namespace WinFormServer
                             cmd.ExecuteNonQuery();
                             logAction?.Invoke("Đã kiểm tra/tạo bảng 'users'.");
                         }
-
-                        // Tạo bảng game_history nếu chưa có
                         string createGameHistoryTable = @"
                             CREATE TABLE IF NOT EXISTS game_history (
                                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -122,12 +111,11 @@ namespace WinFormServer
             }
         }
 
-        // Đăng ký người dùng mới
+        // Đăng ký người
         public bool Register(string username, string password, string email = "")
         {
             try
             {
-                // Kiểm tra username đã tồn tại chưa
                 if (UserExists(username))
                 {
                     return false;
@@ -153,7 +141,6 @@ namespace WinFormServer
             }
             catch (Exception)
             {
-                // Bỏ qua lỗi
                 return false;
             }
         }
@@ -191,11 +178,8 @@ namespace WinFormServer
                                     Wins = reader.GetInt32("wins"),
                                     Losses = reader.GetInt32("losses")
                                 };
-
-                                // Cập nhật last_login
                                 reader.Close();
                                 UpdateLastLogin(user.Id);
-
                                 return user;
                             }
                         }
@@ -205,7 +189,6 @@ namespace WinFormServer
             }
             catch (Exception)
             {
-                // Bỏ qua lỗi
                 return null;
             }
         }
@@ -251,7 +234,6 @@ namespace WinFormServer
             }
             catch (Exception)
             {
-                // Bỏ qua lỗi
             }
         }
 
@@ -316,7 +298,6 @@ namespace WinFormServer
             }
             catch (Exception)
             {
-                // Bỏ qua lỗi
                 return null;
             }
         }
@@ -347,14 +328,12 @@ namespace WinFormServer
             }
             catch (Exception ex)
             {
-                // Log lỗi để debug
                 System.Diagnostics.Debug.WriteLine($"[SaveMatchHistory] ERROR: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[SaveMatchHistory] StackTrace: {ex.StackTrace}");
                 return false;
             }
         }
 
-        // Lấy lịch sử đấu của một user cụ thể
         public List<MatchHistory> GetUserMatchHistory(int userId, int limit = 100)
         {
             List<MatchHistory> history = new List<MatchHistory>();
@@ -405,7 +384,6 @@ namespace WinFormServer
             }
             catch (Exception)
             {
-                // Bỏ qua lỗi
             }
             return history;
         }
