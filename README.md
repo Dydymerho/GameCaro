@@ -72,7 +72,7 @@ GameCaro/
 
 
 
-### 2. Khoở chạy My SQL
+### 2. Khởi chạy My SQL
 
 
 ### 3. Build Project
